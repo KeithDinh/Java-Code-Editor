@@ -1,4 +1,4 @@
-Group member: Caleb Strain, Kiet Dinh, Tuyen Cao, Zach, Y Nguyen
+Group member: Caleb Strain, Kiet Dinh, Tuyen Cao, Zach Brewer, Y Nguyen
 
 This version is for 1st requirement submission
 
