@@ -52,7 +52,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 		pack(); 	//no idea what this is but without it, menu bar won't display on the frame
 		
 		
-		this.setSize(500,300);
+		this.setSize(700,600);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //close the GUI also terminate program
 		this.setVisible(true); 
 	
@@ -85,21 +85,14 @@ public class MainFrame extends JFrame implements ActionListener  {
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource() == create_project)
 		{
-			JFileChooser chooser = new JFileChooser();
-            chooser.setCurrentDirectory(new File("."));
-            int response= chooser.showOpenDialog(this); 		//show the browse box
-            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);	
-            if (response== JFileChooser.APPROVE_OPTION) 	//if Open button is hit
-            {
-            
-            }
+			create_project_function();
 		}
 		else if(e.getSource() == open_project)
 		{
 	            try {
 					open_project_function();
 				} catch (IOException e1) {
-					e1.printStackTrace();
+					System.out.println("Error of open project");
 				}
 		}
 		else if(e.getSource() == save_project) //Save all files
@@ -131,11 +124,16 @@ public class MainFrame extends JFrame implements ActionListener  {
             
            //create array of file with filter, then store all valid files in it
             files = new File(path).listFiles(javaFilter);
+            if(files == null)
+            {
+            	return;
+            }
             tab = new Tab[files.length];
             
             
             for(int i=0; i<files.length;i++)
             {
+            	System.out.println(files[i].getPath());
             	tab[i]= new Tab(readFileFromPath(files[i].getPath()), files[i].getName());
             	tab_bar.addTab(tab[i].tabName, tab[i].text_pane_with_scroll);
             	System.out.println(tab[i].tabName);
@@ -144,7 +142,47 @@ public class MainFrame extends JFrame implements ActionListener  {
             
         }  
 	}
-	
+	private void create_project_function()
+	{
+		
+		int response = JOptionPane.showConfirmDialog(null, "Choose a directory, this is where the project folder will be saved", null, JOptionPane.OK_CANCEL_OPTION);
+		if( response == JOptionPane.CANCEL_OPTION || response == JOptionPane.CLOSED_OPTION)
+			return;
+		
+		JFileChooser chooser = new JFileChooser();
+		chooser.setDialogTitle( "Select Project" );
+        chooser.setCurrentDirectory(new File("."));
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        
+       
+		if( chooser.showOpenDialog( this ) != JFileChooser.APPROVE_OPTION ) 
+			return;	
+		
+		String dir_path = chooser.getSelectedFile().getPath();
+		
+		// Name the Project Folder
+		
+		String folderName = JOptionPane.showInputDialog(null, "Choose a project name");
+		if( folderName == null )
+			return;
+		
+		if( new File( dir_path + "\\" + folderName ).exists() ) 
+		{
+			JOptionPane.showMessageDialog(null, "Project already exists", null, JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		
+		new File(dir_path+ "\\" + folderName).mkdir();
+		
+		if( !new File(dir_path + "\\" + folderName).exists() )
+		{
+			JOptionPane.showMessageDialog(null, "Cant't create project, possible illegal character(s)", null, JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		
+		dir_path += "\\" + folderName;	
+       
+	}
 	private void save_project_function()
 	{
 		for(int i=0; i<files.length;i++)
@@ -156,9 +194,10 @@ public class MainFrame extends JFrame implements ActionListener  {
 				writer.write(content);
 				writer.close();
 			} 
-		    catch (IOException e1) 
+		    catch (IOException e) 
 		    {
-				e1.printStackTrace();
+				JOptionPane.showConfirmDialog(null, e.getMessage(),"Error Writing File",
+						JOptionPane.DEFAULT_OPTION,JOptionPane.ERROR_MESSAGE);
 			}
 		    
         }
@@ -166,17 +205,15 @@ public class MainFrame extends JFrame implements ActionListener  {
 
 	private String readFileFromPath(String filePath) //put all content of file to a string
     {
-        StringBuilder contentBuilder = new StringBuilder();
- 
-        try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.UTF_8))
-        {
-            stream.forEach(s -> contentBuilder.append(s).append("\n"));
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
- 
-        return contentBuilder.toString();
+		String content = "";
+	    try
+	    {
+	        content = new String ( Files.readAllBytes( Paths.get(filePath) ) );
+	    }
+	    catch (IOException e)
+	    {
+	        e.printStackTrace();
+	    }
+	    return content;
     }
 }
