@@ -1,3 +1,7 @@
+Group member: Caleb Strain, Kiet Dinh, Tuyen Cao, Zach Brewer, Y Nguyen
+
+This version is for 1st requirement submission
+
 # Java-Code-Editor
 
 Important Notes:<br/>
