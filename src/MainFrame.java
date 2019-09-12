@@ -1,10 +1,11 @@
 
 import java.awt.event.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.FilenameFilter;
+import java.io.IOException;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -25,6 +26,8 @@ public class MainFrame extends JFrame implements ActionListener  {
 	JTextPane[] editorTextPanes;//=new JTextPane[10];
 	JScrollPane[] editorScrollPanes;//=new JScrollPane[10];
 	GridBagConstraints gridConstraints;
+	private String path;//remember the current directory of the src folder.
+						//I suggest to change "path" to "srcPath"
 	
 	////////////////////ONLY .java is acceptable//////////////////////
 	private FilenameFilter javaFilter = new FilenameFilter()
@@ -46,12 +49,11 @@ public class MainFrame extends JFrame implements ActionListener  {
 		//set layout manager for the main frame
 		getContentPane().setLayout(new GridBagLayout());
 		
+		
 		createMenuItem();
 		menuBar.add(file_menu);		//menubar(taskbar) > menu(File) > each menuButton(new,create,..)	
 		file_menu.setMnemonic('F');	
 		setJMenuBar(menuBar); 		//Add the menu bar to the frame
-		//javaClassPanels[0].setLayout(new GridBagLayout());
-		//javaClassTabPane.addTab("Main.java",javaClassPanels[0]);
 		//packs the layout onto the frame and makes the content visible
 		pack(); 	
 		
@@ -61,10 +63,20 @@ public class MainFrame extends JFrame implements ActionListener  {
 		(0.5*(screenSize.height-getHeight())),getWidth(),getHeight());
 		
 		this.setSize(500,300);
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //close the GUI also terminate program
+		//this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //close the GUI also terminate program
 		this.setVisible(true); 
-
+		//I think  we should add this function, in case we have to do
+		//save project, or ask user before closing. 
+		addWindowListener(new WindowAdapter(){
+			public void windowClosing(WindowEvent e){
+				exitForm(e);
+			}
+		});
 	}
+	
+	/**
+	 * Build FileMenu
+	 */
 	private void createMenuItem()
 	{
 		//////////////////////////Add menuButton to file menu/////////////////////////
@@ -90,6 +102,9 @@ public class MainFrame extends JFrame implements ActionListener  {
 	}
 	
 	
+	/**
+	 *
+	 */
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource() == create_project)
 		{
@@ -109,13 +124,17 @@ public class MainFrame extends JFrame implements ActionListener  {
 		}
 		else if(e.getSource() == save_project)
 		{
-			
+			save_project_function();
 		}
 		else if(e.getSource() == close_project)
 		{
-			
+			close_project_function();
 		}
 	}
+	
+	/**
+	 * This function implement actionPerformed when openMenuItem gets clicked
+	 */
 	private void open_project_function() {
 		JFileChooser chooser = new JFileChooser();
         chooser.setCurrentDirectory(new File("."));
@@ -123,15 +142,12 @@ public class MainFrame extends JFrame implements ActionListener  {
         int r = chooser.showOpenDialog(this);
         
         if (r == JFileChooser.APPROVE_OPTION) {
-            String path = chooser.getSelectedFile().getPath() + "\\src";
+            path = chooser.getSelectedFile().getPath() + "\\src";
             
           //create array of file with filter, then store all valid files in it
             File[] files = new File(path).listFiles(javaFilter);	
-            //chooser.addChoosableFileFilter(new FileNameExtensionFilter("class file","java"));//file types
-           //print to test
-            int numTabs=files.length;
-            
-            
+           //count
+             int numTabs=files.length;
     		//position tab pane
     		gridConstraints = new GridBagConstraints();
     		gridConstraints.gridx=0;
@@ -144,12 +160,16 @@ public class MainFrame extends JFrame implements ActionListener  {
     				javaClassTabPaneStateChanged(e);
     			}
     		});
-            
-            	javaClassPanels= new JPanel[numTabs];
+            //create a Tab Holder
+            javaClassPanels= new JPanel[numTabs];
             editorTextPanes= new JTextPane[numTabs];
+            //we don't really need an array of editor ScrollPane
+            //we can create it during the for loop. 
             editorScrollPanes= new JScrollPane[numTabs];
+            
+            //build Tabs 
             for(int i=0; i<numTabs;i++) {
-            	 javaClassPanels[i] = new JPanel();
+            	javaClassPanels[i] = new JPanel();
             	javaClassPanels[i].setLayout(new GridBagLayout());
             	editorTextPanes[i]= new JTextPane();
             	editorScrollPanes[i]= new JScrollPane();
@@ -162,20 +182,60 @@ public class MainFrame extends JFrame implements ActionListener  {
         		gridConstraints.insets= new Insets(5,5,5,5);
         		javaClassPanels[i].add(editorScrollPanes[i]);
         		javaClassTabPane.addTab(files[i].getName(), javaClassPanels[i]);
-            	//
+            	//read files to the text editor area
+        		try{
+        			//open input file
+    				FileReader inputFile = new FileReader(files[i]);
+    				editorTextPanes[i].read(inputFile,null);
+    				inputFile.close();
+    			}
+    			catch(IOException ex){
+    				JOptionPane.showConfirmDialog(null, ex.getMessage(),"Error Opening File",
+    						JOptionPane.DEFAULT_OPTION,JOptionPane.ERROR_MESSAGE);
+    			}//end catch
             }
 
             for (File file : files)
             {
-            	
                 System.out.println(file.getName() + " : " + file.getPath());
-                
                 
             }
             System.out.println("Directory: " + path);
         }  
 	}
+	
+	
+	/**
+	 * This function implements the action of the saveMenuItem
+	 */
+	private void save_project_function() {
+		for(int i=0;i<javaClassTabPane.getTabCount();i++) {
+			try {
+				//javaClassTabPane.setSelectedIndex(i);
+				FileWriter outputFile = new FileWriter(path+"\\"+javaClassTabPane.getTitleAt(i));
+				editorTextPanes[i].write(outputFile);
+			}catch(IOException e){
+				JOptionPane.showConfirmDialog(null, e.getMessage(),"Error Writing File",
+						JOptionPane.DEFAULT_OPTION,JOptionPane.ERROR_MESSAGE);
+			}
+		}
+	}
+	
+	private void close_project_function() {
+		//before closing, save project
+		save_project.doClick();
+		System.exit(0);
+	}
+	//We don't really need this function right now. 
 	private void javaClassTabPaneStateChanged(ChangeEvent e) {
 		
 	}
+	private void exitForm(WindowEvent e) {
+		//We should prompt to user in order to ask for saving the file or not
+		//Just suggest, it is up to y'all
+		save_project.doClick();
+		System.exit(0);
+	}
 }
+
+//Testing save function
