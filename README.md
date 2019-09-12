@@ -1,3 +1,5 @@
+Group member: Caleb Strain, Kiet Dinh, Tuyen Cao, Zach, Y Nguyen
+
 # Java-Code-Editor
 
 Important Notes:<br/>
