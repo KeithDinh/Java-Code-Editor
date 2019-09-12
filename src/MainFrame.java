@@ -4,7 +4,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FilenameFilter;
+import java.io.IOException;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -128,10 +130,7 @@ public class MainFrame extends JFrame implements ActionListener  {
           //create array of file with filter, then store all valid files in it
             File[] files = new File(path).listFiles(javaFilter);	
             //chooser.addChoosableFileFilter(new FileNameExtensionFilter("class file","java"));//file types
-           //print to test
             int numTabs=files.length;
-            
-            
     		//position tab pane
     		gridConstraints = new GridBagConstraints();
     		gridConstraints.gridx=0;
@@ -144,8 +143,8 @@ public class MainFrame extends JFrame implements ActionListener  {
     				javaClassTabPaneStateChanged(e);
     			}
     		});
-            
-            	javaClassPanels= new JPanel[numTabs];
+            //create a Tab Holder
+            javaClassPanels= new JPanel[numTabs];
             editorTextPanes= new JTextPane[numTabs];
             editorScrollPanes= new JScrollPane[numTabs];
             for(int i=0; i<numTabs;i++) {
@@ -163,6 +162,15 @@ public class MainFrame extends JFrame implements ActionListener  {
         		javaClassPanels[i].add(editorScrollPanes[i]);
         		javaClassTabPane.addTab(files[i].getName(), javaClassPanels[i]);
             	//
+        		try{//open input file
+    				FileReader inputFile = new FileReader(files[i]);
+    				editorTextPanes[i].read(inputFile,null);
+    				inputFile.close();
+    			}//end while
+    			catch(IOException ex){
+    				JOptionPane.showConfirmDialog(null, ex.getMessage(),"Error Opening File",
+    						JOptionPane.DEFAULT_OPTION,JOptionPane.ERROR_MESSAGE);
+    			}//end catch
             }
 
             for (File file : files)
