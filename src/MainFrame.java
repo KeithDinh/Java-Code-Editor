@@ -1,13 +1,22 @@
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JTabbedPane;
 
 
 public class MainFrame extends JFrame implements ActionListener  {
@@ -17,6 +26,10 @@ public class MainFrame extends JFrame implements ActionListener  {
 	private JMenuItem open_project;
 	private JMenuItem save_project;
 	private JMenuItem close_project;
+	private File[] files;
+	private JTabbedPane tab_bar = new JTabbedPane(JTabbedPane.TOP);
+	private Tab[] tab;
+	
 	
 	////////////////////ONLY .java is acceptable//////////////////////
 	private FilenameFilter javaFilter = new FilenameFilter()
@@ -42,8 +55,10 @@ public class MainFrame extends JFrame implements ActionListener  {
 		this.setSize(500,300);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //close the GUI also terminate program
 		this.setVisible(true); 
-
+	
+        getContentPane().add(tab_bar);
 	}
+	
 	private void createMenuItem()
 	{
 		//////////////////////////Add menuButton to file menu/////////////////////////
@@ -72,44 +87,96 @@ public class MainFrame extends JFrame implements ActionListener  {
 		{
 			JFileChooser chooser = new JFileChooser();
             chooser.setCurrentDirectory(new File("."));
-            int r = chooser.showOpenDialog(this); 		//show the browse box
+            int response= chooser.showOpenDialog(this); 		//show the browse box
             chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);	
-            if (r == JFileChooser.APPROVE_OPTION) 	//if Open button is hit
+            if (response== JFileChooser.APPROVE_OPTION) 	//if Open button is hit
             {
-            	System.out.println(chooser.getCurrentDirectory().getPath());
+            
             }
 		}
 		else if(e.getSource() == open_project)
 		{
-	            open_project_function();
+	            try {
+					open_project_function();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
 		}
-		else if(e.getSource() == save_project)
+		else if(e.getSource() == save_project) //Save all files
 		{
-			
+			save_project_function();
 		}
 		else if(e.getSource() == close_project)
 		{
-			
+			Object[] options = { "OK", "CANCEL" };
+			int result = JOptionPane.showOptionDialog(null, "Save before closing?", "Warning",
+			        JOptionPane.DEFAULT_OPTION, 
+			        JOptionPane.WARNING_MESSAGE,
+			        null, options, options[0]);
+			if(result==JOptionPane.YES_OPTION)
+	        {
+	        	save_project_function();
+	        }
+			tab_bar.removeAll();
 		}
 	}
-	private void open_project_function() {
-		JFileChooser chooser = new JFileChooser();
-        chooser.setCurrentDirectory(new File("."));
-        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        int r = chooser.showOpenDialog(this);
+	private void open_project_function() throws IOException {
+		JFileChooser chooser = new JFileChooser(); 						//this class is to open file/directory
+        chooser.setCurrentDirectory(new File(".")); 					//set current dir as window popup
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); 	//will save current dir/selected dir
+        int r = chooser.showOpenDialog(this); 
         
         if (r == JFileChooser.APPROVE_OPTION) {
             String path = chooser.getSelectedFile().getPath() + "\\src";
             
-          //create array of file with filter, then store all valid files in it
-            File[] files = new File(path).listFiles(javaFilter);	
+           //create array of file with filter, then store all valid files in it
+            files = new File(path).listFiles(javaFilter);
+            tab = new Tab[files.length];
             
-           //print to test
-            for (File file : files)
+            
+            for(int i=0; i<files.length;i++)
             {
-                System.out.println(file.getName() + " : " + file.getPath());
+            	tab[i]= new Tab(readFileFromPath(files[i].getPath()), files[i].getName());
+            	tab_bar.addTab(tab[i].tabName, tab[i].text_pane_with_scroll);
+            	System.out.println(tab[i].tabName);
             }
-            System.out.println("Directory: " + path);
+            
+            
         }  
 	}
+	
+	private void save_project_function()
+	{
+		for(int i=0; i<files.length;i++)
+        {
+			String content = tab[i].text_pane.getText();
+		    try 
+		    {
+		    	BufferedWriter writer = new BufferedWriter(new FileWriter(files[i].getPath()));
+				writer.write(content);
+				writer.close();
+			} 
+		    catch (IOException e1) 
+		    {
+				e1.printStackTrace();
+			}
+		    
+        }
+	}
+
+	private String readFileFromPath(String filePath) //put all content of file to a string
+    {
+        StringBuilder contentBuilder = new StringBuilder();
+ 
+        try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.UTF_8))
+        {
+            stream.forEach(s -> contentBuilder.append(s).append("\n"));
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+ 
+        return contentBuilder.toString();
+    }
 }
