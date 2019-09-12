@@ -46,7 +46,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 	{
 		super("TEXT EDITOR"); 		//Set Program's Name
 		createMenuItem();
-		menuBar.add(file_menu);		//menubar(taskbar) > menu(File) > each menuButton(new,create,..)	
+		menuBar.add(file_menu);		//MenuBar(TaskBar) > menu(File) > each menuButton(new,create,..)	
 				
 		setJMenuBar(menuBar); 		//Add the menu bar to the frame
 		pack(); 	//no idea what this is but without it, menu bar won't display on the frame
