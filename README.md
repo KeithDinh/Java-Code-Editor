@@ -29,6 +29,6 @@ File > New Project...<br/>
 
 This function creates a directory where the name is specified from user input. The method will automatically create a Main.java file<br/>
 
-Build > Compile && Build > Compile All<br/>
+Build > Compile & Build > Compile All<br/>
 
 Compiling a file will automatically save a file, because the function to compile requires the directory where the files are saved, thus it is necessary to save before compiling<br/>
