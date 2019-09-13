@@ -72,6 +72,10 @@ public class MainFrame extends JFrame implements ActionListener  {
 				exitForm(e);
 			}
 		});
+<<<<<<< HEAD
+=======
+
+>>>>>>> 8606e7bae5c80336f5a34e51f92ecec0f196c869
 	}
 	
 	/**
