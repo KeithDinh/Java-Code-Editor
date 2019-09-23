@@ -336,13 +336,13 @@ public class Main extends JFrame implements ActionListener, WindowListener, Docu
 
 		// File > Save All
 
-		miFileSaveAll = new JMenuItem( "Save All" );
-		miFileSaveAll.setMnemonic( KeyEvent.VK_A );
-		miFileSaveAll.setDisplayedMnemonicIndex( 5 );
-		miFileSaveAll.setAccelerator( KeyStroke.getKeyStroke( KeyEvent.VK_A, KeyEvent.CTRL_DOWN_MASK + KeyEvent.SHIFT_DOWN_MASK ) );
-		miFileSaveAll.setEnabled( false );
-		miFileSaveAll.addActionListener( this );
-		m.add( miFileSaveAll );
+		miFileSaveAll = new JMenuItem( "Save All" );		//create the save all (save project) item 
+		miFileSaveAll.setMnemonic( KeyEvent.VK_A );			
+		miFileSaveAll.setDisplayedMnemonicIndex( 5 );		//set the 5th char in String to uppercase
+		miFileSaveAll.setAccelerator( KeyStroke.getKeyStroke( KeyEvent.VK_A, KeyEvent.CTRL_DOWN_MASK + KeyEvent.SHIFT_DOWN_MASK ) );	//shortcut ctrl+shift+A
+		miFileSaveAll.setEnabled( false );					//gray out
+		miFileSaveAll.addActionListener( this );			//pass argument when click
+		m.add( miFileSaveAll );								//add this item to the File Menu
 		
 		// File > Exit
 
@@ -883,6 +883,9 @@ public class Main extends JFrame implements ActionListener, WindowListener, Docu
 			try { if( file != null ) file.close(); } catch( Exception ee ) { }
 		}
 	}
+	/////////////////////////////////////
+	//////KEITH : SAVE PROJECT///////////
+	/////////////////////////////////////
 	private void fileSaveAll()
 	{
 		if( currentSourceFileIndex < 0 )  // this should never happen
@@ -892,32 +895,42 @@ public class Main extends JFrame implements ActionListener, WindowListener, Docu
 			return;
 		}
 		
+		//create an object of FileWriter
 		FileWriter file = null;
 		
-		// set the cache of the currentSourceFileIndex or the current file being viewed
+		// cache is a string arraylist that store file index and its current content
+		//This code belows update the current editing file content by look for its index in the array, function set() will change the value of array at index
 		cache.set( currentSourceFileIndex, ta.getText() );
 		
+		
+		//loop through all files
+		// sourceFile is a file array store all files in the directory
 		for(int i = 0; i < sourceFiles.size(); i++) 
 		{
 			try
 			{
-				//sourceFiles.get( i ).setContents( cache.get( i ));
+				//get the path of the file and save it in variable file
 				file = new FileWriter( new File( sourceFiles.get( i ).getPath() ) );
+				
+				
+				//the code below will write the current contents in the array at the index i to the file with the path above
 				file.write( cache.get( i ) ); // sourceFiles.get( i ).getContents()
+				
+				//setModified will return true if you edit the text and its not yet saved, false if it is saved and you haven't modified anything after the save
 				sourceFiles.get( i ).setModified( false );
 			}
-			catch( Exception e )
+			catch( Exception e ) 	//exception is called when sourcefiles.get(i) does not return the file or cache.get(i) does not have the current index (out of bound)
 			{
 				e.printStackTrace();
 				JOptionPane.showConfirmDialog(null, "Unable to save files", null, JOptionPane.WARNING_MESSAGE);
 			}
 			finally
 			{
-				try { if( file != null ) file.close(); } catch( Exception ee ) { }
+				try { if( file != null ) file.close(); } catch( Exception ee ) { }			//close the file whether it is valid or not
 			}
 		}
-		miFileSave.setEnabled( false );
-		miFileSaveAll.setEnabled( false );
+		miFileSave.setEnabled( false );			//after saveAll, grayout both save and saveall
+		miFileSaveAll.setEnabled( false );		
 		return;
 	}
 	private void buildCompile() 
