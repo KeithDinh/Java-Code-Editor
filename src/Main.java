@@ -233,20 +233,20 @@ public class Main extends JFrame implements ActionListener, WindowListener, Docu
 	}
 	public void setFileSaveAllEnabled() 
 	{
-		if( sourceFiles == null )
+		if( sourceFiles == null )					//if there is no file in directory
 		{
-			miFileSaveAll.setEnabled( false );
+			miFileSaveAll.setEnabled( false );		//nothing to save
 			return;	
 		}
-		for( int i = 0; i < sourceFiles.size(); i++ )
+		for( int i = 0; i < sourceFiles.size(); i++ )		//loop through all files
 		{
-			if( sourceFiles.get( i ).isModified() )
+			if( sourceFiles.get( i ).isModified() )			//if ONE of the files is MODIFIED, set the save-all enable and return 
 			{
 				miFileSaveAll.setEnabled( true );
 				return;
 			}
 		}
-		miFileSaveAll.setEnabled( false );
+		miFileSaveAll.setEnabled( false );					//if NONE is modified, nothing to save
 	}
 
 	public Main()
@@ -335,14 +335,15 @@ public class Main extends JFrame implements ActionListener, WindowListener, Docu
 		m.add( miFileSave );
 
 		// File > Save All
-
+		//line 889		KEITH
 		miFileSaveAll = new JMenuItem( "Save All" );		//create the save all (save project) item 
 		miFileSaveAll.setMnemonic( KeyEvent.VK_A );			
 		miFileSaveAll.setDisplayedMnemonicIndex( 5 );		//set the 5th char in String to uppercase
 		miFileSaveAll.setAccelerator( KeyStroke.getKeyStroke( KeyEvent.VK_A, KeyEvent.CTRL_DOWN_MASK + KeyEvent.SHIFT_DOWN_MASK ) );	//shortcut ctrl+shift+A
 		miFileSaveAll.setEnabled( false );					//gray out
-		miFileSaveAll.addActionListener( this );			//pass argument when click
+		miFileSaveAll.addActionListener( this );			//pass argument when click, line 1067
 		m.add( miFileSaveAll );								//add this item to the File Menu
+		
 		
 		// File > Exit
 
@@ -841,26 +842,29 @@ public class Main extends JFrame implements ActionListener, WindowListener, Docu
 		
 	}
 	
-	// File > Save
-	
+	/////////////////////////////////////
+	//////KEITH : SAVE FILE///////////
+	/////////////////////////////////////
 	private void fileSave()
 	{
-		if( currentSourceFileIndex < 0 )  // this should never happen
+		if( currentSourceFileIndex < 0 )  // this should never happen(index of a file in the array is negative)
 		{
-			miFileSave.setEnabled( false );
-			miFileSaveAll.setEnabled( false );
+			miFileSave.setEnabled( false );			//unable to save file
+			miFileSaveAll.setEnabled( false );		//unable to save project
 			return;
 		}
 		
+		//FileWriter to write content to file
 		FileWriter file = null;
 		try
 		{
+			//create a file with the current file path, pass the file to object FileWriter (open the file to write basically)
 			file = new FileWriter( new File( sourceFiles.get( currentSourceFileIndex ).getPath() ) );
-			file.write( ta.getText() );
-			miFileSave.setEnabled( false );
-			sourceFiles.get( currentSourceFileIndex ).setModified( false );
+			file.write( ta.getText() );															//ta is the JTextArea, write the current content on the text area to the file
+			miFileSave.setEnabled( false );														//disable save (grayout)
+			sourceFiles.get( currentSourceFileIndex ).setModified( false );						//disable "modified" status after save
 			// DEBUG
-			for( int i = 0; i < sourceFiles.size(); i++ ) 
+			for( int i = 0; i < sourceFiles.size(); i++ ) 										//loop through all files to get what files already saved
 			{
 				if(sourceFiles.get( i ).isModified()) 
 				{
@@ -880,7 +884,7 @@ public class Main extends JFrame implements ActionListener, WindowListener, Docu
 		}
 		finally
 		{
-			try { if( file != null ) file.close(); } catch( Exception ee ) { }
+			try { if( file != null ) file.close(); } catch( Exception ee ) { }						//close the file
 		}
 	}
 	/////////////////////////////////////
@@ -888,10 +892,10 @@ public class Main extends JFrame implements ActionListener, WindowListener, Docu
 	/////////////////////////////////////
 	private void fileSaveAll()
 	{
-		if( currentSourceFileIndex < 0 )  // this should never happen
+		if( currentSourceFileIndex < 0 )  // this should never happen (index of a file in the array is negative)
 		{
-			miFileSave.setEnabled( false );
-			miFileSaveAll.setEnabled( false );
+			miFileSave.setEnabled( false );			//can't save file
+			miFileSaveAll.setEnabled( false );		//can;t save project
 			return;
 		}
 		
@@ -929,7 +933,7 @@ public class Main extends JFrame implements ActionListener, WindowListener, Docu
 				try { if( file != null ) file.close(); } catch( Exception ee ) { }			//close the file whether it is valid or not
 			}
 		}
-		miFileSave.setEnabled( false );			//after saveAll, grayout both save and saveall
+		miFileSave.setEnabled( false );			//after saveAll, grayout both save and save-all
 		miFileSaveAll.setEnabled( false );		
 		return;
 	}
