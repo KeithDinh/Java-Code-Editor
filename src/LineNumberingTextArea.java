@@ -24,7 +24,7 @@ public class LineNumberingTextArea extends JTextArea
 
     private String getLineNumbersText()
     {
-        int caretPosition = textArea.getDocument().getLength();
+        int caretPosition = textArea.getDocument().getLength();//return number of character in the document
         Element root = textArea.getDocument().getDefaultRootElement();
         StringBuilder lineNumbersTextBuilder = new StringBuilder();
         lineNumbersTextBuilder.append("1 ").append(System.lineSeparator());
