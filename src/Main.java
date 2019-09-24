@@ -8,7 +8,7 @@ import java.nio.charset.*;
 import javax.swing.event.*;
 import java.util.function.*;
 import javax.swing.border.*;
-//Adding this comment to see if i can push to the repository.ZB
+
 // For coloring change JTextArea to JTextPane, we will have to update the way that the line numbers work
 
 // TODO:
