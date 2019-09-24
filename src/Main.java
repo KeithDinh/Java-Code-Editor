@@ -25,7 +25,7 @@ public class Main extends JFrame implements ActionListener, WindowListener, Docu
 	private final static int height = 480; // 480 
 	private final static String fontName = "Courier New"; // will this work on linux?
 	private final static int fontSize = 14;
-
+	//Declare controls used
 	private JTextArea ta;
 	private LineNumberingTextArea lnt;
 	private JScrollPane sp;
@@ -54,10 +54,11 @@ public class Main extends JFrame implements ActionListener, WindowListener, Docu
 	private String projectDirectory;
 	private ArrayList<SourceFile> sourceFiles;
 	ArrayList<String> cache;
-	private int currentSourceFileIndex;
+	private int currentSourceFileIndex;//index of the current Source File is in ArrayList sourceFiles
 	private boolean compilationError = false;
 	private boolean switching = false;
 
+	
 	private class SourceFile
 	{
 		private String directory; // getDirectory returns the directory
@@ -139,33 +140,42 @@ public class Main extends JFrame implements ActionListener, WindowListener, Docu
 			return keyWordExists;
 		}
 		
-	}
+	}//end SourceFile class
+	
+	
+	/**Description: Switch the current source file to the source file fileName.
+	 * This function will check whether if the current source file is modified 
+	 * in order to save the current source file before switching to fileName source file.
+	 * @param String fileName is name of the file is 
+	 */
 	private void switchFile( String fileName ) 
 	{
 		switching = true;
-		boolean flag = miFileSaveAll.isEnabled();
+		boolean flag = miFileSaveAll.isEnabled();//check if Save All menuItem is enabled or not. 
 		int oldSourceFileIndex = currentSourceFileIndex;
-		boolean modified = sourceFiles.get( currentSourceFileIndex ).isModified(); 
+		boolean modified = sourceFiles.get( currentSourceFileIndex ).isModified(); //check modification mode 
 		
 		if( sourceFiles == null || sourceFiles.size() < 1 ) 
 		{
 			switching = false;
 			return;
 		}
-		
+		//temporarily store the currentSourceFile's content into cache at index currentSourceFileIndex
 		cache.set( currentSourceFileIndex, ta.getText() );
 		
 		for( int i = 0; i < sourceFiles.size(); i++ ) 
 		{
+			//find the index i of fileName in the ArrayList SourceFiles
 			if( sourceFiles.get( i ).getFileName().equals( fileName ) )
-			{
-				if( cache.get( i ) == null ) 
+			{	//pull the fileName's content from cache to main text area ta
+				if( cache.get( i ) == null )
 					ta.setText( " " );
 				else 
 					ta.setText( cache.get( i ) );
+				
 				miFileSave.setText( "Save " + fileName );
 				miBuildCompile.setText( "Compile " + fileName );
-				currentSourceFileIndex = i;
+				currentSourceFileIndex = i;//set currentSourceFileIndex equal to fileName's index
 				// keep original modified values
 				miFileSaveAll.setEnabled( flag );
 				sourceFiles.get( oldSourceFileIndex ).setModified( modified );
@@ -304,11 +314,11 @@ public class Main extends JFrame implements ActionListener, WindowListener, Docu
 		m.add( mi );
 		
 		// File > Close Project
-		
+		//build the "Close Project" menu item 
 		miCloseProject = new JMenuItem( "Close Project" );
 		miCloseProject.addActionListener( this );
-		miCloseProject.setEnabled( false );
-		m.add( miCloseProject );
+		miCloseProject.setEnabled( false );//set enable mode  to false when no  project is opened.
+		m.add( miCloseProject );//add Close Project menu item to File JMenu
 		
 		// File > New File
 		
@@ -1088,12 +1098,21 @@ public class Main extends JFrame implements ActionListener, WindowListener, Docu
 	
 	// File > Close Project
 	
+	/**Description: This function is to close the opened project. T
+	 * This function will check if there is any unsaved source file,and prompt to user 
+	 * to ask for further instruction in order to save or ignore the unsaved file.  
+	 */
 	public void CloseProject() 
 	{
 		if(miFileSaveAll.isEnabled() || miFileSave.isEnabled()) 
 		{
+			//ignore if windowClosing is clicked if there is unsaved file exists
 			setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-			int result = JOptionPane.showConfirmDialog(null, "You have unsaved work, do you want to save before closing?", null, JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+			//prompt to user and get option. 
+			int result = JOptionPane.showConfirmDialog(null, 
+					"You have unsaved work, do you want to save before closing?", 
+					null, JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+			
 			if(result == JOptionPane.YES_OPTION) 
 			{
 				fileSaveAll();
@@ -1101,7 +1120,7 @@ public class Main extends JFrame implements ActionListener, WindowListener, Docu
 			else if( result == JOptionPane.CANCEL_OPTION)
 				return;
 		}
-		
+		//deallocate memory and reset all the modes
 		cache.clear();
 		sourceFiles.clear();
 		view.removeAll(); 
@@ -1220,6 +1239,10 @@ public class Main extends JFrame implements ActionListener, WindowListener, Docu
 		miFileSaveAll.setEnabled( true );
 	}
 
+	
+	/**ENTRY TO PROGRAM
+	 * @param args
+	 */
 	public static void main( String[] args ) // driver method		
 	{
 		new Main().setVisible( true );
