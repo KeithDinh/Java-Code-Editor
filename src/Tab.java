@@ -39,21 +39,28 @@ public class Tab
 		
 	    textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
 	    SyntaxScheme scheme = textArea.getSyntaxScheme();
+	    scheme.getStyle(Token.OPERATOR).foreground = Color.RED;
+	    
+	    
+	    /////////////////////////////////////////////////////////////////////
 	    scheme.getStyle(Token.COMMENT_KEYWORD).foreground = Color.BLACK;
 	    scheme.getStyle(Token.SEPARATOR).foreground=Color.BLACK;
 	    scheme.getStyle(Token.LITERAL_BOOLEAN).foreground = Color.BLACK;
 	    scheme.getStyle(Token.LITERAL_BOOLEAN).foreground = Color.BLACK;
-        scheme.getStyle(Token.OPERATOR).foreground = Color.RED;
         scheme.getStyle(Token.ERROR_IDENTIFIER).foreground = Color.BLACK;
         scheme.getStyle(Token.ERROR_NUMBER_FORMAT).foreground = Color.BLACK;
         scheme.getStyle(Token.ERROR_STRING_DOUBLE).foreground = Color.BLACK;
         scheme.getStyle(Token.ERROR_CHAR).foreground = Color.BLACK;
         scheme.getStyle(Token.ERROR_CHAR).foreground = Color.BLACK;
+	    /////////////////////////////////////////////////////////////////////
 
 	    textArea.setCodeFoldingEnabled(true);
 	    textArea.setText(content);
 	    textArea.revalidate();
 	    text_area_with_scroll = new RTextScrollPane(textArea);
-        
+	}
+	
+	public String get_updated_content() {
+		return textArea.getText();
 	}
 }

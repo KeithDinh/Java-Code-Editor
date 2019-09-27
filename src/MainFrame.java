@@ -43,6 +43,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 	private JMenuItem cut;
 	private JMenuItem paste;
 	/////////////////////////////////
+	private String project_dir;
 
 	private ArrayList<File> files;
 	private JTabbedPane tab_bar = new JTabbedPane(JTabbedPane.TOP);
@@ -67,7 +68,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 		createMenuItem();
 		menuBar.add(project_menu);		//MenuBar(TaskBar) > menu(File) > each menuButton(new,create,..)	
 		menuBar.add(file_menu);
-		menuBar.add(edit_menu);
+		//menuBar.add(edit_menu);
 		
 		setJMenuBar(menuBar); 			//Add the menu bar to the frame
 		pack(); 						//no idea what this is but without it, menu bar won't display on the frame
@@ -160,7 +161,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 		////////////////////FILE////////////////////////////
 		else if(e.getSource() == create_file)
 		{
-			
+			create_file_function();
 		}
 		else if(e.getSource() == open_file)
 		{
@@ -172,13 +173,25 @@ public class MainFrame extends JFrame implements ActionListener  {
 		}
 		else if(e.getSource() == save_file)
 		{
-			
+			save_file_function();
 		}
 		else if(e.getSource() == close_file)
 		{
 			close_file_function();
 		}
-		//////////////////////////////////////////////////////
+		//////////////////////EDIT////////////////////////////////
+		else if(e.getSource() == copy)
+		{
+			
+		}
+		else if(e.getSource() == cut)
+		{
+			
+		}
+		else if(e.getSource() == paste)
+		{
+			
+		}
 	}
 	
 	////////////////////////PROJECT FUNCTION///////////////////////////////////
@@ -215,8 +228,9 @@ public class MainFrame extends JFrame implements ActionListener  {
             	System.out.println(tab.get(i).tabName);
             }
             
-            
-        }  
+            project_dir = path;
+        }
+        
 	}
 	private void create_project_function()
 	{
@@ -298,6 +312,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 
 	private void open_file_function() throws IOException 
 	{
+		System.out.println("///////OPENING FILE////////////");
 		JFileChooser chooser = new JFileChooser(); 						//this class is to open file/directory
         chooser.setCurrentDirectory(new File(".")); 					//set current dir as window popup
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY); 		//will save current dir/selected dir
@@ -310,6 +325,9 @@ public class MainFrame extends JFrame implements ActionListener  {
             
            //create array of file with filter, then store all valid files in it
             File single_file = new File(path);
+            
+            //files.add(single_file); //add file to the files array
+            
             System.out.println(path);
             if(single_file == null)
             	return;
@@ -321,59 +339,102 @@ public class MainFrame extends JFrame implements ActionListener  {
         	System.out.println(tab.get(tab.size()-1).tabName);
             
         }  
+        System.out.println("/////// END OPENING FILE////////////");
 	}
 	private void create_file_function()
 	{
-		
-		int response = JOptionPane.showConfirmDialog(null, "Choose a directory, this is where the project folder will be saved", null, JOptionPane.OK_CANCEL_OPTION);
-		if( response == JOptionPane.CANCEL_OPTION || response == JOptionPane.CLOSED_OPTION)
+		System.out.println("///////////////NEW FILE///////////////////////");
+		String fileName = JOptionPane.showInputDialog(null, "Enter the name of the new .java file", "Add File", JOptionPane.PLAIN_MESSAGE);
+		if( fileName == null ) // this means that user clicked cancel or nothing
 			return;
-		
-		JFileChooser chooser = new JFileChooser();
-		chooser.setDialogTitle( "Select Project" );
-        chooser.setCurrentDirectory(new File("."));
-        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        
-       
-		if( chooser.showOpenDialog( this ) != JFileChooser.APPROVE_OPTION ) 
-			return;	
-		
-		String dir_path = chooser.getSelectedFile().getPath();
-		
-		// Name the Project Folder
-		
-		String folderName = JOptionPane.showInputDialog(null, "Choose a project name");
-		if( folderName == null )
-			return;
-		
-		//Check if directory already exists
-		if( new File( dir_path + "\\" + folderName ).exists() ) 
+		if( !fileName.endsWith( ".java" ) )
 		{
-			JOptionPane.showMessageDialog(null, "Project already exists", null, JOptionPane.ERROR_MESSAGE);
+			fileName = fileName + ".java";
+		}
+		System.out.println(fileName);
+		
+		String temp = fileName.substring( 0, fileName.length() - 5);   
+		if( !Character.isLetter( temp.charAt( 0 ) ) || !temp.matches("[a-zA-Z0-9]*" ) )
+		{
+			JOptionPane.showMessageDialog(null, "Illegal character(s) in file name\nFile name can only contain letters and numbers and must start with a letter", null, JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		
-		//if not then create the desired directory
-		new File(dir_path+ "\\" + folderName).mkdir();
+
+//		for( int i = 0; i < files.size(); i++) 
+//		{
+//			if(fileName.equals(files.get(i).getName())) 
+//			{
+//				JOptionPane.showMessageDialog(null, "File already exists", null, JOptionPane.ERROR_MESSAGE);
+//				return;
+//			}
+//		}
 		
-		//
-		if( !new File(dir_path + "\\" + folderName).exists() )
+
+		FileWriter file = null;
+		if(project_dir == null)
 		{
-			JOptionPane.showMessageDialog(null, "Cant't create project, possible illegal character(s)", null, JOptionPane.ERROR_MESSAGE);
-			return;
+			int response = JOptionPane.showConfirmDialog(null, "Choose a directory, this is where the project folder will be saved", null, JOptionPane.OK_CANCEL_OPTION);
+			if( response == JOptionPane.CANCEL_OPTION || response == JOptionPane.CLOSED_OPTION)
+				return;
+			
+			JFileChooser chooser = new JFileChooser();
+			chooser.setDialogTitle( "Select Project" );
+	        chooser.setCurrentDirectory(new File("."));
+	        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+	        
+	       
+			if( chooser.showOpenDialog( this ) != JFileChooser.APPROVE_OPTION ) 
+				return;	
+			
+			project_dir = chooser.getSelectedFile().getPath();
 		}
 		
-		dir_path += "\\" + folderName;	
-       
+
+		String filePath = project_dir + "\\" + fileName;
+		
+		//-5 = remove ".java" to get the name only
+		String contents = "public class " + fileName.substring(0, fileName.length() - 5) + "\n{\n\n}"; 
+		
+		System.out.println(filePath);
+
+		try
+		{
+			file = new FileWriter( new File( filePath ) );
+			file.write( contents );
+		}
+		catch( Exception e )
+		{
+			e.printStackTrace();
+			JOptionPane.showConfirmDialog(null, "Unable to create file", null, JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+		finally
+		{
+			try { if( file != null ) file.close(); } catch( Exception ee ) { }
+		}
+		
+		//files.add(new File(filePath));
+		tab.add(new Tab(readFileFromPath(filePath), fileName, filePath));
+    	
+    	tab_bar.addTab(tab.get(tab.size()-1).tabName, tab.get(tab.size()-1).text_area_with_scroll);
+		System.out.println("///////////////END NEW FILE///////////////////////");
+
 	}
+	
+	
 	private void save_file_function()
 	{
 		int index_selected_tab = tab_bar.getSelectedIndex();
+		System.out.println(index_selected_tab);
 		Tab current_selected_tab = tab.get(index_selected_tab);
-		String content = current_selected_tab.content;
+		
+		/////////get current contents on the textArea///////////////
+		String content = current_selected_tab.get_updated_content();
+
 	    try 
 	    {
-	    	BufferedWriter writer = new BufferedWriter(new FileWriter(files.get(index_selected_tab).getPath()));
+	    	BufferedWriter writer = new BufferedWriter(new FileWriter(current_selected_tab.path));
 			writer.write(content);
 			writer.close();
 		} 
@@ -382,13 +443,15 @@ public class MainFrame extends JFrame implements ActionListener  {
 			JOptionPane.showConfirmDialog(null, e.getMessage(),"Error Writing File",JOptionPane.DEFAULT_OPTION,JOptionPane.ERROR_MESSAGE);
 		}
 	}
+	
+	
 	private void close_file_function()
 	{
 		int index_selected_tab = tab_bar.getSelectedIndex();
 		Tab current_selected_tab = tab.get(index_selected_tab);
 		tab_bar.remove(index_selected_tab);
 	}
-	////////////////////////EDIT FUNCTION///////////////////////////////////
+	//////////////////////////////EDIT FUNCTION///////////////////////////////////
 	private void copy_function() {}
 	private void cut_function() {}
 	private void paste_function() {}
