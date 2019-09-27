@@ -68,7 +68,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 		createMenuItem();
 		menuBar.add(project_menu);		//MenuBar(TaskBar) > menu(File) > each menuButton(new,create,..)	
 		menuBar.add(file_menu);
-		//menuBar.add(edit_menu);
+		menuBar.add(edit_menu);
 		
 		setJMenuBar(menuBar); 			//Add the menu bar to the frame
 		pack(); 						//no idea what this is but without it, menu bar won't display on the frame
