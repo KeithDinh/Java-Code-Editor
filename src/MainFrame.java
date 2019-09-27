@@ -27,6 +27,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 	
 	private JMenu file_menu = new JMenu("File");
 	private JMenu project_menu = new JMenu("Project");
+	private JMenu edit_menu = new JMenu("Edit");
 	/////////////////////////////////
 	private JMenuItem create_project;
 	private JMenuItem open_project;
@@ -38,6 +39,11 @@ public class MainFrame extends JFrame implements ActionListener  {
 	private JMenuItem save_file;
 	private JMenuItem close_file;
 	/////////////////////////////////
+	private JMenuItem copy;
+	private JMenuItem cut;
+	private JMenuItem paste;
+	/////////////////////////////////
+
 	private ArrayList<File> files;
 	private JTabbedPane tab_bar = new JTabbedPane(JTabbedPane.TOP);
 	private ArrayList<Tab> tab = new ArrayList<Tab>();
@@ -110,6 +116,20 @@ public class MainFrame extends JFrame implements ActionListener  {
 		close_file = new JMenuItem("Close File");
 		close_file.addActionListener(this);
 		file_menu.add(close_file);
+		
+		///////////////////////Add menuButton to edit menu////////////////////
+		copy = new JMenuItem("Copy");
+		copy.addActionListener(this);
+		edit_menu.add(copy);
+		
+		cut = new JMenuItem("Cut");
+		cut.addActionListener(this);
+		edit_menu.add(cut);
+		
+		paste = new JMenuItem("Paste");
+		paste.addActionListener(this);
+		edit_menu.add(paste);
+		////////////////////////////////////////////////////////////////////
 	}
 	
 	
