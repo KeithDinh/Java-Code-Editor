@@ -2,6 +2,8 @@ import java.awt.Component;
 import java.awt.Event;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -14,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -22,6 +26,10 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
+import javax.swing.text.DefaultEditorKit;
+import javax.swing.text.JTextComponent;
+import javax.swing.text.TextAction;
+
 
 
 public class MainFrame extends JFrame implements ActionListener  {
@@ -40,10 +48,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 	private JMenuItem open_file;
 	private JMenuItem save_file;
 	private JMenuItem close_file;
-	/////////////////////////////////
-	private JMenuItem copy;
-	private JMenuItem cut;
-	private JMenuItem paste;
+	
 	/////////////////////////////////
 	private String project_dir;
 
@@ -127,18 +132,8 @@ public class MainFrame extends JFrame implements ActionListener  {
 		close_file.addActionListener(this);
 		file_menu.add(close_file);
 		
-		///////////////////////Add menuButton to edit menu////////////////////
-		copy = new JMenuItem("Copy");
-		copy.addActionListener(this);
-		edit_menu.add(copy);
-		
-		cut = new JMenuItem("Cut");
-		cut.addActionListener(this);
-		edit_menu.add(cut);
-		
-		paste = new JMenuItem("Paste");
-		paste.addActionListener(this);
-		edit_menu.add(paste);
+		//Buid edit_menu with cutCopyPasteAction()
+		cutCopyPasteAction();
 		////////////////////////////////////////////////////////////////////
 	}
 	
@@ -186,19 +181,6 @@ public class MainFrame extends JFrame implements ActionListener  {
 		else if(e.getSource() == close_file)
 		{
 			close_file_function();
-		}
-		//////////////////////EDIT////////////////////////////////
-		else if(e.getSource() == copy)
-		{
-			
-		}
-		else if(e.getSource() == cut)
-		{
-			
-		}
-		else if(e.getSource() == paste)
-		{
-			
 		}
 	}
 	
@@ -493,5 +475,26 @@ public class MainFrame extends JFrame implements ActionListener  {
 		save_project.setAccelerator(KeyStroke.getKeyStroke('S',Event.CTRL_MASK));
 		open_project.setAccelerator(KeyStroke.getKeyStroke('O',Event.CTRL_MASK));
 		}
+	}
+
+	@SuppressWarnings("deprecation")
+	public void cutCopyPasteAction() {
+		Action cutAction = new DefaultEditorKit.CutAction();
+		Action copyAction = new DefaultEditorKit.CopyAction();
+		Action pasteAction = new DefaultEditorKit.PasteAction();
+		
+		cutAction.putValue(Action.NAME,"Cut");
+		cutAction.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke('X',Event.CTRL_MASK));
+		edit_menu.add(cutAction);
+		
+		copyAction.putValue(Action.NAME,"Copy");
+		copyAction.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke('C',Event.CTRL_MASK));
+		edit_menu.add(copyAction);
+		
+		pasteAction.putValue(Action.NAME,"Paste");
+		pasteAction.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke('V',Event.CTRL_MASK));
+		edit_menu.add(pasteAction);
+		
+		
 	}
 }
