@@ -27,6 +27,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 	
 	private JMenu file_menu = new JMenu("File");
 	private JMenu project_menu = new JMenu("Project");
+	private JMenu edit_menu = new JMenu("Edit");
 	/////////////////////////////////
 	private JMenuItem create_project;
 	private JMenuItem open_project;
@@ -38,6 +39,11 @@ public class MainFrame extends JFrame implements ActionListener  {
 	private JMenuItem save_file;
 	private JMenuItem close_file;
 	/////////////////////////////////
+	private JMenuItem copy;
+	private JMenuItem cut;
+	private JMenuItem paste;
+	/////////////////////////////////
+
 	private ArrayList<File> files;
 	private JTabbedPane tab_bar = new JTabbedPane(JTabbedPane.TOP);
 	private ArrayList<Tab> tab = new ArrayList<Tab>();
@@ -61,6 +67,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 		createMenuItem();
 		menuBar.add(project_menu);		//MenuBar(TaskBar) > menu(File) > each menuButton(new,create,..)	
 		menuBar.add(file_menu);
+		menuBar.add(edit_menu);
 		
 		setJMenuBar(menuBar); 			//Add the menu bar to the frame
 		pack(); 						//no idea what this is but without it, menu bar won't display on the frame
@@ -110,6 +117,20 @@ public class MainFrame extends JFrame implements ActionListener  {
 		close_file = new JMenuItem("Close File");
 		close_file.addActionListener(this);
 		file_menu.add(close_file);
+		
+		///////////////////////Add menuButton to edit menu////////////////////
+		copy = new JMenuItem("Copy");
+		copy.addActionListener(this);
+		edit_menu.add(copy);
+		
+		cut = new JMenuItem("Cut");
+		cut.addActionListener(this);
+		edit_menu.add(cut);
+		
+		paste = new JMenuItem("Paste");
+		paste.addActionListener(this);
+		edit_menu.add(paste);
+		////////////////////////////////////////////////////////////////////
 	}
 	
 	
@@ -160,7 +181,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 		//////////////////////////////////////////////////////
 	}
 	
-	
+	////////////////////////PROJECT FUNCTION///////////////////////////////////
 	private void open_project_function() throws IOException 
 	{
 		JFileChooser chooser = new JFileChooser(); 						//this class is to open file/directory
@@ -221,11 +242,13 @@ public class MainFrame extends JFrame implements ActionListener  {
 		if( folderName == null )
 			return;
 		
+		////////check if folder already exists///////////
 		if( new File( dir_path + "\\" + folderName ).exists() ) 
 		{
 			JOptionPane.showMessageDialog(null, "Project already exists", null, JOptionPane.ERROR_MESSAGE);
 			return;
 		}
+		////////////////////////////////////////////////
 		
 		new File(dir_path+ "\\" + folderName).mkdir();
 		
@@ -271,6 +294,8 @@ public class MainFrame extends JFrame implements ActionListener  {
 		tab_bar.removeAll();
 	}
 	
+	////////////////////////FILE FUNCTION///////////////////////////////////
+
 	private void open_file_function() throws IOException 
 	{
 		JFileChooser chooser = new JFileChooser(); 						//this class is to open file/directory
@@ -363,7 +388,10 @@ public class MainFrame extends JFrame implements ActionListener  {
 		Tab current_selected_tab = tab.get(index_selected_tab);
 		tab_bar.remove(index_selected_tab);
 	}
-	
+	////////////////////////EDIT FUNCTION///////////////////////////////////
+	private void copy_function() {}
+	private void cut_function() {}
+	private void paste_function() {}
 	private String readFileFromPath(String filePath) //put all content of file to a string
     {
 		String content = "";
