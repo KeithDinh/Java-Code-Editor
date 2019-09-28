@@ -63,4 +63,8 @@ public class Tab
 	public String get_updated_content() {
 		return textArea.getText();
 	}
+	public RSyntaxTextArea getRSTA() {
+		return textArea;
+	}
+	
 }
