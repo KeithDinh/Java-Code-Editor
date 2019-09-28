@@ -1,6 +1,9 @@
 import java.awt.Component;
+import java.awt.Event;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -13,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -20,6 +25,11 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
+import javax.swing.KeyStroke;
+import javax.swing.text.DefaultEditorKit;
+import javax.swing.text.JTextComponent;
+import javax.swing.text.TextAction;
+
 
 
 public class MainFrame extends JFrame implements ActionListener  {
@@ -38,11 +48,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 	private JMenuItem open_file;
 	private JMenuItem save_file;
 	private JMenuItem close_file;
-	/////////////////////////////////
-	private JMenuItem copy;
-	private JMenuItem cut;
-	private JMenuItem paste;
-	/////////////////////////////////
+	
 	private String project_dir;
 
 	private ArrayList<File> files;
@@ -66,6 +72,8 @@ public class MainFrame extends JFrame implements ActionListener  {
 	{
 		super("TEXT EDITOR"); 			//Set Program's Name
 		createMenuItem();
+		enableShortCutKeys(true);		//add shortcut keys 
+		
 		menuBar.add(project_menu);		//MenuBar(TaskBar) > menu(File) > each menuButton(new,create,..)	
 		menuBar.add(file_menu);
 		menuBar.add(edit_menu);
@@ -94,6 +102,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 		project_menu.add(open_project);
 		
 		save_project = new JMenuItem("Save Project (Save All)");
+		save_project.setEnabled(false);	
 		save_project.addActionListener(this);
 		project_menu.add(save_project);
 		
@@ -110,27 +119,19 @@ public class MainFrame extends JFrame implements ActionListener  {
 		open_file = new JMenuItem("Open File");
 		open_file.addActionListener(this);
 		file_menu.add(open_file);
+		project_menu.addSeparator();
 		
 		save_file = new JMenuItem("Save File (Save)");
+		save_file.setEnabled(false);//initialize save_file menuItem in disable mode when no file to be saved
 		save_file.addActionListener(this);
 		file_menu.add(save_file);
+		project_menu.addSeparator();
 		
 		close_file = new JMenuItem("Close File");
 		close_file.addActionListener(this);
 		file_menu.add(close_file);
 		
-		///////////////////////Add menuButton to edit menu////////////////////
-		copy = new JMenuItem("Copy");
-		copy.addActionListener(this);
-		edit_menu.add(copy);
-		
-		cut = new JMenuItem("Cut");
-		cut.addActionListener(this);
-		edit_menu.add(cut);
-		
-		paste = new JMenuItem("Paste");
-		paste.addActionListener(this);
-		edit_menu.add(paste);
+
 		////////////////////////////////////////////////////////////////////
 	}
 	
@@ -179,19 +180,6 @@ public class MainFrame extends JFrame implements ActionListener  {
 		{
 			close_file_function();
 		}
-		//////////////////////EDIT////////////////////////////////
-		else if(e.getSource() == copy)
-		{
-			
-		}
-		else if(e.getSource() == cut)
-		{
-			
-		}
-		else if(e.getSource() == paste)
-		{
-			
-		}
 	}
 	
 	////////////////////////PROJECT FUNCTION///////////////////////////////////
@@ -211,7 +199,7 @@ public class MainFrame extends JFrame implements ActionListener  {
             //aslist will convert the array into ArrayList type
             files = new ArrayList<File>(Arrays.asList(new File(path).listFiles(javaFilter)));
             if(files == null)
-            	return;
+            	return ;
             
             //Each file will be presented on a tab
             
@@ -230,8 +218,10 @@ public class MainFrame extends JFrame implements ActionListener  {
             
             project_dir = path;
         }
-        
+        save_project.setEnabled(true);
+        return ;
 	}
+  
 	private void create_project_function()
 	{
 		
@@ -285,12 +275,14 @@ public class MainFrame extends JFrame implements ActionListener  {
 		    	BufferedWriter writer = new BufferedWriter(new FileWriter(files.get(i).getPath()));
 				writer.write(content);
 				writer.close();
+				
 			} 
 		    catch (IOException e) 
 		    {
 				JOptionPane.showConfirmDialog(null, e.getMessage(),"Error Writing File",
 						JOptionPane.DEFAULT_OPTION,JOptionPane.ERROR_MESSAGE);
 			}
+		    
 		    
         }
 	}
@@ -339,6 +331,12 @@ public class MainFrame extends JFrame implements ActionListener  {
         	System.out.println(tab.get(tab.size()-1).tabName);
             
         }  
+        //if file is successfully created, change save_file menuItem to enable
+        if(!save_file.isEnabled()) {
+			save_file.setEnabled(true);
+		}
+====
+
         System.out.println("/////// END OPENING FILE////////////");
 	}
 	private void create_file_function()
@@ -468,4 +466,36 @@ public class MainFrame extends JFrame implements ActionListener  {
 	    }
 	    return content;
     }
+	
+	private void enableShortCutKeys(boolean enableMode) {
+		if(enableMode==true) {
+		project_menu.setMnemonic('P');
+		file_menu.setMnemonic('F');
+		edit_menu.setMnemonic('E');
+		create_project.setAccelerator(KeyStroke.getKeyStroke('N',Event.CTRL_MASK));
+		save_project.setAccelerator(KeyStroke.getKeyStroke('S',Event.CTRL_MASK));
+		open_project.setAccelerator(KeyStroke.getKeyStroke('O',Event.CTRL_MASK));
+		}
+	}
+
+	@SuppressWarnings("deprecation")
+	public void cutCopyPasteAction() {
+		Action cutAction = new DefaultEditorKit.CutAction();
+		Action copyAction = new DefaultEditorKit.CopyAction();
+		Action pasteAction = new DefaultEditorKit.PasteAction();
+		
+		cutAction.putValue(Action.NAME,"Cut");
+		cutAction.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke('X',Event.CTRL_MASK));
+		edit_menu.add(cutAction);
+		
+		copyAction.putValue(Action.NAME,"Copy");
+		copyAction.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke('C',Event.CTRL_MASK));
+		edit_menu.add(copyAction);
+		
+		pasteAction.putValue(Action.NAME,"Paste");
+		pasteAction.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke('V',Event.CTRL_MASK));
+		edit_menu.add(pasteAction);
+		
+		
+	}
 }
