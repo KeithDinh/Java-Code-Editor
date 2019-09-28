@@ -49,7 +49,6 @@ public class MainFrame extends JFrame implements ActionListener  {
 	private JMenuItem save_file;
 	private JMenuItem close_file;
 	
-	/////////////////////////////////
 	private String project_dir;
 
 	private ArrayList<File> files;
@@ -132,8 +131,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 		close_file.addActionListener(this);
 		file_menu.add(close_file);
 		
-		//Buid edit_menu with cutCopyPasteAction()
-		cutCopyPasteAction();
+
 		////////////////////////////////////////////////////////////////////
 	}
 	
@@ -223,6 +221,7 @@ public class MainFrame extends JFrame implements ActionListener  {
         save_project.setEnabled(true);
         return ;
 	}
+  
 	private void create_project_function()
 	{
 		
@@ -336,6 +335,8 @@ public class MainFrame extends JFrame implements ActionListener  {
         if(!save_file.isEnabled()) {
 			save_file.setEnabled(true);
 		}
+====
+
         System.out.println("/////// END OPENING FILE////////////");
 	}
 	private void create_file_function()
