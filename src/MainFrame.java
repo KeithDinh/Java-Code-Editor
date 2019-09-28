@@ -30,35 +30,64 @@ import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.TextAction;
 
+/* STRUCTURE: 
+ * 	Frame { Menu bar, Tab bar}
+ * 		Menu bar {Project, File, Edit}
+ * 		Tab bar {Tab[]}
+ *  		Tab { textArea, file, file_content, file_name, file_path}
+ */
 
-
-public class MainFrame extends JFrame implements ActionListener  {
-	private JMenuBar menuBar = new JMenuBar();
-	
-	private JMenu file_menu = new JMenu("File");
-	private JMenu project_menu = new JMenu("Project");
-	private JMenu edit_menu = new JMenu("Edit");
-	/////////////////////////////////
-	private JMenuItem create_project;
-	private JMenuItem open_project;
-	private JMenuItem save_project;
-	private JMenuItem close_project;
-	/////////////////////////////////
-	private JMenuItem create_file;
-	private JMenuItem open_file;
-	private JMenuItem save_file;
-	private JMenuItem close_file;
-	
-	private String project_dir;
-
-	private ArrayList<File> files;
+public class MainFrame extends JFrame implements ActionListener  
+{
+	/* ********************* CLASS MEMBERS *********************** */
 	private JTabbedPane tab_bar = new JTabbedPane(JTabbedPane.TOP);
-	private ArrayList<Tab> tab = new ArrayList<Tab>();
+	//{
+		private ArrayList<Tab> tab = new ArrayList<Tab>();
+	//}
+		
+	private JMenuBar menuBar = new JMenuBar();
+	//{
+		private JMenu file_menu = new JMenu("File");
+			//{
+				private JMenuItem create_project;
+				private JMenuItem open_project;
+				private JMenuItem save_project;
+				private JMenuItem close_project;
+			//}
+		private JMenu project_menu = new JMenu("Project");
+			//{
+				private JMenuItem create_file;
+				private JMenuItem open_file;
+				private JMenuItem save_file;
+				private JMenuItem close_file;
+			//}
+		private JMenu edit_menu = new JMenu("Edit");
+			//{
+				private JMenuItem copy;
+				private JMenuItem cut;
+				private JMenuItem paste;
+			//}
+	//}
+	private String project_dir; //store current project path
+	/* ********************************************************** */
+	
+	/* ****************** CLASS FUNCTIONS *********************** */
 
-	
-	
-	////////////////////ONLY .java is acceptable//////////////////////
-	private FilenameFilter javaFilter = new FilenameFilter()
+	private String readFileFromPath(String filePath) 			//take a file path and return String have the entire file contents
+    {
+		String content = "";
+	    try
+	    {
+	        content = new String ( Files.readAllBytes( Paths.get(filePath) ) );
+	    }
+	    catch (IOException e)
+	    {
+	        e.printStackTrace();
+	    }
+	    return content;
+    }
+
+	private FilenameFilter javaFilter = new FilenameFilter() 	//will be used when open project to read only ".java" files
     {
         @Override
         public boolean accept(File dir, String name)
@@ -66,9 +95,9 @@ public class MainFrame extends JFrame implements ActionListener  {
             return name.endsWith(".java");
         }
     };
-    //////////////////////////////////////////////////////////////////
     
-	public MainFrame()
+     
+	public MainFrame()											// create frame, add each sub-menu (File, Edit, Project) -> menu_bar -> frame
 	{
 		super("TEXT EDITOR"); 			//Set Program's Name
 		createMenuItem();
@@ -89,9 +118,10 @@ public class MainFrame extends JFrame implements ActionListener  {
         getContentPane().add(tab_bar);
 	}
 	
-	private void createMenuItem()
+	
+	private void createMenuItem()								//create menu-item (button) for each sub-menu 
 	{
-		//////////////////////Add menuButton to project menu////////////////////
+		//////////////////////Add buttons -> project menu////////////////////
 		
 		create_project = new JMenuItem("New Project");
 		create_project.addActionListener(this);
@@ -110,7 +140,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 		close_project.addActionListener(this);
 		project_menu.add(close_project);
 		
-		///////////////////////Add menuButton to file menu////////////////////
+		///////////////////////Add buttons -> file menu////////////////////
 		
 		create_file = new JMenuItem("New File");
 		create_file.addActionListener(this);
@@ -122,7 +152,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 		project_menu.addSeparator();
 		
 		save_file = new JMenuItem("Save File (Save)");
-		save_file.setEnabled(false);//initialize save_file menuItem in disable mode when no file to be saved
+		save_file.setEnabled(false);	//initialize save_file menuItem in disable mode when no file to be saved
 		save_file.addActionListener(this);
 		file_menu.add(save_file);
 		project_menu.addSeparator();
@@ -131,13 +161,25 @@ public class MainFrame extends JFrame implements ActionListener  {
 		close_file.addActionListener(this);
 		file_menu.add(close_file);
 		
-
-		////////////////////////////////////////////////////////////////////
+		///////////////////////Add buttons -> edit menu////////////////////
+		
+		copy = new JMenuItem("Copy");
+		copy.addActionListener(this);
+		edit_menu.add(copy);
+		
+		cut = new JMenuItem("Cut");
+		cut.addActionListener(this);
+		edit_menu.add(cut);
+		
+		paste = new JMenuItem("Paste");
+		paste.addActionListener(this);
+		edit_menu.add(paste);
 	}
 	
 	
 	@Override
-	public void actionPerformed(ActionEvent e) {
+	public void actionPerformed(ActionEvent e) 
+	{
 		////////////////////PROJECT////////////////////////////
 		if(e.getSource() == create_project)
 		{
@@ -180,9 +222,23 @@ public class MainFrame extends JFrame implements ActionListener  {
 		{
 			close_file_function();
 		}
+		////////////////////EDIT////////////////////////////
+		else if(e.getSource() == copy)
+		{
+			copy_function();
+		}
+		else if(e.getSource() == cut)
+		{
+			cut_function();
+		}
+		else if(e.getSource() == paste)
+		{
+			paste_function();
+		}
 	}
 	
-	////////////////////////PROJECT FUNCTION///////////////////////////////////
+	////////////////////////PROJECT MENU FUNCTIONS///////////////////////////////////
+	
 	private void open_project_function() throws IOException 
 	{
 		JFileChooser chooser = new JFileChooser(); 						//this class is to open file/directory
@@ -197,7 +253,7 @@ public class MainFrame extends JFrame implements ActionListener  {
             
             //new File(path).listFiles(javaFilter) return array of files with filter
             //aslist will convert the array into ArrayList type
-            files = new ArrayList<File>(Arrays.asList(new File(path).listFiles(javaFilter)));
+        	ArrayList<File> files = new ArrayList<File>(Arrays.asList(new File(path).listFiles(javaFilter)));
             if(files == null)
             	return ;
             
@@ -207,13 +263,17 @@ public class MainFrame extends JFrame implements ActionListener  {
             for(int i=0; i<files.size();i++)
             {
             	//check path on output screen
-            	System.out.println(files.get(i).getPath());
+            	System.out.println("Path: " + files.get(i).getPath());
             	//create tab with string (readFileFromPath return the contents in string)
-            	tab.add(new Tab(readFileFromPath(files.get(i).getPath()), files.get(i).getName(),files.get(i).getPath()));
+            	tab.add(new Tab(readFileFromPath(files.get(i).getPath()), 
+            			files.get(i).getName(),
+            			files.get(i).getPath(),
+            			files.get(i)
+            			));
             	
             	//make tab scrollable
             	tab_bar.addTab(tab.get(i).tabName, tab.get(i).text_area_with_scroll);
-            	System.out.println(tab.get(i).tabName);
+            	System.out.println("File name: " + tab.get(i).tabName);
             }
             
             project_dir = path;
@@ -267,23 +327,20 @@ public class MainFrame extends JFrame implements ActionListener  {
 	}
 	private void save_project_function()
 	{
-		for(int i=0; i<files.size();i++)
+		for(int i=0; i<tab.size();i++)
         {
 			String content = tab.get(i).textArea.getText();
 		    try 
 		    {
-		    	BufferedWriter writer = new BufferedWriter(new FileWriter(files.get(i).getPath()));
+		    	BufferedWriter writer = new BufferedWriter(new FileWriter(tab.get(i).path));
 				writer.write(content);
 				writer.close();
-				
 			} 
 		    catch (IOException e) 
 		    {
 				JOptionPane.showConfirmDialog(null, e.getMessage(),"Error Writing File",
 						JOptionPane.DEFAULT_OPTION,JOptionPane.ERROR_MESSAGE);
 			}
-		    
-		    
         }
 	}
 	private void close_project_function()
@@ -300,11 +357,11 @@ public class MainFrame extends JFrame implements ActionListener  {
 		tab_bar.removeAll();
 	}
 	
-	////////////////////////FILE FUNCTION///////////////////////////////////
+	////////////////////////FILE MENU FUNCTIONS///////////////////////////////////
 
 	private void open_file_function() throws IOException 
 	{
-		System.out.println("///////OPENING FILE////////////");
+		System.out.println("////////OPENING FILE////////////");
 		JFileChooser chooser = new JFileChooser(); 						//this class is to open file/directory
         chooser.setCurrentDirectory(new File(".")); 					//set current dir as window popup
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY); 		//will save current dir/selected dir
@@ -315,33 +372,38 @@ public class MainFrame extends JFrame implements ActionListener  {
             String path = chooser.getSelectedFile().getPath();
             System.out.print(path);
             
-           //create array of file with filter, then store all valid files in it
+            //create file with given path
             File single_file = new File(path);
             
-            //files.add(single_file); //add file to the files array
-            
-            System.out.println(path);
             if(single_file == null)
             	return;
-        	//////////////////////////
             
-            tab.add(new Tab(readFileFromPath(single_file.getPath()), single_file.getName(),single_file.getPath()));
+            tab.add(
+            		new Tab(
+            		readFileFromPath(single_file.getPath()), 
+            		single_file.getName(),
+            		single_file.getPath(),
+            		single_file
+            		));
         	
-        	tab_bar.addTab(tab.get(tab.size()-1).tabName, tab.get(tab.size()-1).text_area_with_scroll);
-        	System.out.println(tab.get(tab.size()-1).tabName);
+        	tab_bar.addTab(
+        			tab.get(tab.size()-1).tabName,
+        			tab.get(tab.size()-1).text_area_with_scroll
+        			);
+        	
+        	//System.out.println(tab.get(tab.size()-1).tabName); //print out the name of this file/tab
             
         }  
         //if file is successfully created, change save_file menuItem to enable
         if(!save_file.isEnabled()) {
 			save_file.setEnabled(true);
 		}
-====
 
         System.out.println("/////// END OPENING FILE////////////");
 	}
 	private void create_file_function()
 	{
-		System.out.println("///////////////NEW FILE///////////////////////");
+		System.out.println("**************NEW FILE***************");
 		String fileName = JOptionPane.showInputDialog(null, "Enter the name of the new .java file", "Add File", JOptionPane.PLAIN_MESSAGE);
 		if( fileName == null ) // this means that user clicked cancel or nothing
 			return;
@@ -349,7 +411,6 @@ public class MainFrame extends JFrame implements ActionListener  {
 		{
 			fileName = fileName + ".java";
 		}
-		System.out.println(fileName);
 		
 		String temp = fileName.substring( 0, fileName.length() - 5);   
 		if( !Character.isLetter( temp.charAt( 0 ) ) || !temp.matches("[a-zA-Z0-9]*" ) )
@@ -357,16 +418,6 @@ public class MainFrame extends JFrame implements ActionListener  {
 			JOptionPane.showMessageDialog(null, "Illegal character(s) in file name\nFile name can only contain letters and numbers and must start with a letter", null, JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		
-
-//		for( int i = 0; i < files.size(); i++) 
-//		{
-//			if(fileName.equals(files.get(i).getName())) 
-//			{
-//				JOptionPane.showMessageDialog(null, "File already exists", null, JOptionPane.ERROR_MESSAGE);
-//				return;
-//			}
-//		}
 		
 
 		FileWriter file = null;
@@ -413,10 +464,16 @@ public class MainFrame extends JFrame implements ActionListener  {
 		}
 		
 		//files.add(new File(filePath));
-		tab.add(new Tab(readFileFromPath(filePath), fileName, filePath));
+		tab.add(new Tab(
+				readFileFromPath(filePath), 
+				fileName, 
+				filePath,
+				new File(filePath)
+				));
     	
+		
     	tab_bar.addTab(tab.get(tab.size()-1).tabName, tab.get(tab.size()-1).text_area_with_scroll);
-		System.out.println("///////////////END NEW FILE///////////////////////");
+		System.out.println("**************END NEW FILE**************");
 
 	}
 	
@@ -427,7 +484,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 		System.out.println(index_selected_tab);
 		Tab current_selected_tab = tab.get(index_selected_tab);
 		
-		/////////get current contents on the textArea///////////////
+		//get current contents on the textArea
 		String content = current_selected_tab.get_updated_content();
 
 	    try 
@@ -449,23 +506,12 @@ public class MainFrame extends JFrame implements ActionListener  {
 		Tab current_selected_tab = tab.get(index_selected_tab);
 		tab_bar.remove(index_selected_tab);
 	}
-	//////////////////////////////EDIT FUNCTION///////////////////////////////////
+	
+	////////////////////////EDIT MENU FUNCTIONS///////////////////////////////////
+	
 	private void copy_function() {}
 	private void cut_function() {}
 	private void paste_function() {}
-	private String readFileFromPath(String filePath) //put all content of file to a string
-    {
-		String content = "";
-	    try
-	    {
-	        content = new String ( Files.readAllBytes( Paths.get(filePath) ) );
-	    }
-	    catch (IOException e)
-	    {
-	        e.printStackTrace();
-	    }
-	    return content;
-    }
 	
 	private void enableShortCutKeys(boolean enableMode) {
 		if(enableMode==true) {
@@ -478,7 +524,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 		}
 	}
 
-	@SuppressWarnings("deprecation")
+	@SuppressWarnings("deprecation") // disables "deprecation" warning
 	public void cutCopyPasteAction() {
 		Action cutAction = new DefaultEditorKit.CutAction();
 		Action copyAction = new DefaultEditorKit.CopyAction();
