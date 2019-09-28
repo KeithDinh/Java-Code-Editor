@@ -49,7 +49,7 @@ public class Tab
 		file = newfile;
 
 		
-	    textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);  // 8th requirement
+	    textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);  // 6th requirement
 	    SyntaxScheme scheme = textArea.getSyntaxScheme();
 	    scheme.getStyle(Token.OPERATOR).foreground = Color.RED;				// 7th requirement
         scheme.getStyle(Token.LITERAL_STRING_DOUBLE_QUOTE).foreground = Color.green; // 8th requirement
