@@ -49,12 +49,13 @@ public class Tab
 		file = newfile;
 
 		
-	    textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
+	    textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);  // 8th requirement
 	    SyntaxScheme scheme = textArea.getSyntaxScheme();
-	    scheme.getStyle(Token.OPERATOR).foreground = Color.RED;
+	    scheme.getStyle(Token.OPERATOR).foreground = Color.RED;				// 7th requirement
+        scheme.getStyle(Token.LITERAL_STRING_DOUBLE_QUOTE).foreground = Color.green; // 8th requirement
+
 	    
-	    
-	    ///////////////// COLOR OF UNNECCESSARY TEXTS////////////////////////
+	    /////////////////SET BLACK OF UNNECCESSARY TEXTS/////////////////////
 	    scheme.getStyle(Token.COMMENT_KEYWORD).foreground = Color.BLACK;
 	    scheme.getStyle(Token.SEPARATOR).foreground=Color.BLACK;
 	    scheme.getStyle(Token.LITERAL_BOOLEAN).foreground = Color.BLACK;
