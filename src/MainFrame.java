@@ -64,10 +64,14 @@ public class MainFrame extends JFrame implements ActionListener  {
 	private JMenuItem open_file;
 	private JMenuItem save_file;
 	private JMenuItem close_file;
+<<<<<<< HEAD
 	/////////////////////////////
 	private JMenuItem findReplaceMenuItem;
 
 	/////////////////////////////////
+=======
+	
+>>>>>>> 0136e22a8b110d8b02ad6c513a1d44a5199b5662
 	private String project_dir;
 
 	private ArrayList<File> files;
@@ -154,6 +158,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 		close_file.addActionListener(this);
 		file_menu.add(close_file);
 		
+<<<<<<< HEAD
 		//Buid edit_menu with cutCopyPasteAction()
 		cutCopyPasteAction();
 		findReplaceMenuItem = new JMenuItem("Find/Replace");
@@ -162,6 +167,9 @@ public class MainFrame extends JFrame implements ActionListener  {
 		findReplaceMenuItem.addActionListener(this);
 		
 		
+=======
+
+>>>>>>> 0136e22a8b110d8b02ad6c513a1d44a5199b5662
 		////////////////////////////////////////////////////////////////////
 	}
 	
@@ -255,6 +263,7 @@ public class MainFrame extends JFrame implements ActionListener  {
         findReplaceMenuItem.setEnabled(true);
         return ;
 	}
+  
 	private void create_project_function()
 	{
 		
@@ -370,6 +379,8 @@ public class MainFrame extends JFrame implements ActionListener  {
 			save_file.setEnabled(true);
 			findReplaceMenuItem.setEnabled(true);
 		}
+====
+
         System.out.println("/////// END OPENING FILE////////////");
 	}
 	private void create_file_function()
