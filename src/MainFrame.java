@@ -83,40 +83,19 @@ public class MainFrame extends JFrame implements ActionListener
 				private JMenuItem copy;
 				private JMenuItem cut;
 				private JMenuItem paste;
+				private JMenuItem findReplaceMenuItem;
 			//}
 	//}
 	private String project_dir; //store current project path
 	/* ********************************************************** */
 	
 
-	private JMenu file_menu = new JMenu("File");
-	private JMenu project_menu = new JMenu("Project");
-	private JMenu edit_menu = new JMenu("Edit");
-	/////////////////////////////////
-	private JMenuItem create_project;
-	private JMenuItem open_project;
-	private JMenuItem save_project;
-	private JMenuItem close_project;
-	/////////////////////////////////
-	private JMenuItem create_file;
-	private JMenuItem open_file;
-	private JMenuItem save_file;
-	private JMenuItem close_file;
 	/////////////////////////////
-	private JMenuItem findReplaceMenuItem;
 
 	/////////////////////////////////
 
-	private String project_dir;
-
-	private ArrayList<File> files;
-	private JTabbedPane tab_bar = new JTabbedPane(JTabbedPane.TOP);
-	private ArrayList<Tab> tab = new ArrayList<Tab>();
 	protected FindReplaceDialog searchTool = new FindReplaceDialog(this);
-	
-	
-	////////////////////ONLY .java is acceptable//////////////////////
-	private FilenameFilter javaFilter = new FilenameFilter()
+
 	/* ****************** CLASS FUNCTIONS *********************** */
 
 	private String readFileFromPath(String filePath) 			//take a file path and return String have the entire file contents
@@ -154,7 +133,6 @@ public class MainFrame extends JFrame implements ActionListener
 		
 		menuBar.add(project_menu);		//MenuBar(TaskBar) > menu(File) > each menuButton(new,create,..)	
 		menuBar.add(file_menu);
-		menuBar.add(edit_menu);
 		
 		setJMenuBar(menuBar); 			//Add the menu bar to the frame
 		pack(); 						//no idea what this is but without it, menu bar won't display on the frame
@@ -545,19 +523,6 @@ public class MainFrame extends JFrame implements ActionListener
 		tab_bar.remove(index_selected_tab);
 	}
 
-	private String readFileFromPath(String filePath) //put all content of file to a string
-    {
-		String content = "";
-	    try
-	    {
-	        content = new String ( Files.readAllBytes( Paths.get(filePath) ) );
-	    }
-	    catch (IOException e)
-	    {
-	        e.printStackTrace();
-	    }
-	    return content;
-    }
 	
 	private void enableShortCutKeys(boolean enableMode) {
 		if(enableMode==true) {
@@ -573,7 +538,8 @@ public class MainFrame extends JFrame implements ActionListener
 	}
 
 	@SuppressWarnings("deprecation") // disables "deprecation" warning
-	public void cutCopyPasteAction() {
+	public void cutCopyPasteAction() 
+	{
 		Action cutAction = new DefaultEditorKit.CutAction();
 		Action copyAction = new DefaultEditorKit.CopyAction();
 		Action pasteAction = new DefaultEditorKit.PasteAction();

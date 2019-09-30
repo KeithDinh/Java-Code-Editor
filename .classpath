@@ -6,6 +6,6 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="D:/UH/4Sem/COSC4353/workspace/JavaEditor4/src/rsyntaxtextarea-3.0.4.jar"/>
+	<classpathentry kind="lib" path="C:/Users/kietd/eclipse-workspace/My Code/lib/rsyntaxtextarea-3.0.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
