@@ -1,5 +1,10 @@
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Event;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -18,24 +23,36 @@ import java.util.stream.Stream;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
+import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.UIManager;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.TextAction;
 
+import javax.swing.UnsupportedLookAndFeelException;
 /* STRUCTURE: 
  * 	Frame { Menu bar, Tab bar}
  * 		Menu bar {Project, File, Edit}
  * 		Tab bar {Tab[]}
  *  		Tab { textArea, file, file_content, file_name, file_path}
  */
+
 
 public class MainFrame extends JFrame implements ActionListener  
 {
@@ -71,6 +88,35 @@ public class MainFrame extends JFrame implements ActionListener
 	private String project_dir; //store current project path
 	/* ********************************************************** */
 	
+
+	private JMenu file_menu = new JMenu("File");
+	private JMenu project_menu = new JMenu("Project");
+	private JMenu edit_menu = new JMenu("Edit");
+	/////////////////////////////////
+	private JMenuItem create_project;
+	private JMenuItem open_project;
+	private JMenuItem save_project;
+	private JMenuItem close_project;
+	/////////////////////////////////
+	private JMenuItem create_file;
+	private JMenuItem open_file;
+	private JMenuItem save_file;
+	private JMenuItem close_file;
+	/////////////////////////////
+	private JMenuItem findReplaceMenuItem;
+
+	/////////////////////////////////
+
+	private String project_dir;
+
+	private ArrayList<File> files;
+	private JTabbedPane tab_bar = new JTabbedPane(JTabbedPane.TOP);
+	private ArrayList<Tab> tab = new ArrayList<Tab>();
+	protected FindReplaceDialog searchTool = new FindReplaceDialog(this);
+	
+	
+	////////////////////ONLY .java is acceptable//////////////////////
+	private FilenameFilter javaFilter = new FilenameFilter()
 	/* ****************** CLASS FUNCTIONS *********************** */
 
 	private String readFileFromPath(String filePath) 			//take a file path and return String have the entire file contents
@@ -88,6 +134,7 @@ public class MainFrame extends JFrame implements ActionListener
     }
 
 	private FilenameFilter javaFilter = new FilenameFilter() 	//will be used when open project to read only ".java" files
+
     {
         @Override
         public boolean accept(File dir, String name)
@@ -99,8 +146,10 @@ public class MainFrame extends JFrame implements ActionListener
      
 	public MainFrame()											// create frame, add each sub-menu (File, Edit, Project) -> menu_bar -> frame
 	{
-		super("TEXT EDITOR"); 			//Set Program's Name
+		super("TEXT EDITOR"); 
+		setUIStyle();//Set Program's Name
 		createMenuItem();
+		
 		enableShortCutKeys(true);		//add shortcut keys 
 		
 		menuBar.add(project_menu);		//MenuBar(TaskBar) > menu(File) > each menuButton(new,create,..)	
@@ -130,11 +179,13 @@ public class MainFrame extends JFrame implements ActionListener
 		open_project = new JMenuItem("Open Project");
 		open_project.addActionListener(this);
 		project_menu.add(open_project);
+		project_menu.addSeparator();
 		
 		save_project = new JMenuItem("Save Project (Save All)");
 		save_project.setEnabled(false);	
 		save_project.addActionListener(this);
 		project_menu.add(save_project);
+		project_menu.addSeparator();
 		
 		close_project = new JMenuItem("Close Project");
 		close_project.addActionListener(this);
@@ -161,19 +212,13 @@ public class MainFrame extends JFrame implements ActionListener
 		close_file.addActionListener(this);
 		file_menu.add(close_file);
 		
-		///////////////////////Add buttons -> edit menu////////////////////
-		
-		copy = new JMenuItem("Copy");
-		copy.addActionListener(this);
-		edit_menu.add(copy);
-		
-		cut = new JMenuItem("Cut");
-		cut.addActionListener(this);
-		edit_menu.add(cut);
-		
-		paste = new JMenuItem("Paste");
-		paste.addActionListener(this);
-		edit_menu.add(paste);
+
+		//Buid edit_menu with cutCopyPasteAction()
+		cutCopyPasteAction();
+		findReplaceMenuItem = new JMenuItem("Find/Replace");
+		findReplaceMenuItem.setEnabled(false);//enable when exists a opened file. 
+		edit_menu.add(findReplaceMenuItem);
+		findReplaceMenuItem.addActionListener(this);
 	}
 	
 	
@@ -222,18 +267,8 @@ public class MainFrame extends JFrame implements ActionListener
 		{
 			close_file_function();
 		}
-		////////////////////EDIT////////////////////////////
-		else if(e.getSource() == copy)
-		{
-			copy_function();
-		}
-		else if(e.getSource() == cut)
-		{
-			cut_function();
-		}
-		else if(e.getSource() == paste)
-		{
-			paste_function();
+		else if(e.getSource()==findReplaceMenuItem) {
+			searchTool.searchThisArea(getCurrentTab().getRSTA());
 		}
 	}
 	
@@ -279,6 +314,7 @@ public class MainFrame extends JFrame implements ActionListener
             project_dir = path;
         }
         save_project.setEnabled(true);
+        findReplaceMenuItem.setEnabled(true);
         return ;
 	}
   
@@ -386,6 +422,7 @@ public class MainFrame extends JFrame implements ActionListener
             		single_file
             		));
         	
+
         	tab_bar.addTab(
         			tab.get(tab.size()-1).tabName,
         			tab.get(tab.size()-1).text_area_with_scroll
@@ -397,6 +434,7 @@ public class MainFrame extends JFrame implements ActionListener
         //if file is successfully created, change save_file menuItem to enable
         if(!save_file.isEnabled()) {
 			save_file.setEnabled(true);
+			findReplaceMenuItem.setEnabled(true);
 		}
 
         System.out.println("/////// END OPENING FILE////////////");
@@ -506,12 +544,20 @@ public class MainFrame extends JFrame implements ActionListener
 		Tab current_selected_tab = tab.get(index_selected_tab);
 		tab_bar.remove(index_selected_tab);
 	}
-	
-	////////////////////////EDIT MENU FUNCTIONS///////////////////////////////////
-	
-	private void copy_function() {}
-	private void cut_function() {}
-	private void paste_function() {}
+
+	private String readFileFromPath(String filePath) //put all content of file to a string
+    {
+		String content = "";
+	    try
+	    {
+	        content = new String ( Files.readAllBytes( Paths.get(filePath) ) );
+	    }
+	    catch (IOException e)
+	    {
+	        e.printStackTrace();
+	    }
+	    return content;
+    }
 	
 	private void enableShortCutKeys(boolean enableMode) {
 		if(enableMode==true) {
@@ -520,8 +566,10 @@ public class MainFrame extends JFrame implements ActionListener
 		edit_menu.setMnemonic('E');
 		create_project.setAccelerator(KeyStroke.getKeyStroke('N',Event.CTRL_MASK));
 		save_project.setAccelerator(KeyStroke.getKeyStroke('S',Event.CTRL_MASK));
+	//We have to cast KeyEvent.VK_ to a char. If not, it will show a warning as below
 		open_project.setAccelerator(KeyStroke.getKeyStroke('O',Event.CTRL_MASK));
 		}
+		findReplaceMenuItem.setAccelerator(KeyStroke.getKeyStroke('F',Event.CTRL_MASK));
 	}
 
 	@SuppressWarnings("deprecation") // disables "deprecation" warning
@@ -542,6 +590,35 @@ public class MainFrame extends JFrame implements ActionListener
 		pasteAction.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke('V',Event.CTRL_MASK));
 		edit_menu.add(pasteAction);
 		
+	}
+	
+	/**Description: This is a private function that create a GUI for 
+	 * Find/Replace Menu Item when this Menu Item is clicked. 
+	 * 
+	 */
+	private void setUIStyle() {
+		try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException ex) {
+        } catch (InstantiationException ex) {
+        } catch (IllegalAccessException ex) {
+        } catch (UnsupportedLookAndFeelException ex) {
+        	System.out.println("NO SUPPORT FOR UI");
+	}
+		UIManager.put("MenuBar.background", Color.lightGray);
+		UIManager.put("MenuItem.opaque",true);
+		//UIManager.put("Menu.background", Color.GREEN);
+		//UIManager.put("MenuItem.background", Color.lightGray);
 		
 	}
+	
+	private Tab getCurrentTab() {
+		int index_selected_tab = tab_bar.getSelectedIndex();
+		Tab current_selected_tab = tab.get(index_selected_tab);
+		return current_selected_tab;
+	}
+	
+	
+	
 }
+

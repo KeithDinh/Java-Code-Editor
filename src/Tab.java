@@ -65,11 +65,20 @@ public class Tab
         scheme.getStyle(Token.ERROR_STRING_DOUBLE).foreground = Color.BLACK;
         scheme.getStyle(Token.ERROR_CHAR).foreground = Color.BLACK;
         scheme.getStyle(Token.ERROR_CHAR).foreground = Color.BLACK;
+        scheme.getStyle(Token.COMMENT_MARKUP).foreground=Color.YELLOW;
 	    /////////////////////////////////////////////////////////////////////
 
 	    textArea.setCodeFoldingEnabled(true);
 	    textArea.setText(content);
 	    textArea.revalidate();
 	    text_area_with_scroll = new RTextScrollPane(textArea);
+	}
+
+	
+	public String get_updated_content() {
+		return textArea.getText();
+	}
+	public RSyntaxTextArea getRSTA() {
+		return textArea;
 	}
 }
