@@ -13,6 +13,7 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 import javax.swing.text.Utilities;
+import java.io.File;
 
 import org.fife.ui.rtextarea.*;
 import org.fife.ui.rsyntaxtextarea.*;
@@ -20,29 +21,41 @@ import org.fife.ui.rtextarea.RTextScrollPane.*;
 
 public class Tab 
 {
-	protected String path;											//path of the file content
-	protected RSyntaxTextArea textArea = new RSyntaxTextArea(); 	//create text container
+	/* ********************* CLASS MEMBERS *********************** */
+
+	protected File file;
+	//{
+		protected String path; 
+		protected String tabName;									
+		protected String content;
+	//}
+		
 	protected RTextScrollPane text_area_with_scroll;
-	protected String tabName;
-	protected String content;
+	//{
+		protected RSyntaxTextArea textArea = new RSyntaxTextArea();
+	//}
+	/* *********************************************************** */
 	
-	public Tab(String text, String name, String file_path)
+	public String get_updated_content() 					//get the current contents of the text area
+	{
+		return textArea.getText();
+	}
+	
+	public Tab(String text, String name, String file_path, File newfile)
 	{
 		path = file_path;
 		tabName = name;
 		content = text;
+		file = newfile;
+
 		
-//		text_pane.setText(text);			   					//copy content from file to container
-//		text_pane.setLayout(new BorderLayout());  				//not yet
-//		
-//        text_pane_with_scroll = new JScrollPane(text_pane);  	//make container scrollable
-		
-	    textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
+	    textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);  // 6th requirement
 	    SyntaxScheme scheme = textArea.getSyntaxScheme();
-	    scheme.getStyle(Token.OPERATOR).foreground = Color.RED;
+	    scheme.getStyle(Token.OPERATOR).foreground = Color.RED;				// 7th requirement
+        scheme.getStyle(Token.LITERAL_STRING_DOUBLE_QUOTE).foreground = Color.green; // 8th requirement
+
 	    
-	    
-	    /////////////////////////////////////////////////////////////////////
+	    /////////////////SET BLACK OF UNNECCESSARY TEXTS/////////////////////
 	    scheme.getStyle(Token.COMMENT_KEYWORD).foreground = Color.BLACK;
 	    scheme.getStyle(Token.SEPARATOR).foreground=Color.BLACK;
 	    scheme.getStyle(Token.LITERAL_BOOLEAN).foreground = Color.BLACK;
@@ -60,6 +73,7 @@ public class Tab
 	    textArea.revalidate();
 	    text_area_with_scroll = new RTextScrollPane(textArea);
 	}
+
 	
 	public String get_updated_content() {
 		return textArea.getText();
@@ -67,5 +81,4 @@ public class Tab
 	public RSyntaxTextArea getRSTA() {
 		return textArea;
 	}
-	
 }
