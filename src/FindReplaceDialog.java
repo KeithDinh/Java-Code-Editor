@@ -1,7 +1,5 @@
 
-
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -9,12 +7,15 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JPanel;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
@@ -36,6 +37,13 @@ public  class FindReplaceDialog {
 			protected static JComboBox findComboBox;
 			 final static int findComboBoxMax=15;
 			protected JTextField replaceTextField;
+			
+			protected JPanel searchOptionPanel;
+			protected ButtonGroup searchOptionButtonGroup;//group contains all the search options
+			protected JCheckBox caseSensitiveCheckBox;// seach match case option
+			protected JCheckBox wholeWordCheckBox; // search whole word option
+			protected JCheckBox regexCheckBox;//regularExpression search option
+			
 			protected JButton findNextButton;
 			protected JButton findPrevButton;
 			protected JButton replaceButton;
@@ -43,7 +51,7 @@ public  class FindReplaceDialog {
 			protected JButton closeButton;
 			private JDialog findReplaceDialog;
 			private RSyntaxTextArea textArea;
-			String thisStr;
+			String keyString;
 			boolean searchDirection; // if forward searchDirection =true. 
 			
 			
@@ -66,39 +74,79 @@ public  class FindReplaceDialog {
 	 * @param frame
 	 */
 	public void buildFindReplaceDialog(JFrame frame) {
-		 	//declare control used
-			thisStr="";
-			searchDirection = true;
+			findReplaceDialog=new JDialog(frame,"Find/Replace",true);//create the dialog
+			GridBagConstraints gridCs;
+			
 			findLabel=new  JLabel("Find");
 			replaceLabel = new JLabel("Replace");
-			//findedTextList= new String[10];
+			
+			searchOptionPanel = new JPanel();
+			caseSensitiveCheckBox = new JCheckBox("Match Case");
+			wholeWordCheckBox = new JCheckBox("Whole Word");
+			regexCheckBox = new JCheckBox("Regular Expression");
+			
+			
+			
 			findComboBox = new JComboBox();
 			replaceTextField= new JTextField();
+			
 			findNextButton = new JButton("Find Next");
 			findPrevButton = new JButton("Find Previous");
+			
 			replaceButton = new JButton("Replace");
 			replaceAllButton = new JButton("Replace All");
-			closeButton = new JButton("Close");
-			findReplaceDialog=new JDialog(frame,"Find/Replace",true);
-			//visible=false;
 			
-			//Build the 
+			closeButton = new JButton("Close");
+			
+			
+			
+			//Build the Dialog frame 
 			findReplaceDialog.setLayout(new GridBagLayout());//set layout manager for the Find/Replace Dialog
-			findReplaceDialog.setSize(400,250);
+			findReplaceDialog.setSize(450,300);
 			findReplaceDialog.setResizable(false);
-			///////////// Add Label ///////////////
-			GridBagConstraints gridCs= new GridBagConstraints();
+			
+			///////////// Add findLabel ///////////////
+			gridCs= new GridBagConstraints();
 			gridCs.gridx=0;
 			gridCs.gridy=0;
 			gridCs.anchor = GridBagConstraints.CENTER;
 			gridCs.insets = new Insets(5,5,5,5);
 			findReplaceDialog.add(findLabel,gridCs);
 			
-			////add Find TextField
+			//////////////Add search-Options selection///////////////
+			searchOptionPanel.setLayout(new GridBagLayout());
+			searchOptionPanel.setBorder(BorderFactory.createTitledBorder("Search Options"));
+			//add caseSensitiveCheckBox to searchOptionPanel
+			gridCs=new GridBagConstraints();
+			gridCs.gridx=0;
+			gridCs.gridy=0;
+			gridCs.insets= new Insets(5,5,5,5);
+			searchOptionPanel.add(caseSensitiveCheckBox);
+			//add WholeWord CheckBox to searchOptionPanel
+			gridCs=new GridBagConstraints();
+			gridCs.gridx=1;
+			gridCs.gridy=0;
+			gridCs.insets= new Insets(5,5,5,5);
+			searchOptionPanel.add(wholeWordCheckBox);
+			//add regexCheckBox to searchOptionPanel
+			gridCs=new GridBagConstraints();
+			gridCs.gridx=2;
+			gridCs.gridy=0;
+			gridCs.insets= new Insets(5,5,5,5);
+			searchOptionPanel.add(regexCheckBox);
+			//finally add searchOptionPanel to the findReplaceDialog
+			gridCs=new GridBagConstraints();
+			gridCs.gridx=0;
+			gridCs.gridy=2;
+			gridCs.insets = new Insets(5,5,5,5);
+			gridCs.gridwidth=3;
+			findReplaceDialog.add(searchOptionPanel,gridCs);
+			setDefault();//setdefault selection with findNext, Match Case
+			
+			////add findComboBox
 			findComboBox.setPreferredSize(new Dimension(170,20));
 			findComboBox.setEditable(true);
 			findComboBox.setFocusable(true);
-			
 			findComboBox.setBackground(Color.WHITE);
 			////gridCs.anchor=GridBagConstraints.NORTH;
 			gridCs.gridx=1;
@@ -107,17 +155,18 @@ public  class FindReplaceDialog {
 			gridCs.insets = new Insets(5,5,5,5);
 			gridCs.anchor = GridBagConstraints.WEST;
 			findReplaceDialog.add(findComboBox,gridCs);
+			//add actionListener to receive events from this findComboBox
 			findComboBox.addActionListener(new ActionListener() {
 		         public void actionPerformed(ActionEvent e) {
 		        	 if(findComboBox.getSelectedItem()!=null) {
-		    			 thisStr = findComboBox.getSelectedItem().toString();
-		            findNextButton.doClick();
-		            updateFindComboBox(thisStr);
+		        		 findComboBox.setFocusable(true);
+		    			 keyString = findComboBox.getSelectedItem().toString();
+		    			 updateFindComboBox(keyString);
 		        	 }
 		         }
 		      });
 			
-			////////////////// add replace Label ////////////////////
+			////////////////// add replaceLabel ////////////////////
 			gridCs= new GridBagConstraints();
 			gridCs.gridx=0;
 			gridCs.gridy=1;
@@ -125,7 +174,7 @@ public  class FindReplaceDialog {
 			gridCs.anchor = GridBagConstraints.CENTER;
 			findReplaceDialog.add(replaceLabel,gridCs);
 			
-			//////////////////// add replace TextField /////////////////
+			//////////////////// add replaceTextField /////////////////
 			gridCs= new GridBagConstraints();
 			replaceTextField.setText("");
 			replaceTextField.setColumns(17);
@@ -134,7 +183,7 @@ public  class FindReplaceDialog {
 			gridCs.gridx=1;
 			gridCs.gridy=1;
 			gridCs.ipadx=1;
-			gridCs.gridwidth=2;
+			gridCs.gridwidth=3;
 			gridCs.anchor = GridBagConstraints.WEST;
 			gridCs.insets = new Insets(5,5,10,5);
 			findReplaceDialog.add(replaceTextField,gridCs);
@@ -142,11 +191,12 @@ public  class FindReplaceDialog {
 			//////////////add Find Next Button//////////////
 			gridCs= new GridBagConstraints();
 			gridCs.gridx=0;
-			gridCs.gridy=2;
+			gridCs.gridy=3;
 			gridCs.insets = new Insets(5,10,10,5);
 			gridCs.anchor = GridBagConstraints.WEST;
 			findReplaceDialog.add(findNextButton,gridCs);
 			findNextButton.setActionCommand("FindNext");
+		////// add new listener to receive events from this button//////
 			findNextButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					searchDirection=true;
@@ -156,11 +206,12 @@ public  class FindReplaceDialog {
 			//////////////add Find Prev Button//////////////
 			gridCs= new GridBagConstraints();
 			gridCs.gridx=0;
-			gridCs.gridy=3;
+			gridCs.gridy=4;
 			gridCs.insets = new Insets(5,10,10,5);
 			gridCs.anchor = GridBagConstraints.WEST;
 			findReplaceDialog.add(findPrevButton,gridCs);
 			findPrevButton.setActionCommand("FindPrevious");
+		////// add new listener to receive events from this button//////
 			findPrevButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					searchDirection=false;
@@ -172,11 +223,17 @@ public  class FindReplaceDialog {
 			replaceButton.setEnabled(true);
 			gridCs= new GridBagConstraints();
 			gridCs.gridx=1;
-			gridCs.gridy=2;
+			gridCs.gridy=4;
 			gridCs.insets = new Insets(5,5,5,5);
 			gridCs.anchor = GridBagConstraints.CENTER;
 			findReplaceDialog.add(replaceButton,gridCs);
-			//replaceButton.addActionListener(this);
+			////// add new listener to receive events from REPLACE button//////
+			replaceButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					searchDirection=true;
+					replaceButtonActionPerformed(e);
+				}
+			});
 			
 			/////////////////// add Replace All Button ///////////////
 			replaceAllButton.setEnabled(true);
@@ -186,24 +243,38 @@ public  class FindReplaceDialog {
 			gridCs.anchor = GridBagConstraints.CENTER;
 			gridCs.insets = new Insets(5,5,5,5);
 			findReplaceDialog.add(replaceAllButton,gridCs);
-			//replaceAllButton.addActionListener(this);
+			////// add new listener to receive events from REPLACE ALL button//////
+					replaceAllButton.addActionListener(new ActionListener() {
+						public void actionPerformed(ActionEvent e) {
+							searchDirection=true;
+							replaceButtonActionPerformed(e);
+						}
+					});
 			
 			/////////////////// add Close Button //////////////////////
 			gridCs.gridx=2;
-			gridCs.gridy=2;
+			gridCs.gridy=3;
 			gridCs.anchor = GridBagConstraints.EAST;
 			gridCs.insets = new Insets(5,5,5,5);
 			findReplaceDialog.add(closeButton,gridCs);
+		////// add new listener to receive events from this button//////
 			closeButton.addActionListener(new ActionListener(){
 				public void actionPerformed(ActionEvent e){
-					findReplaceDialog.setVisible(false);
+					//if close button is clicked, hide this dialog
+					findReplaceDialog.dispose();
+					//i want to use clearMarkAllHighlights function, but
+					//somehow it doesn't work. I have to do this manually 
+					//to deselect the highlighted strings
+					keyString="";
+					findComboBox.setSelectedItem(keyString);
+					findNextButton.doClick();
+					setDefault();
 				}
 			});
 			
 			gridCs.fill=GridBagConstraints.BOTH;
-			findReplaceDialog.setLocationRelativeTo(frame);
+			findReplaceDialog.setLocationRelativeTo(null);
 			frame.pack();
-			////findReplaceDialog.setVisible(showMode);
 	 }
 	 
 	 /**This function keeps tracks of the keywords that users have searched. 
@@ -211,7 +282,7 @@ public  class FindReplaceDialog {
 	 ** @param str
 	 **/
 	private void updateFindComboBox(String str) {
-		 if((findComboBox.getItemCount()==findComboBoxMax)&& str!="") {
+		 if((findComboBox.getItemCount()==findComboBoxMax)&& str!=null) {
 			 findComboBox.removeItemAt(findComboBoxMax-1);
 			 findComboBox.addItem(str);
 		 }
@@ -219,7 +290,7 @@ public  class FindReplaceDialog {
 			 findComboBox.addItem(str);
 		 }
 	 }
-	/**
+	/**This function receives an RSyntaxTextArea object that it will do the find/replace action on. 
 	 * @param toBeSearchedArea
 	 */
 	public void searchThisArea(RSyntaxTextArea toBeSearchedArea) {
@@ -229,33 +300,80 @@ public  class FindReplaceDialog {
 	}
 	 public void setRSTA(RSyntaxTextArea textArea) {
 		 this.textArea=textArea;
+		 try {
+		 keyString=textArea.getSelectedText().toString();
+		 if(keyString.length()!=0) {
+			 findComboBox.setSelectedItem(keyString);
+		 }//catch error if no keyWord is selected for searching
+		 }catch(Exception e) {
+			 keyString="";
+		 }
 	 }
 	 
-	 /**Source:
-		 * https://www.codota.com/code/java/methods/org.fife.ui.rtextarea.SearchContext/setSearchForward
-		 **/
+	 /** This function will be called if findNext button is presed
+	  * or findPrevious button is pressed.The function will search for the keyword
+	  * based on the searchDirection. 
+	  * This function will find the next matched keyword if searchDirection is Truel
+	  * This function will find the previous match if searchDirection is False
+	  * Source:
+	  * https://www.codota.com/code/java/methods/org.fife.ui.rtextarea.SearchContext/setSearchForward
+	  **/
 	 private void findButtonActionPerformed(ActionEvent e) {
-		 String command= e.getActionCommand();
 		 SearchContext context = new SearchContext();
-	    	  if(thisStr!="") {
-	    		  context.setSearchFor(thisStr);
-	    		  context.setMarkAll(true);
-	    	      context.setMatchCase(true);
-	    	      context.setRegularExpression(true);
+		 //System.out.println(textArea.getCaretPosition());
+	    	  if(keyString.length()!=0 || keyString!=null || textArea.getText()!=null) {
+	    		  context.setSearchFor(keyString);
+	    		  context.setMarkAll(true);//highlight all matched strings
+	    	      context.setMatchCase(caseSensitiveCheckBox.isSelected());
+	    	      context.setRegularExpression(regexCheckBox.isSelected());
 	    	      context.setSearchForward(searchDirection);
-	    	      context.setWholeWord(false);
+	    	      context.setWholeWord(caseSensitiveCheckBox.isSelected());
 	    	     // text
+	    	     // textArea.setCaretPosition(0);
 	    	      boolean found = SearchEngine.find(textArea, context).wasFound();
+	    	      //this no thing is found, prompt a message to user
 	    	      if (!found) {
-	    	    	  System.out.println("NOT FOUND");
-	    	    	  JOptionPane.showMessageDialog(null,this,"String Not Found",0);
-	    	      	}
+	    	    	  textArea.setCaretPosition(0);// start search from beginning
+	    	    	  SearchEngine.find(textArea,context);
+	    	    	  //JOptionPane.showMessageDialog(findReplaceDialog,"String Not Found","Find Result",JOptionPane.INFORMATION_MESSAGE);
+	    	      }
 		      }
 	    	  else return;
-	     /* if(e.getSource()==replaceButton) {
-	    	  String replaceWith=replaceTextField.getText().toString();
-	    	  context.setReplaceWith(replaceWith); 
-	      }*/
+	 }
+	 
+	 
+	 /**Description: this function will be invoked when replace Button or replace All Button is clicked.
+	 * @param e
+	 */
+	private void replaceButtonActionPerformed(ActionEvent e) {
+		 String textReplace = replaceTextField.getText();
+		
+		 if(keyString.length()==0 || keyString==null || textArea.getText()==null) 
+		 return ;
+		 
+		 if(!textReplace.equals(keyString)) {
+			 System.out.println(textReplace);
+			 SearchContext context = new SearchContext();
+			 context.setSearchFor(keyString);
+	   		  context.setMarkAll(true);
+	   	      context.setMatchCase(caseSensitiveCheckBox.isSelected());
+	   	      context.setRegularExpression(regexCheckBox.isSelected());
+	   	      context.setSearchForward(searchDirection);
+	   	      context.setWholeWord(caseSensitiveCheckBox.isSelected());
+	   	      context.setReplaceWith(textReplace);
+	   	     if(e.getSource()==replaceAllButton)
+	   	      SearchEngine.replaceAll(textArea,context);
+	   	     else
+	   	    	  SearchEngine.replace(textArea,context);
+		 }
+   		 
+	 }
+	 
+	 private void setDefault() {
+		 keyString="";
+		 findComboBox.setSelectedItem(keyString);
+		 caseSensitiveCheckBox.setSelected(true);//check match case otpion
+		 searchDirection=true;
 	 }
 	 
 }
