@@ -141,7 +141,12 @@ public class MainFrame extends JFrame implements ActionListener
 	    }
 	    return content;
     }
-	
+	//return current/open selected tab
+	private Tab getCurrentTab() {
+		int index_selected_tab = tab_bar.getSelectedIndex();
+		Tab current_selected_tab = tab.get(index_selected_tab);
+		return current_selected_tab;
+	}
     
 	//*************************MAJOR FUNCTIONS*************************//
 
@@ -656,10 +661,6 @@ public class MainFrame extends JFrame implements ActionListener
 		edit_menu.addSeparator();
 	}
 	
-	private Tab getCurrentTab() {
-		int index_selected_tab = tab_bar.getSelectedIndex();
-		Tab current_selected_tab = tab.get(index_selected_tab);
-		return current_selected_tab;
-	}
+
 }
 
