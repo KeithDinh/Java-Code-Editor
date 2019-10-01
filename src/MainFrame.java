@@ -54,37 +54,43 @@ import javax.swing.UnsupportedLookAndFeelException;
  *  		Tab { textArea, file, file_content, file_name, file_path}
  */
 
-public class MainFrame extends JFrame implements ActionListener  {
+public class MainFrame extends JFrame implements ActionListener  
+{	
+	/* ********************* CLASS MEMBERS *********************** */
 	private JMenuBar menuBar = new JMenuBar();
-	
-	private JMenu file_menu = new JMenu("File");
-	private JMenu project_menu = new JMenu("Project");
-	private JMenu edit_menu = new JMenu("Edit");
-	/////////////////////////////////
-	private JMenuItem create_project;
-	private JMenuItem open_project;
-	private JMenuItem save_project;
-	private JMenuItem close_project;
-	/////////////////////////////////
-	private JMenuItem create_file;
-	private JMenuItem open_file;
-	private JMenuItem save_file;
-	private JMenuItem close_file;
-	/////////////////////////////
-	private JMenuItem findReplaceMenuItem;
-
-	/////////////////////////////////
-
-	private String project_dir;
-
-	private ArrayList<File> files;
+	//{
+		private JMenu file_menu = new JMenu("File");
+			//{
+				private JMenuItem create_project;
+				private JMenuItem open_project;
+				private JMenuItem save_project;
+				private JMenuItem close_project;
+			//}
+		private JMenu project_menu = new JMenu("Project");
+			//{
+				private JMenuItem create_file;
+				private JMenuItem open_file;
+				private JMenuItem save_file;
+				private JMenuItem close_file;
+			//}
+		private JMenu edit_menu = new JMenu("Edit");
+			//{
+				private JMenuItem findReplaceMenuItem;
+				protected FindReplaceDialog searchTool = new FindReplaceDialog(this);
+			//}
+	//}				
 	private JTabbedPane tab_bar = new JTabbedPane(JTabbedPane.TOP);
-	private ArrayList<Tab> tab = new ArrayList<Tab>();
-	protected FindReplaceDialog searchTool = new FindReplaceDialog(this);
+	//{
+		private ArrayList<Tab> tab = new ArrayList<Tab>();
+	//}
 	
+	private String project_dir; //store current project path
+	private ArrayList<File> files;
+	/* ********************************************************** */
 	
-	////////////////////ONLY .java is acceptable//////////////////////
-	private FilenameFilter javaFilter = new FilenameFilter()
+	/* ****************** CLASS FUNCTIONS *********************** */
+	//used when open project to read only ".java" files
+	private FilenameFilter javaFilter = new FilenameFilter()		
     {
         @Override
         public boolean accept(File dir, String name)
@@ -92,6 +98,22 @@ public class MainFrame extends JFrame implements ActionListener  {
             return name.endsWith(".java");
         }
     };
+    
+    //take file path(string) as argument, return content of file (all paragraph) 
+	private String readFileFromPath(String filePath) 				
+    {
+		String content = "";
+	    try
+	    {
+	        content = new String ( Files.readAllBytes( Paths.get(filePath) ) );
+	    }
+	    catch (IOException e)
+	    {
+	        e.printStackTrace();
+	    }
+	    return content;
+    }
+	
     //////////////////////////////////////////////////////////////////
     
 	public MainFrame()
@@ -492,20 +514,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 		Tab current_selected_tab = tab.get(index_selected_tab);
 		tab_bar.remove(index_selected_tab);
 	}
-	private String readFileFromPath(String filePath) //put all content of file to a string
-    {
-		String content = "";
-	    try
-	    {
-	        content = new String ( Files.readAllBytes( Paths.get(filePath) ) );
-	    }
-	    catch (IOException e)
-	    {
-	        e.printStackTrace();
-	    }
-	    return content;
-    }
-	
+
 	private void enableShortCutKeys(boolean enableMode) {
 		if(enableMode==true) {
 		project_menu.setMnemonic('P');
