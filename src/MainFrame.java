@@ -53,6 +53,7 @@ import javax.swing.UnsupportedLookAndFeelException;
  * 		Tab bar {Tab[]}
  *  		Tab { textArea, file, file_content, file_name, file_path}
  */
+
 public class MainFrame extends JFrame implements ActionListener  {
 	private JMenuBar menuBar = new JMenuBar();
 	
