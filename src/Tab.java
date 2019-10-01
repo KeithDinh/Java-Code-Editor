@@ -32,11 +32,6 @@ public class Tab
 		tabName = name;
 		content = text;
 		
-//		text_pane.setText(text);			   					//copy content from file to container
-//		text_pane.setLayout(new BorderLayout());  				//not yet
-//		
-//        text_pane_with_scroll = new JScrollPane(text_pane);  	//make container scrollable
-		
 	    textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
 	    SyntaxScheme scheme = textArea.getSyntaxScheme();
 	    scheme.getStyle(Token.OPERATOR).foreground = Color.RED;
