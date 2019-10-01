@@ -1,3 +1,4 @@
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -19,6 +20,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import javax.swing.AbstractAction;
@@ -35,6 +38,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
@@ -46,7 +50,15 @@ import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.TextAction;
 
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
+import org.fife.ui.rsyntaxtextarea.Token;
+import org.fife.ui.rtextarea.RTextScrollPane;
+
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 /* STRUCTURE INTRODUCTION: 
@@ -60,7 +72,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class MainFrame extends JFrame implements ActionListener  
 {	
-	/* ********************* CLASS MEMBERS *********************** */
+	/* ********************************** CLASS MEMBERS ********************************** */
 	private JMenuBar menuBar = new JMenuBar();
 	//{
 		private JMenu file_menu = new JMenu("File");
@@ -82,6 +94,12 @@ public class MainFrame extends JFrame implements ActionListener
 				private JMenuItem findReplaceMenuItem;
 				protected FindReplaceDialog searchTool = new FindReplaceDialog(this);
 			//}
+		private JMenu build_menu = new JMenu("Build");
+			//{
+				private JMenuItem Compile;
+				private JMenuItem Execute;
+			//}
+		private JMenu about_menu = new JMenu("About");
 	//}
 				
 				
@@ -141,6 +159,7 @@ public class MainFrame extends JFrame implements ActionListener
 	    }
 	    return content;
     }
+	
 	//return current/open selected tab
 	private Tab getCurrentTab() {
 		int index_selected_tab = tab_bar.getSelectedIndex();
@@ -152,17 +171,19 @@ public class MainFrame extends JFrame implements ActionListener
 
 	public MainFrame()
 	{
-		super("TEXT EDITOR"); 
+		super("Java Editor by C--"); 				//Set Program's Name
 		setIconImage(new ImageIcon("icons/javaTextEditorIcon2.PNG").getImage());
-		setUIStyle();//Set Program's Name
+		setUIStyle();
 		createMenuItem();
 		
-		enableShortCutKeys(true);		//add shortcut keys 
+		enableShortCutKeys(true);			//add shortcut keys 
 		
 		//MenuBar(TaskBar) > menu(Project, File, Edit) > each menuButton(new,create,..)
 		menuBar.add(project_menu);			
 		menuBar.add(file_menu);
 		menuBar.add(edit_menu);
+		menuBar.add(build_menu);
+		menuBar.add(about_menu);
 		
 		setJMenuBar(menuBar); 			//Add the menu bar to the frame
 		pack(); 						//no idea what this is but without it, menu bar won't display on the frame
@@ -301,7 +322,8 @@ public class MainFrame extends JFrame implements ActionListener
 	}
 	
 	
-	//*************************PROJECT FUNCTIONS*************************//
+	//***************PROJECT FUNCTIONS*******************//
+	
 	private void open_project_function() throws IOException 
 	{
 		System.out.println("***OPENING PROJECT***");
@@ -354,7 +376,7 @@ public class MainFrame extends JFrame implements ActionListener
             	
             	tab_bar.addTab(
             			tab.get(i).tabName, 							  //Name of Tab
-            			tab.get(i).text_area_with_scroll);				  //Add scrollable version of Tab
+            			tab.get(i).container);				  //Add scrollable version of Tab
             }
             save_project.setEnabled(true);
             close_project.setEnabled(true);
@@ -463,7 +485,7 @@ public class MainFrame extends JFrame implements ActionListener
 
 	}
 	
-	//*************************FILE FUNCTIONS*************************//
+	//****************FILE FUNCTIONS******************//
 
 	private void open_file_function() throws IOException 
 	{
@@ -488,9 +510,15 @@ public class MainFrame extends JFrame implements ActionListener
             	return;
         	//////////////////////////
             
-            tab.add(new Tab(readFileFromPath(single_file.getPath()), single_file.getName(),single_file.getPath(),single_file));
+            tab.add(new Tab(
+            		readFileFromPath(single_file.getPath()), 
+            		single_file.getName(),
+            		single_file.getPath(),
+            		single_file));
         	
-        	tab_bar.addTab(tab.get(tab.size()-1).tabName, tab.get(tab.size()-1).text_area_with_scroll);
+        	tab_bar.addTab(
+        			tab.get(tab.size()-1).tabName, 
+        			tab.get(tab.size()-1).container);
         	
         	if(!save_file.isEnabled()) 
             {
@@ -523,17 +551,6 @@ public class MainFrame extends JFrame implements ActionListener
 			JOptionPane.showMessageDialog(null, "Illegal character(s) in file name\nFile name can only contain letters and numbers and must start with a letter", null, JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		
-
-//		for( int i = 0; i < files.size(); i++) 
-//		{
-//			if(fileName.equals(files.get(i).getName())) 
-//			{
-//				JOptionPane.showMessageDialog(null, "File already exists", null, JOptionPane.ERROR_MESSAGE);
-//				return;
-//			}
-//		}
-		
 
 		FileWriter file = null;
 		if(project_dir == null)
@@ -579,9 +596,15 @@ public class MainFrame extends JFrame implements ActionListener
 		}
 		
 		//files.add(new File(filePath));
-		tab.add(new Tab(readFileFromPath(filePath), fileName, filePath, new File(filePath)));
+		tab.add(new Tab(
+				readFileFromPath(filePath), 
+				fileName, 
+				filePath, 
+				new File(filePath)));
     	
-    	tab_bar.addTab(tab.get(tab.size()-1).tabName, tab.get(tab.size()-1).text_area_with_scroll);
+    	tab_bar.addTab(
+    			tab.get(tab.size()-1).tabName, 
+    			tab.get(tab.size()-1).container);
     	
     	save_file.setEnabled(true);
     	close_file.setEnabled(true);
@@ -635,8 +658,7 @@ public class MainFrame extends JFrame implements ActionListener
 
 	}
 
-
-	//*************************EDIT FUNCTIONS*************************//
+	//****************EDIT FUNCTIONS*******************//
 	public void cutCopyPasteAction() {
 		Action cutAction = new DefaultEditorKit.CutAction();
 		Action copyAction = new DefaultEditorKit.CopyAction();
@@ -661,6 +683,7 @@ public class MainFrame extends JFrame implements ActionListener
 		edit_menu.addSeparator();
 	}
 	
+	//****************BUILD FUNCTIONS*******************//
 
 }
 

@@ -40,7 +40,7 @@ public  class FindReplaceDialog {
 			
 			protected JPanel searchOptionPanel;
 			protected ButtonGroup searchOptionButtonGroup;//group contains all the search options
-			protected JCheckBox caseSensitiveCheckBox;// seach match case option
+			protected JCheckBox matchCaseCheckBox;// seach match case option
 			protected JCheckBox wholeWordCheckBox; // search whole word option
 			protected JCheckBox regexCheckBox;//regularExpression search option
 			
@@ -59,7 +59,8 @@ public  class FindReplaceDialog {
 	 * @param frame is the owner frame that a FindReplaceDialog object 
 	 * is about to work on.  
 	 */
-	public FindReplaceDialog(JFrame frame) {
+	public FindReplaceDialog(JFrame frame) 
+	{
 		buildFindReplaceDialog(frame);
 	}
 	
@@ -67,7 +68,8 @@ public  class FindReplaceDialog {
 	/**
 	 * @param visible
 	 */
-	public void setVisible(boolean visible) {
+	public void setVisible(boolean visible) 
+	{
 			findReplaceDialog.setVisible(visible);
 	}
 	
@@ -75,7 +77,8 @@ public  class FindReplaceDialog {
 	 /**
 	 * @param frame
 	 */
-	public void buildFindReplaceDialog(JFrame frame) {
+	public void buildFindReplaceDialog(JFrame frame) 
+	{
 			findReplaceDialog=new JDialog(frame,"Find/Replace",true);//create the dialog
 			GridBagConstraints gridCs;
 			
@@ -83,13 +86,13 @@ public  class FindReplaceDialog {
 			replaceLabel = new JLabel("Replace");
 			
 			searchOptionPanel = new JPanel();
-			caseSensitiveCheckBox = new JCheckBox("Match Case");
+			matchCaseCheckBox = new JCheckBox("Match Case");	
 			wholeWordCheckBox = new JCheckBox("Whole Word");
 			regexCheckBox = new JCheckBox("Regular Expression");
 			
 			
 			
-			findComboBox = new JComboBox();
+			findComboBox = new JComboBox();			//create a dropdown to save past searching words
 			replaceTextField= new JTextField();
 			
 			findNextButton = new JButton("Find Next");
@@ -104,7 +107,7 @@ public  class FindReplaceDialog {
 			
 			//Build the Dialog frame 
 			findReplaceDialog.setLayout(new GridBagLayout());//set layout manager for the Find/Replace Dialog
-			findReplaceDialog.setSize(450,300);
+			findReplaceDialog.setSize(370,250);
 			findReplaceDialog.setResizable(false);
 			
 			///////////// Add findLabel ///////////////
@@ -118,12 +121,12 @@ public  class FindReplaceDialog {
 			//////////////Add search-Options selection///////////////
 			searchOptionPanel.setLayout(new GridBagLayout());
 			searchOptionPanel.setBorder(BorderFactory.createTitledBorder("Search Options"));
-			//add caseSensitiveCheckBox to searchOptionPanel
+			//add matchCaseCheckBox to searchOptionPanel
 			gridCs=new GridBagConstraints();
 			gridCs.gridx=0;
 			gridCs.gridy=0;
 			gridCs.insets= new Insets(5,5,5,5);
-			searchOptionPanel.add(caseSensitiveCheckBox);
+			searchOptionPanel.add(matchCaseCheckBox);
 			//add WholeWord CheckBox to searchOptionPanel
 			gridCs=new GridBagConstraints();
 			gridCs.gridx=1;
@@ -194,7 +197,9 @@ public  class FindReplaceDialog {
 			gridCs= new GridBagConstraints();
 			gridCs.gridx=0;
 			gridCs.gridy=3;
-			gridCs.insets = new Insets(5,10,10,5);
+			gridCs.gridwidth = 1;
+			gridCs.fill = GridBagConstraints.HORIZONTAL;
+			gridCs.insets = new Insets(5,10,5,5);
 			gridCs.anchor = GridBagConstraints.WEST;
 			findReplaceDialog.add(findNextButton,gridCs);
 			findNextButton.setActionCommand("FindNext");
@@ -209,7 +214,9 @@ public  class FindReplaceDialog {
 			gridCs= new GridBagConstraints();
 			gridCs.gridx=0;
 			gridCs.gridy=4;
-			gridCs.insets = new Insets(5,10,10,5);
+			gridCs.gridwidth = 1;
+			gridCs.fill = GridBagConstraints.HORIZONTAL;
+			gridCs.insets = new Insets(5,10,5,5);
 			gridCs.anchor = GridBagConstraints.WEST;
 			findReplaceDialog.add(findPrevButton,gridCs);
 			findPrevButton.setActionCommand("FindPrevious");
@@ -226,6 +233,8 @@ public  class FindReplaceDialog {
 			gridCs= new GridBagConstraints();
 			gridCs.gridx=1;
 			gridCs.gridy=4;
+			gridCs.gridwidth = 1;
+			gridCs.fill = GridBagConstraints.HORIZONTAL;
 			gridCs.insets = new Insets(5,5,5,5);
 			gridCs.anchor = GridBagConstraints.CENTER;
 			findReplaceDialog.add(replaceButton,gridCs);
@@ -242,6 +251,8 @@ public  class FindReplaceDialog {
 			gridCs= new GridBagConstraints();
 			gridCs.gridx=1;
 			gridCs.gridy=3;
+			gridCs.gridwidth = 1;
+			gridCs.fill = GridBagConstraints.HORIZONTAL;
 			gridCs.anchor = GridBagConstraints.CENTER;
 			gridCs.insets = new Insets(5,5,5,5);
 			findReplaceDialog.add(replaceAllButton,gridCs);
@@ -256,8 +267,10 @@ public  class FindReplaceDialog {
 			/////////////////// add Close Button //////////////////////
 			gridCs.gridx=2;
 			gridCs.gridy=3;
+			gridCs.gridwidth = 1;
+			gridCs.fill = GridBagConstraints.HORIZONTAL;
 			gridCs.anchor = GridBagConstraints.EAST;
-			gridCs.insets = new Insets(5,5,5,5);
+			gridCs.insets = new Insets(5,5,5,10);
 			findReplaceDialog.add(closeButton,gridCs);
 		////// add new listener to receive events from this button//////
 			closeButton.addActionListener(new ActionListener(){
@@ -285,11 +298,13 @@ public  class FindReplaceDialog {
 	 ** @param str
 	 **/
 	private void updateFindComboBox(String str) {
-		 if((findComboBox.getItemCount()==findComboBoxMax)&& str!=null) {
+		 if((findComboBox.getItemCount()==findComboBoxMax)&& str!=null) 
+		 {
 			 findComboBox.removeItemAt(findComboBoxMax-1);
 			 findComboBox.addItem(str);
 		 }
-		 else if(str!="") {
+		 else if(str!="") 
+		 {
 			 findComboBox.addItem(str);
 		 }
 	 }
@@ -298,7 +313,8 @@ public  class FindReplaceDialog {
 	/**This function receives an RSyntaxTextArea object that it will do the find/replace action on. 
 	 * @param toBeSearchedArea
 	 */
-	public void searchThisArea(RSyntaxTextArea toBeSearchedArea) {
+	public void searchThisArea(RSyntaxTextArea toBeSearchedArea) 
+	{
 		setRSTA(toBeSearchedArea);
 		setVisible(true);
 		
@@ -328,27 +344,30 @@ public  class FindReplaceDialog {
 	  * Source:
 	  * https://www.codota.com/code/java/methods/org.fife.ui.rtextarea.SearchContext/setSearchForward
 	  **/
-	 private void findButtonActionPerformed(ActionEvent e) {
+	 private void findButtonActionPerformed(ActionEvent e) 
+	 {
 		 SearchContext context = new SearchContext();
 		 //System.out.println(textArea.getCaretPosition());
-	    	  if(keyString.length()!=0 || keyString!=null || textArea.getText()!=null) {
-	    		  context.setSearchFor(keyString);
-	    		  context.setMarkAll(true);//highlight all matched strings
-	    	      context.setMatchCase(caseSensitiveCheckBox.isSelected());
-	    	      context.setRegularExpression(regexCheckBox.isSelected());
-	    	      context.setSearchForward(searchDirection);
-	    	      context.setWholeWord(caseSensitiveCheckBox.isSelected());
-	    	     // text
-	    	     // textArea.setCaretPosition(0);
-	    	      boolean found = SearchEngine.find(textArea, context).wasFound();
-	    	      //this no thing is found, prompt a message to user
-	    	      if (!found) {
-	    	    	  textArea.setCaretPosition(0);// start search from beginning
-	    	    	  SearchEngine.find(textArea,context);
-	    	    	  //JOptionPane.showMessageDialog(findReplaceDialog,"String Not Found","Find Result",JOptionPane.INFORMATION_MESSAGE);
-	    	      }
-		      }
-	    	  else return;
+    	  if(keyString.length()!=0 || keyString!=null || textArea.getText()!=null) 
+    	  {
+    		  context.setSearchFor(keyString);
+    		  context.setMarkAll(true);//highlight all matched strings
+    	      context.setMatchCase(matchCaseCheckBox.isSelected());
+    	      context.setRegularExpression(regexCheckBox.isSelected());
+    	      context.setSearchForward(searchDirection);
+    	      context.setWholeWord(matchCaseCheckBox.isSelected());
+    	     // text
+    	     // textArea.setCaretPosition(0);
+    	      boolean found = SearchEngine.find(textArea, context).wasFound();
+    	      //this no thing is found, prompt a message to user
+    	      if (!found) 
+    	      {
+    	    	  textArea.setCaretPosition(0);// start search from beginning
+    	    	  SearchEngine.find(textArea,context);
+    	    	  //JOptionPane.showMessageDialog(findReplaceDialog,"String Not Found","Find Result",JOptionPane.INFORMATION_MESSAGE);
+    	      }
+	      }
+    	  else return;
 	 }
 	 
 	 
@@ -366,13 +385,13 @@ public  class FindReplaceDialog {
 			 SearchContext context = new SearchContext();
 			 context.setSearchFor(keyString);
 	   		  context.setMarkAll(true);
-	   	      context.setMatchCase(caseSensitiveCheckBox.isSelected());
+	   	      context.setMatchCase(matchCaseCheckBox.isSelected());
 	   	      context.setRegularExpression(regexCheckBox.isSelected());
 	   	      context.setSearchForward(searchDirection);
-	   	      context.setWholeWord(caseSensitiveCheckBox.isSelected());
+	   	      context.setWholeWord(matchCaseCheckBox.isSelected());
 	   	      context.setReplaceWith(textReplace);
 	   	     if(e.getSource()==replaceAllButton)
-	   	      SearchEngine.replaceAll(textArea,context);
+	   	    	  SearchEngine.replaceAll(textArea,context);
 	   	     else
 	   	    	  SearchEngine.replace(textArea,context);
 
@@ -387,7 +406,7 @@ public  class FindReplaceDialog {
 		 keyString="";
 		 findComboBox.setSelectedItem(keyString);
 		 replaceTextField.setText("");
-		 caseSensitiveCheckBox.setSelected(true);//check match case otpion
+		 matchCaseCheckBox.setSelected(true);//check match case otpion
 		 searchDirection=true;
 	 }
 	 
