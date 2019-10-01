@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -91,6 +92,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 	public MainFrame()
 	{
 		super("TEXT EDITOR"); 
+		setIconImage(new ImageIcon("icons/javaTextEditorIcon2.PNG").getImage());
 		setUIStyle();//Set Program's Name
 		createMenuItem();
 		
@@ -158,6 +160,7 @@ public class MainFrame extends JFrame implements ActionListener  {
 
 		//Buid edit_menu with cutCopyPasteAction()
 		cutCopyPasteAction();
+		project_menu.addSeparator();
 		findReplaceMenuItem = new JMenuItem("Find/Replace");
 		findReplaceMenuItem.setEnabled(false);//enable when exists a opened file. 
 		edit_menu.add(findReplaceMenuItem);
@@ -520,14 +523,17 @@ public class MainFrame extends JFrame implements ActionListener  {
 		Action pasteAction = new DefaultEditorKit.PasteAction();
 		
 		cutAction.putValue(Action.NAME,"Cut");
+		cutAction.putValue(Action.SMALL_ICON, new ImageIcon("icons/cut.gif"));
 		cutAction.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke('X',Event.CTRL_MASK));
 		edit_menu.add(cutAction);
 		
 		copyAction.putValue(Action.NAME,"Copy");
+		copyAction.putValue(Action.SMALL_ICON, new ImageIcon("icons/copy.gif"));
 		copyAction.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke('C',Event.CTRL_MASK));
 		edit_menu.add(copyAction);
 		
 		pasteAction.putValue(Action.NAME,"Paste");
+		pasteAction.putValue(Action.SMALL_ICON, new ImageIcon("icons/paste.gif"));
 		pasteAction.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke('V',Event.CTRL_MASK));
 		edit_menu.add(pasteAction);
 		
@@ -558,8 +564,5 @@ public class MainFrame extends JFrame implements ActionListener  {
 		Tab current_selected_tab = tab.get(index_selected_tab);
 		return current_selected_tab;
 	}
-	
-	
-	
 }
 
