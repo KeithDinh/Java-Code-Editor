@@ -70,6 +70,8 @@ public  class FindReplaceDialog {
 	public void setVisible(boolean visible) {
 			findReplaceDialog.setVisible(visible);
 	}
+	
+	
 	 /**
 	 * @param frame
 	 */
@@ -277,6 +279,7 @@ public  class FindReplaceDialog {
 			frame.pack();
 	 }
 	 
+	
 	 /**This function keeps tracks of the keywords that users have searched. 
 	  * The Maximum Number of searched keyword this box can hold is findComboBoxMax=15
 	 ** @param str
@@ -290,6 +293,8 @@ public  class FindReplaceDialog {
 			 findComboBox.addItem(str);
 		 }
 	 }
+	
+	
 	/**This function receives an RSyntaxTextArea object that it will do the find/replace action on. 
 	 * @param toBeSearchedArea
 	 */
@@ -298,7 +303,12 @@ public  class FindReplaceDialog {
 		setVisible(true);
 		
 	}
-	 public void setRSTA(RSyntaxTextArea textArea) {
+	
+	
+	 /**
+	 * @param textArea
+	 */
+	public void setRSTA(RSyntaxTextArea textArea) {
 		 this.textArea=textArea;
 		 try {
 		 keyString=textArea.getSelectedText().toString();
@@ -364,14 +374,16 @@ public  class FindReplaceDialog {
 	   	     if(e.getSource()==replaceAllButton)
 	   	      SearchEngine.replaceAll(textArea,context);
 	   	     else
-	   	    	  Searc
-	   	    	  hEngine.replace(textArea,context);
+	   	    	  SearchEngine.replace(textArea,context);
 
 		 }
    		 
 	 }
 	 
-	 private void setDefault() {
+	 /**
+	 * 
+	 */
+	private void setDefault() {
 		 keyString="";
 		 findComboBox.setSelectedItem(keyString);
 		 replaceTextField.setText("");
