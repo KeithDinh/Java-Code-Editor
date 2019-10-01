@@ -372,6 +372,7 @@ public  class FindReplaceDialog {
 	 private void setDefault() {
 		 keyString="";
 		 findComboBox.setSelectedItem(keyString);
+		 replaceTextField.setText("");
 		 caseSensitiveCheckBox.setSelected(true);//check match case otpion
 		 searchDirection=true;
 	 }
