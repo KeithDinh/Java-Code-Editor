@@ -47,7 +47,12 @@ import javax.swing.text.TextAction;
 
 import javax.swing.UnsupportedLookAndFeelException;
 
-
+/* STRUCTURE: 
+ * 	Frame { Menu bar, Tab bar}
+ * 		Menu bar {Project, File, Edit}
+ * 		Tab bar {Tab[]}
+ *  		Tab { textArea, file, file_content, file_name, file_path}
+ */
 public class MainFrame extends JFrame implements ActionListener  {
 	private JMenuBar menuBar = new JMenuBar();
 	
