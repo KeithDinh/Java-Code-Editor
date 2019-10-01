@@ -364,7 +364,9 @@ public  class FindReplaceDialog {
 	   	     if(e.getSource()==replaceAllButton)
 	   	      SearchEngine.replaceAll(textArea,context);
 	   	     else
-	   	    	  SearchEngine.replace(textArea,context);
+	   	    	  Searc
+	   	    	  hEngine.replace(textArea,context);
+
 		 }
    		 
 	 }
