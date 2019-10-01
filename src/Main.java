@@ -1,5 +1,4 @@
 
-
 /* **************************************************************************
  * **************************** JAVA CODE EDITOR ****************************
  * ****************************     Group: C--   ****************************
@@ -7,12 +6,17 @@
  * ****************************     COSC 4353    ****************************
  * ****************************  Software Design ****************************
  * **************************************************************************
+ * ****************************    References:    ***************************
+ * RSyntaxTextArea by bobbylight: github.com/bobbylight/RSyntaxTextArea
+ * Oracle Documentation: docs.oracle.com/javase/7/docs/api/javax/swing/package-summary.html
+ * **************************************************************************
  */
 
+public class Main 
+{
 
-public class Main {
-
-	public static void main(String[] args) {
+	public static void main(String[] args) 
+	{
 		new MainFrame();
 	}
 

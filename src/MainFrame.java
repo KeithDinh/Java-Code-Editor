@@ -47,39 +47,78 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.TextAction;
 
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
+/* STRUCTURE INTRODUCTION: 
+ * 	Frame {Menu bar, Tab bar}
+ * 		Menu bar {Project, File, Edit}
+ * 		Tab bar  {Tab[]}
+ *  		Tab  {textArea, file, file_content, file_name, file_path}
+ */
 
-public class MainFrame extends JFrame implements ActionListener  {
+//CTRL + SHIFT + Numpad /: collapse all
+
+public class MainFrame extends JFrame implements ActionListener  
+{	
+	/* ********************* CLASS MEMBERS *********************** */
 	private JMenuBar menuBar = new JMenuBar();
-	
-	private JMenu file_menu = new JMenu("File");
-	private JMenu project_menu = new JMenu("Project");
-	private JMenu edit_menu = new JMenu("Edit");
-	/////////////////////////////////
-	private JMenuItem create_project;
-	private JMenuItem open_project;
-	private JMenuItem save_project;
-	private JMenuItem close_project;
-	/////////////////////////////////
-	private JMenuItem create_file;
-	private JMenuItem open_file;
-	private JMenuItem save_file;
-	private JMenuItem close_file;
-	/////////////////////////////
-	private JMenuItem findReplaceMenuItem;
-
-	/////////////////////////////////
-
-	private String project_dir;
-
-	private ArrayList<File> files;
+	//{
+		private JMenu file_menu = new JMenu("File");
+			//{
+				private JMenuItem create_project;
+				private JMenuItem open_project;
+				private JMenuItem save_project;
+				private JMenuItem close_project;
+			//}
+		private JMenu project_menu = new JMenu("Project");
+			//{
+				private JMenuItem create_file;
+				private JMenuItem open_file;
+				private JMenuItem save_file;
+				private JMenuItem close_file;
+			//}
+		private JMenu edit_menu = new JMenu("Edit");
+			//{
+				private JMenuItem findReplaceMenuItem;
+				protected FindReplaceDialog searchTool = new FindReplaceDialog(this);
+			//}
+	//}
+				
+				
 	private JTabbedPane tab_bar = new JTabbedPane(JTabbedPane.TOP);
-	private ArrayList<Tab> tab = new ArrayList<Tab>();
-	protected FindReplaceDialog searchTool = new FindReplaceDialog(this);
+	//{
+		private ArrayList<Tab> tab = new ArrayList<Tab>();
+	//}
+	
+		
+	private String project_dir; //store current project path
+	/* ********************************************************** */
+	
+	/* ********************************** CLASS FUNCTIONS ********************************** */
 	
 	
-	////////////////////ONLY .java is acceptable//////////////////////
-	private FilenameFilter javaFilter = new FilenameFilter()
+	/**Description: This is a private function that create a GUI for 
+	 * Find/Replace Menu Item when this Menu Item is clicked. */
+	private void setUIStyle() {
+		try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException ex) {
+        } catch (InstantiationException ex) {
+        } catch (IllegalAccessException ex) {
+        } catch (UnsupportedLookAndFeelException ex) {
+        	System.out.println("NO SUPPORT FOR UI");
+	}
+		UIManager.put("MenuBar.background", Color.lightGray);
+		UIManager.put("MenuItem.opaque",true);
+		//UIManager.put("Menu.background", Color.GREEN);
+		//UIManager.put("MenuItem.background", Color.lightGray);
+		
+	}
+	
+	//*************************MINOR FUNCTIONS*************************//
+
+	//used for open_project_function() to read only ".java" files
+	private FilenameFilter javaFilter = new FilenameFilter()		
     {
         @Override
         public boolean accept(File dir, String name)
@@ -87,8 +126,25 @@ public class MainFrame extends JFrame implements ActionListener  {
             return name.endsWith(".java");
         }
     };
-    //////////////////////////////////////////////////////////////////
     
+    //take file path(string) as argument, return content of file (string) 
+	private String readFileFromPath(String filePath) 				
+    {
+		String content = "";
+	    try
+	    {
+	        content = new String ( Files.readAllBytes( Paths.get(filePath) ) );
+	    }
+	    catch (IOException e)
+	    {
+	        e.printStackTrace();
+	    }
+	    return content;
+    }
+	
+    
+	//*************************MAJOR FUNCTIONS*************************//
+
 	public MainFrame()
 	{
 		super("TEXT EDITOR"); 
@@ -98,7 +154,8 @@ public class MainFrame extends JFrame implements ActionListener  {
 		
 		enableShortCutKeys(true);		//add shortcut keys 
 		
-		menuBar.add(project_menu);		//MenuBar(TaskBar) > menu(File) > each menuButton(new,create,..)	
+		//MenuBar(TaskBar) > menu(Project, File, Edit) > each menuButton(new,create,..)
+		menuBar.add(project_menu);			
 		menuBar.add(file_menu);
 		menuBar.add(edit_menu);
 		
@@ -112,10 +169,10 @@ public class MainFrame extends JFrame implements ActionListener  {
 	
         getContentPane().add(tab_bar);
 	}
-	
+
 	private void createMenuItem()
 	{
-		//////////////////////Add menuButton to project menu////////////////////
+		//************ Add menuButton to project menu ************//
 		
 		create_project = new JMenuItem("New Project");
 		create_project.addActionListener(this);
@@ -134,30 +191,35 @@ public class MainFrame extends JFrame implements ActionListener  {
 		
 		close_project = new JMenuItem("Close Project");
 		close_project.addActionListener(this);
+		close_project.setEnabled(false);
 		project_menu.add(close_project);
 		
-		///////////////////////Add menuButton to file menu////////////////////
+		//************ Add menuButton to file menu ************//
 		
 		create_file = new JMenuItem("New File");
 		create_file.addActionListener(this);
 		file_menu.add(create_file);
+		file_menu.addSeparator();
 		
 		open_file = new JMenuItem("Open File");
 		open_file.addActionListener(this);
 		file_menu.add(open_file);
-		project_menu.addSeparator();
+		file_menu.addSeparator();
 		
-		save_file = new JMenuItem("Save File (Save)");
-		save_file.setEnabled(false);//initialize save_file menuItem in disable mode when no file to be saved
+		save_file = new JMenuItem("Save File");
 		save_file.addActionListener(this);
 		file_menu.add(save_file);
-		project_menu.addSeparator();
+		file_menu.addSeparator();
+		save_file.setEnabled(false); //initialize save_file menuItem in disable mode when no file to be saved
+		
 		
 		close_file = new JMenuItem("Close File");
 		close_file.addActionListener(this);
+		close_file.setEnabled(false);
 		file_menu.add(close_file);
 		
-
+		//************ Add menuButton to edit menu ************//
+		
 		//Buid edit_menu with cutCopyPasteAction()
 		cutCopyPasteAction();
 		project_menu.addSeparator();
@@ -166,10 +228,23 @@ public class MainFrame extends JFrame implements ActionListener  {
 		edit_menu.add(findReplaceMenuItem);
 		findReplaceMenuItem.addActionListener(this);
 		
-
-		////////////////////////////////////////////////////////////////////
 	}
 	
+	private void enableShortCutKeys(boolean enableMode) 
+	{
+		if(enableMode==true) 
+		{
+			project_menu.setMnemonic('P');
+			file_menu.setMnemonic('F');
+			edit_menu.setMnemonic('E');
+			create_project.setAccelerator(KeyStroke.getKeyStroke('N',Event.CTRL_MASK));
+			save_project.setAccelerator(KeyStroke.getKeyStroke('S',Event.CTRL_MASK));
+			
+			//We have to cast KeyEvent.VK_ to a char. If not, it will show a warning as below
+			open_project.setAccelerator(KeyStroke.getKeyStroke('O',Event.CTRL_MASK));
+		}
+		findReplaceMenuItem.setAccelerator(KeyStroke.getKeyStroke('F',Event.CTRL_MASK));
+	}
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -220,22 +295,39 @@ public class MainFrame extends JFrame implements ActionListener  {
 		}
 	}
 	
-	////////////////////////PROJECT FUNCTION///////////////////////////////////
+	
+	//*************************PROJECT FUNCTIONS*************************//
 	private void open_project_function() throws IOException 
 	{
+		System.out.println("***OPENING PROJECT***");
+
 		JFileChooser chooser = new JFileChooser(); 						//this class is to open file/directory
-        chooser.setCurrentDirectory(new File(".")); 					//set current dir as window popup
+		
+		if(project_dir != null)
+			chooser.setCurrentDirectory(new File(project_dir)); 		//set current dir as window popup	
+		else
+			chooser.setCurrentDirectory(new File(".")); 
+		
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); 	//will save current dir/selected dir
         int r = chooser.showOpenDialog(this); 
         
-        if (r == JFileChooser.APPROVE_OPTION) {
+        if (r == JFileChooser.APPROVE_OPTION) 
+        {
         	
         	//get path of directory
-            String path = chooser.getSelectedFile().getPath() + "\\src";
+        	
+            String path = chooser.getSelectedFile().getPath();
             
-            //new File(path).listFiles(javaFilter) return array of files with filter
+            //if (the selected path is NOT src folder) AND (src folder exist) -> add src to path
+            //else -> there is no src folder -> no need to add src
+            if(!path.contains("src") && new File(path+"\\src").isDirectory())
+            	path += "\\src";
+            
+            //new File(path).listFiles(javaFilter) return array of JAVA files 
             //aslist will convert the array into ArrayList type
-            files = new ArrayList<File>(Arrays.asList(new File(path).listFiles(javaFilter)));
+            ArrayList<File> files = new ArrayList<File>(Arrays.asList(new File(path).listFiles(javaFilter)));
+            
+            
             if(files == null)
             	return ;
             
@@ -244,74 +336,94 @@ public class MainFrame extends JFrame implements ActionListener  {
             //Iterate through files, get contents, open and write on the tab
             for(int i=0; i<files.size();i++)
             {
-            	//check path on output screen
-            	System.out.println(files.get(i).getPath());
-            	//create tab with string (readFileFromPath return the contents in string)
-            	tab.add(new Tab(readFileFromPath(files.get(i).getPath()), files.get(i).getName(),files.get(i).getPath()));
             	
-            	//make tab scrollable
-            	tab_bar.addTab(tab.get(i).tabName, tab.get(i).text_area_with_scroll);
-            	System.out.println(tab.get(i).tabName);
+            	//create tab with string (readFileFromPath return the contents in string)
+            	tab.add(new Tab
+	            			(
+		            			readFileFromPath(files.get(i).getPath()), //content of file
+		            			files.get(i).getName(),					  //name of file
+		            			files.get(i).getPath(),					  //path of file
+		            			files.get(i)							  //file itself
+	            			)
+            			);
+            	
+            	tab_bar.addTab(
+            			tab.get(i).tabName, 							  //Name of Tab
+            			tab.get(i).text_area_with_scroll);				  //Add scrollable version of Tab
             }
+            save_project.setEnabled(true);
+            close_project.setEnabled(true);
+            save_file.setEnabled(true);
+            close_file.setEnabled(true);
+            findReplaceMenuItem.setEnabled(true);
             
             project_dir = path;
         }
-        save_project.setEnabled(true);
-        findReplaceMenuItem.setEnabled(true);
-        return ;
+		System.out.println("***END OPENING PROJECT***");
+
+        return;
 	}
   
 	private void create_project_function()
 	{
-		
+		System.out.println("***CREATE PROJECT***");
+
 		int response = JOptionPane.showConfirmDialog(null, "Choose a directory, this is where the project folder will be saved", null, JOptionPane.OK_CANCEL_OPTION);
-		if( response == JOptionPane.CANCEL_OPTION || response == JOptionPane.CLOSED_OPTION)
-			return;
 		
-		JFileChooser chooser = new JFileChooser();
-		chooser.setDialogTitle( "Select Project" );
-        chooser.setCurrentDirectory(new File("."));
-        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        
-       
-		if( chooser.showOpenDialog( this ) != JFileChooser.APPROVE_OPTION ) 
-			return;	
-		
-		String dir_path = chooser.getSelectedFile().getPath();
-		
-		// Name the Project Folder
-		
-		String folderName = JOptionPane.showInputDialog(null, "Choose a project name");
-		if( folderName == null )
-			return;
-		
-		////////check if folder already exists///////////
-		if( new File( dir_path + "\\" + folderName ).exists() ) 
-		{
-			JOptionPane.showMessageDialog(null, "Project already exists", null, JOptionPane.ERROR_MESSAGE);
-			return;
+		if( response == JOptionPane.OK_OPTION)
+		{	
+			JFileChooser chooser = new JFileChooser();
+			chooser.setDialogTitle( "Select Project" );
+			
+			//open dialog on last path if it is valid
+			if(project_dir != null)
+				chooser.setCurrentDirectory(new File(project_dir)); 		//set current dir as window popup	
+			else
+				chooser.setCurrentDirectory(new File("."));
+			
+	        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+	        	       
+			if( chooser.showOpenDialog( this ) == JFileChooser.APPROVE_OPTION ) 
+			{
+				String dir_path = chooser.getSelectedFile().getPath();
+				
+				// Name the Project Folder
+				String folderName = JOptionPane.showInputDialog(null, "Choose a project name");
+				if( folderName != null )
+				{
+					//check if folder already exists
+					if(new File( dir_path + "\\" + folderName ).exists()) 
+					{
+						JOptionPane.showMessageDialog(null, "Project already exists", null, JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+					
+					//create folder
+					new File(dir_path+ "\\" + folderName).mkdir();
+					
+					if(!new File(dir_path + "\\" + folderName).exists())
+					{
+						JOptionPane.showMessageDialog(null, "Cant't create project, possible illegal character(s)", null, JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+					dir_path += "\\" + folderName;
+					project_dir = dir_path;
+				}
+			}
 		}
-		////////////////////////////////////////////////
-		
-		new File(dir_path+ "\\" + folderName).mkdir();
-		
-		if( !new File(dir_path + "\\" + folderName).exists() )
-		{
-			JOptionPane.showMessageDialog(null, "Cant't create project, possible illegal character(s)", null, JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		
-		dir_path += "\\" + folderName;	
-       
+		System.out.println("***END CREATE PROJECT***");
+
+		return;
 	}
+	
 	private void save_project_function()
 	{
-		for(int i=0; i<files.size();i++)
+		for(int i=0; i<tab.size();i++)
         {
-			String content = tab.get(i).textArea.getText();
+			String content = tab.get(i).content;
 		    try 
 		    {
-		    	BufferedWriter writer = new BufferedWriter(new FileWriter(files.get(i).getPath()));
+		    	BufferedWriter writer = new BufferedWriter(new FileWriter(tab.get(i).path));
 				writer.write(content);
 				writer.close();
 				
@@ -324,7 +436,10 @@ public class MainFrame extends JFrame implements ActionListener  {
 		    
 		    
         }
+		System.out.println("***END SAVE PROJECT***");
+
 	}
+	
 	private void close_project_function()
 	{
 		Object[] options = { "OK", "CANCEL" };
@@ -337,51 +452,57 @@ public class MainFrame extends JFrame implements ActionListener  {
         	save_project_function();
         }
 		tab_bar.removeAll();
+		save_project.setEnabled(false);
+		close_project.setEnabled(false);
+		System.out.println("***END CLOSE PROJECT***");
+
 	}
 	
-	////////////////////////FILE FUNCTION///////////////////////////////////
+	//*************************FILE FUNCTIONS*************************//
 
 	private void open_file_function() throws IOException 
 	{
-		System.out.println("///////OPENING FILE////////////");
+		System.out.println("***OPENING FILE***");
 		JFileChooser chooser = new JFileChooser(); 						//this class is to open file/directory
-        chooser.setCurrentDirectory(new File(".")); 					//set current dir as window popup
+		if(project_dir != null)
+			chooser.setCurrentDirectory(new File(project_dir)); 		//set current dir as window popup	
+		else
+			chooser.setCurrentDirectory(new File("."));
+		chooser.setFileFilter(new FileNameExtensionFilter("*.java", "java"));
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY); 		//will save current dir/selected dir
         int r = chooser.showOpenDialog(this); 
         
         if (r == JFileChooser.APPROVE_OPTION) 
         {
             String path = chooser.getSelectedFile().getPath();
-            System.out.print(path);
-            
-           //create array of file with filter, then store all valid files in it
+                       
+           //create file with filter, then store all valid files in it
             File single_file = new File(path);
             
-            //files.add(single_file); //add file to the files array
-            
-            System.out.println(path);
             if(single_file == null)
             	return;
         	//////////////////////////
             
-            tab.add(new Tab(readFileFromPath(single_file.getPath()), single_file.getName(),single_file.getPath()));
+            tab.add(new Tab(readFileFromPath(single_file.getPath()), single_file.getName(),single_file.getPath(),single_file));
         	
         	tab_bar.addTab(tab.get(tab.size()-1).tabName, tab.get(tab.size()-1).text_area_with_scroll);
         	
-        	System.out.println(tab.get(tab.size()-1).tabName);
+        	if(!save_file.isEnabled()) 
+            {
+    			save_file.setEnabled(true);
+    			findReplaceMenuItem.setEnabled(true);
+    		}
             
         }  
         //if file is successfully created, change save_file menuItem to enable
-        if(!save_file.isEnabled()) {
-			save_file.setEnabled(true);
-			findReplaceMenuItem.setEnabled(true);
-		}
+        
 
-        System.out.println("/////// END OPENING FILE////////////");
+        System.out.println("***END OPENING FILE***");
 	}
+	
 	private void create_file_function()
 	{
-		System.out.println("///////////////NEW FILE///////////////////////");
+		System.out.println("***NEW FILE***");
 		String fileName = JOptionPane.showInputDialog(null, "Enter the name of the new .java file", "Add File", JOptionPane.PLAIN_MESSAGE);
 		if( fileName == null ) // this means that user clicked cancel or nothing
 			return;
@@ -453,14 +574,16 @@ public class MainFrame extends JFrame implements ActionListener  {
 		}
 		
 		//files.add(new File(filePath));
-		tab.add(new Tab(readFileFromPath(filePath), fileName, filePath));
+		tab.add(new Tab(readFileFromPath(filePath), fileName, filePath, new File(filePath)));
     	
     	tab_bar.addTab(tab.get(tab.size()-1).tabName, tab.get(tab.size()-1).text_area_with_scroll);
-		System.out.println("///////////////END NEW FILE///////////////////////");
+    	
+    	save_file.setEnabled(true);
+    	close_file.setEnabled(true);
+		System.out.println("***END NEW FILE***");
 
 	}
-	
-	
+		
 	private void save_file_function()
 	{
 		int index_selected_tab = tab_bar.getSelectedIndex();
@@ -481,42 +604,34 @@ public class MainFrame extends JFrame implements ActionListener  {
 			JOptionPane.showConfirmDialog(null, e.getMessage(),"Error Writing File",JOptionPane.DEFAULT_OPTION,JOptionPane.ERROR_MESSAGE);
 		}
 	}
-	
-	
+		
 	private void close_file_function()
 	{
+		Object[] options = { "OK", "CANCEL" };
+		int result = JOptionPane.showOptionDialog(null, "Save before closing?", "Warning",
+		        JOptionPane.DEFAULT_OPTION, 
+		        JOptionPane.WARNING_MESSAGE,
+		        null, options, options[0]);
+		if(result==JOptionPane.YES_OPTION)
+        {
+        	save_file_function();
+        }
 		int index_selected_tab = tab_bar.getSelectedIndex();
 		Tab current_selected_tab = tab.get(index_selected_tab);
 		tab_bar.remove(index_selected_tab);
-	}
-	private String readFileFromPath(String filePath) //put all content of file to a string
-    {
-		String content = "";
-	    try
-	    {
-	        content = new String ( Files.readAllBytes( Paths.get(filePath) ) );
-	    }
-	    catch (IOException e)
-	    {
-	        e.printStackTrace();
-	    }
-	    return content;
-    }
-	
-	private void enableShortCutKeys(boolean enableMode) {
-		if(enableMode==true) {
-		project_menu.setMnemonic('P');
-		file_menu.setMnemonic('F');
-		edit_menu.setMnemonic('E');
-		create_project.setAccelerator(KeyStroke.getKeyStroke('N',Event.CTRL_MASK));
-		save_project.setAccelerator(KeyStroke.getKeyStroke('S',Event.CTRL_MASK));
-	//We have to cast KeyEvent.VK_ to a char. If not, it will show a warning as below
-		open_project.setAccelerator(KeyStroke.getKeyStroke('O',Event.CTRL_MASK));
+		if(tab.size()==0)
+		{
+			save_project.setEnabled(false);
+			close_project.setEnabled(false);
+			save_file.setEnabled(false);
+			close_file.setEnabled(false);
 		}
-		findReplaceMenuItem.setAccelerator(KeyStroke.getKeyStroke('F',Event.CTRL_MASK));
+		System.out.println("***END CLOSE FILE***");
+
 	}
 
 
+	//*************************EDIT FUNCTIONS*************************//
 	public void cutCopyPasteAction() {
 		Action cutAction = new DefaultEditorKit.CutAction();
 		Action copyAction = new DefaultEditorKit.CopyAction();
@@ -526,37 +641,19 @@ public class MainFrame extends JFrame implements ActionListener  {
 		cutAction.putValue(Action.SMALL_ICON, new ImageIcon("icons/cut.gif"));
 		cutAction.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke('X',Event.CTRL_MASK));
 		edit_menu.add(cutAction);
+		edit_menu.addSeparator();
 		
 		copyAction.putValue(Action.NAME,"Copy");
 		copyAction.putValue(Action.SMALL_ICON, new ImageIcon("icons/copy.gif"));
 		copyAction.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke('C',Event.CTRL_MASK));
 		edit_menu.add(copyAction);
+		edit_menu.addSeparator();
 		
 		pasteAction.putValue(Action.NAME,"Paste");
 		pasteAction.putValue(Action.SMALL_ICON, new ImageIcon("icons/paste.gif"));
 		pasteAction.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke('V',Event.CTRL_MASK));
 		edit_menu.add(pasteAction);
-		
-	}
-	
-	/**Description: This is a private function that create a GUI for 
-	 * Find/Replace Menu Item when this Menu Item is clicked. 
-	 * 
-	 */
-	private void setUIStyle() {
-		try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException ex) {
-        } catch (InstantiationException ex) {
-        } catch (IllegalAccessException ex) {
-        } catch (UnsupportedLookAndFeelException ex) {
-        	System.out.println("NO SUPPORT FOR UI");
-	}
-		UIManager.put("MenuBar.background", Color.lightGray);
-		UIManager.put("MenuItem.opaque",true);
-		//UIManager.put("Menu.background", Color.GREEN);
-		//UIManager.put("MenuItem.background", Color.lightGray);
-		
+		edit_menu.addSeparator();
 	}
 	
 	private Tab getCurrentTab() {
