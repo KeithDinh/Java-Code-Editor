@@ -10,6 +10,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -179,7 +181,34 @@ public class MainFrame extends JFrame implements ActionListener
 		
 		
 		this.setSize(700,600);
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);				 //close the GUI also terminate program
+		this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		this.addWindowListener(new WindowAdapter() 
+		{
+			  @Override
+			  public void windowClosing(WindowEvent we)
+			  { 
+				if(tab.size() > 0)
+				{	
+				    String option_button[] = {"Yes","No", "Cancel"};
+				    int option = JOptionPane.showOptionDialog(null, 
+				        "Save before closing", 	//content description
+				        "Warning", 			 //top title of the pop-up window
+				        JOptionPane.DEFAULT_OPTION, 	//option type(Yes,no,true,false,...)
+				        JOptionPane.QUESTION_MESSAGE, 	//window type(warning, question,...)
+				        null, 
+				        option_button,		//buttons on the dialog
+				        option_button[0]); //default selected button
+				    if(option==0)
+				    {
+				      save_project_function();    
+				    }
+				    else if (option == 2)
+				    	return;  
+			  }
+				System.exit(0);  
+			}
+		});
+			
 		this.setVisible(true); 
 	
         getContentPane().add(tab_bar);
@@ -323,10 +352,94 @@ public class MainFrame extends JFrame implements ActionListener
 	
 	//***************PROJECT FUNCTIONS*******************//
 	
+
+	private void create_project_function()
+	{
+		System.out.println("***CREATE PROJECT***");
+		
+		if(project_dir != null)
+		{
+			Object[] options = { "OK", "CANCEL" };
+			int result = JOptionPane.showOptionDialog(null, "Close current project?", "Warning",
+			        JOptionPane.DEFAULT_OPTION, 
+			        JOptionPane.WARNING_MESSAGE,
+			        null, options, options[0]);
+			if(result==JOptionPane.YES_OPTION)
+	        {
+				close_project_function();		//ask user if they want to save and close
+	        }
+			else
+				return;
+		}
+		
+		JFileChooser chooser = new JFileChooser();
+		chooser.setDialogTitle( "Location to create project" );
+		chooser.setApproveButtonText("Select path");
+		
+		//open dialog on last path if it is valid
+		if(project_dir != null)
+			chooser.setCurrentDirectory(new File(project_dir)); 		//set current dir as window popup	
+		else
+			chooser.setCurrentDirectory(new File("."));
+		
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        	       
+		if( chooser.showOpenDialog( this ) == JFileChooser.APPROVE_OPTION ) 
+		{
+			String dir_path = chooser.getSelectedFile().getPath();
+			
+			// Name the Project Folder
+			String folderName = JOptionPane.showInputDialog(null, "Choose a project name");
+			if( folderName != null )
+			{
+				//check if folder already exists
+				if(new File( dir_path + "\\" + folderName ).exists()) 
+				{
+					JOptionPane.showMessageDialog(null, "Project already exists", null, JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				
+				//create folder
+				new File(dir_path+ "\\" + folderName).mkdir();
+				new File(dir_path+ "\\" + folderName + "\\lib").mkdir();
+				new File(dir_path+ "\\" + folderName + "\\src").mkdir();
+				
+				if(new File(dir_path + "\\" + folderName).exists()) //created but not exist? -> invalid
+				{
+					dir_path += "\\" + folderName;
+					project_dir =dir_path;
+					create_Main_function();
+				}
+				else 
+				{
+				JOptionPane.showMessageDialog(null, "Cant't create project, possible illegal character(s)", null, JOptionPane.ERROR_MESSAGE);
+				return;
+				}
+			}
+		}
+	
+		System.out.println("***END CREATE PROJECT***");
+
+		return;
+	}
+	
 	private void open_project_function() throws IOException 
 	{
 		System.out.println("***OPENING PROJECT***");
-
+		if(project_dir != null)
+		{
+			Object[] options = { "OK", "CANCEL" };
+			int result = JOptionPane.showOptionDialog(null, "Close current project?", "Warning",
+			        JOptionPane.DEFAULT_OPTION, 
+			        JOptionPane.WARNING_MESSAGE,
+			        null, options, options[0]);
+			if(result==JOptionPane.YES_OPTION)
+	        {
+				close_project_function();
+	        }
+			else
+				return;
+		}
 		JFileChooser chooser = new JFileChooser(); 						//this class is to open file/directory
 		
 		if(project_dir != null)
@@ -385,68 +498,15 @@ public class MainFrame extends JFrame implements ActionListener
             
             project_dir = path;
         }
-		System.out.println("***END OPENING PROJECT***");
-
+	    System.out.println("***END OPENING PROJECT***");
         return;
 	}
   
-	private void create_project_function()
-	{
-		System.out.println("***CREATE PROJECT***");
-
-		int response = JOptionPane.showConfirmDialog(null, "Choose a directory, this is where the project folder will be saved", null, JOptionPane.OK_CANCEL_OPTION);
-		
-		if( response == JOptionPane.OK_OPTION)
-		{	
-			JFileChooser chooser = new JFileChooser();
-			chooser.setDialogTitle( "Select Project" );
-			
-			//open dialog on last path if it is valid
-			if(project_dir != null)
-				chooser.setCurrentDirectory(new File(project_dir)); 		//set current dir as window popup	
-			else
-				chooser.setCurrentDirectory(new File("."));
-			
-	        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-	        	       
-			if( chooser.showOpenDialog( this ) == JFileChooser.APPROVE_OPTION ) 
-			{
-				String dir_path = chooser.getSelectedFile().getPath();
-				
-				// Name the Project Folder
-				String folderName = JOptionPane.showInputDialog(null, "Choose a project name");
-				if( folderName != null )
-				{
-					//check if folder already exists
-					if(new File( dir_path + "\\" + folderName ).exists()) 
-					{
-						JOptionPane.showMessageDialog(null, "Project already exists", null, JOptionPane.ERROR_MESSAGE);
-						return;
-					}
-					
-					//create folder
-					new File(dir_path+ "\\" + folderName).mkdir();
-					
-					if(!new File(dir_path + "\\" + folderName).exists())
-					{
-						JOptionPane.showMessageDialog(null, "Cant't create project, possible illegal character(s)", null, JOptionPane.ERROR_MESSAGE);
-						return;
-					}
-					dir_path += "\\" + folderName;
-					project_dir = dir_path;
-				}
-			}
-		}
-		System.out.println("***END CREATE PROJECT***");
-
-		return;
-	}
-	
 	private void save_project_function()
 	{
 		for(int i=0; i<tab.size();i++)
         {
-			String content = tab.get(i).content;
+			String content = tab.get(i).get_updated_content();
 		    try 
 		    {
 		    	BufferedWriter writer = new BufferedWriter(new FileWriter(tab.get(i).path));
@@ -480,61 +540,81 @@ public class MainFrame extends JFrame implements ActionListener
 		tab_bar.removeAll();
 		save_project.setEnabled(false);
 		close_project.setEnabled(false);
+		tab.clear();
+		project_dir = null;
 		System.out.println("***END CLOSE PROJECT***");
 
 	}
 	
 	//****************FILE FUNCTIONS******************//
+	
 
-	private void open_file_function() throws IOException 
+	private void create_Main_function()
 	{
-		System.out.println("***OPENING FILE***");
-		JFileChooser chooser = new JFileChooser(); 						//this class is to open file/directory
-		if(project_dir != null)
-			chooser.setCurrentDirectory(new File(project_dir)); 		//set current dir as window popup	
-		else
-			chooser.setCurrentDirectory(new File("."));
-		chooser.setFileFilter(new FileNameExtensionFilter("*.java", "java"));
-        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY); 		//will save current dir/selected dir
-        int r = chooser.showOpenDialog(this); 
-        
-        if (r == JFileChooser.APPROVE_OPTION) 
-        {
-            String path = chooser.getSelectedFile().getPath();
-                       
-           //create file with filter, then store all valid files in it
-            File single_file = new File(path);
-            
-            if(single_file == null)
-            	return;
-        	//////////////////////////
-            
-            tab.add(new Tab(
-            		readFileFromPath(single_file.getPath()), 
-            		single_file.getName(),
-            		single_file.getPath(),
-            		single_file));
-        	
-        	tab_bar.addTab(
-        			tab.get(tab.size()-1).tabName, 
-        			tab.get(tab.size()-1).container);
-        	
-        	if(!save_file.isEnabled()) 
-            {
-    			save_file.setEnabled(true);
-    			findReplaceMenuItem.setEnabled(true);
-    		}
-            
-        }  
-        //if file is successfully created, change save_file menuItem to enable
-        
+		System.out.println("***NEW FILE***");
+		String fileName = "Main.java";
+		
+		FileWriter file = null;		
+		System.out.println(project_dir);
+		String filePath = project_dir + "\\src\\" + fileName;
+		
+		//-5 = remove ".java" to get the name only
+		String contents = "public class Main\n{\n\t\tpublic static void main(String[] args) {\n\t}\n}"; 
+		try
+		{
+			file = new FileWriter( new File( filePath ) );
+			file.write( contents );
+		}
+		catch( Exception e )
+		{
+			e.printStackTrace();
+			JOptionPane.showConfirmDialog(null, "Unable to create file", null, JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+		finally
+		{
+			try { if( file != null ) file.close(); } catch( Exception ee ) { }
+		}
+		
+		//files.add(new File(filePath));
+		tab.add(new Tab(
+				readFileFromPath(filePath), 
+				fileName, 
+				filePath, 
+				new File(filePath)));
+    	
+    	tab_bar.addTab(
+    			tab.get(tab.size()-1).tabName, 
+    			tab.get(tab.size()-1).container);
+    	
+    	save_file.setEnabled(true);
+    	close_file.setEnabled(true);
+		System.out.println("***END NEW FILE***");
 
-        System.out.println("***END OPENING FILE***");
 	}
 	
 	private void create_file_function()
 	{
 		System.out.println("***NEW FILE***");
+		
+		if(project_dir == null)
+		{
+			Object[] options = { "OK", "CANCEL" };
+			int result = JOptionPane.showOptionDialog(null, 
+					"Create project for java file?", 
+					"Warning",
+			        JOptionPane.DEFAULT_OPTION, 
+			        JOptionPane.WARNING_MESSAGE,
+			        null, options, options[0]);
+			if(result==JOptionPane.YES_OPTION)
+			{
+				create_project_function();
+				if(project_dir == null) 		//after created project, cannot be null
+						return;
+			}
+			else return;
+		}
+		
 		String fileName = JOptionPane.showInputDialog(null, "Enter the name of the new .java file", "Add File", JOptionPane.PLAIN_MESSAGE);
 		if( fileName == null ) // this means that user clicked cancel or nothing
 			return;
@@ -542,35 +622,15 @@ public class MainFrame extends JFrame implements ActionListener
 		{
 			fileName = fileName + ".java";
 		}
-		System.out.println(fileName);
 		
-		String temp = fileName.substring( 0, fileName.length() - 5);   
-		if( !Character.isLetter( temp.charAt( 0 ) ) || !temp.matches("[a-zA-Z0-9]*" ) )
+		String name_to_check = fileName.substring( 0, fileName.length() - 5);   
+		if( !Character.isLetter( name_to_check.charAt( 0 ) ) || !name_to_check.matches("[a-zA-Z0-9]*" ) )
 		{
 			JOptionPane.showMessageDialog(null, "Illegal character(s) in file name\nFile name can only contain letters and numbers and must start with a letter", null, JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 
 		FileWriter file = null;
-		if(project_dir == null)
-		{
-			int response = JOptionPane.showConfirmDialog(null, "Choose a directory, this is where the project folder will be saved", null, JOptionPane.OK_CANCEL_OPTION);
-			if( response == JOptionPane.CANCEL_OPTION || response == JOptionPane.CLOSED_OPTION)
-				return;
-			
-			JFileChooser chooser = new JFileChooser();
-			chooser.setDialogTitle( "Select Project" );
-	        chooser.setCurrentDirectory(new File("."));
-	        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-	        
-	       
-			if( chooser.showOpenDialog( this ) != JFileChooser.APPROVE_OPTION ) 
-				return;	
-			
-			project_dir = chooser.getSelectedFile().getPath();
-		}
-		
-
 		String filePath = project_dir + "\\" + fileName;
 		
 		//-5 = remove ".java" to get the name only
@@ -610,6 +670,54 @@ public class MainFrame extends JFrame implements ActionListener
 		System.out.println("***END NEW FILE***");
 
 	}
+	
+	private void open_file_function() throws IOException 
+	{
+		System.out.println("***OPENING FILE***");
+		JFileChooser chooser = new JFileChooser(); 						//this class is to open file/directory
+		if(project_dir != null)
+			chooser.setCurrentDirectory(new File(project_dir)); 		//set current dir as window popup	
+		else
+			chooser.setCurrentDirectory(new File("."));
+		chooser.setFileFilter(new FileNameExtensionFilter("*.java", "java"));
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY); 		//will save current dir/selected dir
+        int r = chooser.showOpenDialog(this); 
+        
+        if (r == JFileChooser.APPROVE_OPTION) 
+        {
+            String path = chooser.getSelectedFile().getPath();
+                       
+           //create file with filter, then store all valid files in it
+            File single_file = new File(path);
+            
+            if(single_file == null)
+            	return;
+        	//////////////////////////
+            
+            tab.add(new Tab(
+            		readFileFromPath(single_file.getPath()), 
+            		single_file.getName(),
+            		single_file.getPath(),
+            		single_file));
+        	
+        	tab_bar.addTab(
+        			tab.get(tab.size()-1).tabName, 
+        			tab.get(tab.size()-1).container);
+        	
+        	
+			save_file.setEnabled(true);
+			close_file.setEnabled(true);
+			findReplaceMenuItem.setEnabled(true);
+			save_project.setEnabled(true);
+			close_project.setEnabled(true);
+			
+            
+        }  
+        //if file is successfully created, change save_file menuItem to enable
+        
+
+        System.out.println("***END OPENING FILE***");
+	}
 		
 	private void save_file_function()
 	{
@@ -634,17 +742,21 @@ public class MainFrame extends JFrame implements ActionListener
 		
 	private void close_file_function()
 	{
-		Object[] options = { "OK", "CANCEL" };
+		Object[] options = { "Yes", "No", "Cancel" };
 		int result = JOptionPane.showOptionDialog(null, "Save before closing?", "Warning",
 		        JOptionPane.DEFAULT_OPTION, 
 		        JOptionPane.WARNING_MESSAGE,
 		        null, options, options[0]);
-		if(result==JOptionPane.YES_OPTION)
+		if(result==0)
         {
         	save_file_function();
         }
+		else if(result == 2)
+		{
+			return;
+		}
 		int index_selected_tab = tab_bar.getSelectedIndex();
-		Tab current_selected_tab = tab.get(index_selected_tab);
+		tab.remove(index_selected_tab);
 		tab_bar.remove(index_selected_tab);
 		if(tab.size()==0)
 		{

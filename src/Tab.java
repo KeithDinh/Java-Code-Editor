@@ -64,7 +64,6 @@ public class Tab
         scheme.getStyle(Token.ERROR_CHAR).foreground = Color.BLACK;
         scheme.getStyle(Token.COMMENT_MARKUP).foreground=Color.YELLOW;
 	    //*******************************************************************|
-
 	    textArea.setCodeFoldingEnabled(true);
 	    textArea.setText(content);
 	    textArea.revalidate();

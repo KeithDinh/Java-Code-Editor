@@ -406,7 +406,7 @@ public  class FindReplaceDialog {
 		 keyString="";
 		 findComboBox.setSelectedItem(keyString);
 		 replaceTextField.setText("");
-		 matchCaseCheckBox.setSelected(true);//check match case otpion
+		 matchCaseCheckBox.setSelected(true);//check match case option
 		 searchDirection=true;
 	 }
 	 

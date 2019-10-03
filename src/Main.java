@@ -31,10 +31,11 @@ public class Main
 			//just for testing purpose. We can change to SystemLookAndFeel Later
             final UIManager.LookAndFeelInfo[] plafInfos =
                     UIManager.getInstalledLookAndFeels();
+            
             UIManager.setLookAndFeel(plafInfos[1].getClassName()); 
             // plafInfo[0]=Meta,plafInfo[1]=Nimbus,plafInfo=[2]=Motif,plafInfo[3,4]=Windows
             
-        }	catch (ClassNotFoundException ex) {
+        } catch (ClassNotFoundException ex) {
         } catch (InstantiationException ex) {
         } catch (IllegalAccessException ex) {
         } catch (UnsupportedLookAndFeelException ex) {
