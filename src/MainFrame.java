@@ -662,5 +662,19 @@ public class MainFrame extends JFrame implements ActionListener
 	}
 	
 
+	String className = "mypackage.MyClass";
+	String javaCode = "package mypackage;\n" +
+	                 "public class MyClass implements Runnable {\n" +
+	                 "    public void run() {\n" +
+	                 "        System.out.println(\"Hello World\");\n" +
+	                 "    }\n" +
+	                 "}\n";
+	
 }
+
+
+
+
+
+
 
