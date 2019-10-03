@@ -7,8 +7,9 @@
  * ****************************  Software Design ****************************
  * **************************************************************************
  * ****************************    References:    ***************************
- * RSyntaxTextArea by bobbylight: github.com/bobbylight/RSyntaxTextArea
- * Oracle Documentation: docs.oracle.com/javase/7/docs/api/javax/swing/package-summary.html
+ * - RSyntaxTextArea by bobbylight: github.com/bobbylight/RSyntaxTextArea
+ * - Oracle Documentation: docs.oracle.com/javase/7/docs/api/javax/swing/
+ * - Java2s: http://www.java2s.com/Code/Java/Swing-JFC
  * **************************************************************************
  */
 
