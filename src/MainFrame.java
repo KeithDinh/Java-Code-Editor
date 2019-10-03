@@ -263,17 +263,11 @@ public class MainFrame extends JFrame implements ActionListener
 			project_menu.setMnemonic('P');
 			file_menu.setMnemonic('F');
 			edit_menu.setMnemonic('E');
-			create_project.setAccelerator(KeyStroke.getKeyStroke('N',Event.CTRL_MASK|Event.SHIFT_MASK));
-			save_project.setAccelerator(KeyStroke.getKeyStroke('S',Event.CTRL_MASK|Event.SHIFT_MASK));	//add short cut ctrl+shift+S for saving a project
-			close_project.setAccelerator(KeyStroke.getKeyStroke('W',Event.CTRL_MASK|Event.SHIFT_MASK));//ctrl+shift+w for closing the current project
-			//We have to cast KeyEvent.VK_ to a char. If not, it will show a warning as below
-			open_project.setAccelerator(KeyStroke.getKeyStroke('O',Event.CTRL_MASK|Event.SHIFT_MASK));
+			create_project.setAccelerator(KeyStroke.getKeyStroke('N',Event.CTRL_MASK));
+			save_project.setAccelerator(KeyStroke.getKeyStroke('S',Event.CTRL_MASK));
 			
-			//short cut keys for menuItems in File Menu
-			save_file.setAccelerator(KeyStroke.getKeyStroke('S',Event.CTRL_MASK));	//ctrl+S for saving a file
-			create_file.setAccelerator(KeyStroke.getKeyStroke('N',Event.CTRL_MASK));//ctrl+N for creating a new file
-			close_file.setAccelerator(KeyStroke.getKeyStroke('W',Event.CTRL_MASK));//ctril+W for closing current file
-			open_file.setAccelerator(KeyStroke.getKeyStroke('O',Event.CTRL_MASK));
+			//We have to cast KeyEvent.VK_ to a char. If not, it will show a warning as below
+			open_project.setAccelerator(KeyStroke.getKeyStroke('O',Event.CTRL_MASK));
 		}
 		findReplaceMenuItem.setAccelerator(KeyStroke.getKeyStroke('F',Event.CTRL_MASK));
 	}
@@ -691,13 +685,6 @@ public class MainFrame extends JFrame implements ActionListener
 	
 	//****************BUILD FUNCTIONS*******************//
 
-	String className = "mypackage.MyClass";
-	String javaCode = "package mypackage;\n" +
-	                 "public class MyClass implements Runnable {\n" +
-	                 "    public void run() {\n" +
-	                 "        System.out.println(\"Hello World\");\n" +
-	                 "    }\n" +
-	                 "}\n";
 	
 }
 
