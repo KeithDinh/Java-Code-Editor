@@ -26,7 +26,7 @@ import org.fife.ui.rtextarea.SearchEngine;
  * the user a tool to search over the current Text Area inorder to look up
  * a specified keyword. 
  * project.
- * @author 
+ * @author   
  *
  */
 public  class FindReplaceDialog {
