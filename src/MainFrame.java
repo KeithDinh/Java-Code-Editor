@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -45,6 +46,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.JTextComponent;
@@ -60,6 +62,9 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.plaf.ComponentUI;
+import javax.swing.plaf.TabbedPaneUI;
+
 
 /* STRUCTURE INTRODUCTION: 
  * 	Frame {Menu bar, Tab bar}
@@ -116,23 +121,8 @@ public class MainFrame extends JFrame implements ActionListener
 	
 	
 	/**Description: This is a private function that create a GUI for 
-	 * Find/Replace Menu Item when this Menu Item is clicked. */
-	private void setUIStyle() {
-		try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException ex) {
-        } catch (InstantiationException ex) {
-        } catch (IllegalAccessException ex) {
-        } catch (UnsupportedLookAndFeelException ex) {
-        	System.out.println("NO SUPPORT FOR UI");
-	}
-		UIManager.put("MenuBar.background", Color.lightGray);
-		UIManager.put("MenuItem.opaque",true);
-		//UIManager.put("Menu.background", Color.GREEN);
-		//UIManager.put("MenuItem.background", Color.lightGray);
-		
-	}
-	
+	 * the mainframe. */
+
 	//*************************MINOR FUNCTIONS*************************//
 
 	//used for open_project_function() to read only ".java" files
@@ -173,7 +163,7 @@ public class MainFrame extends JFrame implements ActionListener
 	{
 		super("Java Editor by C--"); 				//Set Program's Name
 		setIconImage(new ImageIcon("icons/javaTextEditorIcon2.PNG").getImage());
-		setUIStyle();
+		//setUIStyle();
 		createMenuItem();
 		
 		enableShortCutKeys(true);			//add shortcut keys 
@@ -696,6 +686,8 @@ public class MainFrame extends JFrame implements ActionListener
 	//****************BUILD FUNCTIONS*******************//
 	
 }
+
+
 
 
 

@@ -107,7 +107,7 @@ public  class FindReplaceDialog {
 			
 			//Build the Dialog frame 
 			findReplaceDialog.setLayout(new GridBagLayout());//set layout manager for the Find/Replace Dialog
-			findReplaceDialog.setSize(370,250);
+			findReplaceDialog.setSize(390,270);
 			findReplaceDialog.setResizable(false);
 			
 			///////////// Add findLabel ///////////////
