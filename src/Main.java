@@ -22,12 +22,18 @@ public class Main
 	{
 		//set UI STYLE for our program
 		try {
-            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+           /* for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
                     UIManager.setLookAndFeel(info.getClassName());
                     break;
                 }
-            }
+            }*/
+			//just for testing purpose. We can change to SystemLookAndFeel Later
+            final UIManager.LookAndFeelInfo[] plafInfos =
+                    UIManager.getInstalledLookAndFeels();
+            UIManager.setLookAndFeel(plafInfos[1].getClassName()); 
+            // plafInfo[0]=Meta,plafInfo[1]=Nimbus,plafInfo=[2]=Motif,plafInfo[3,4]=Windows
+            
         }	catch (ClassNotFoundException ex) {
         } catch (InstantiationException ex) {
         } catch (IllegalAccessException ex) {
@@ -39,4 +45,5 @@ public class Main
 		
 		new MainFrame();
 	}
+	
 }

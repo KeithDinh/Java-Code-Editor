@@ -163,7 +163,6 @@ public class MainFrame extends JFrame implements ActionListener
 	{
 		super("Java Editor by C--"); 				//Set Program's Name
 		setIconImage(new ImageIcon("icons/javaTextEditorIcon2.PNG").getImage());
-		//setUIStyle();
 		createMenuItem();
 		
 		enableShortCutKeys(true);			//add shortcut keys 
