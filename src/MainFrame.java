@@ -906,7 +906,7 @@ public class MainFrame extends JFrame implements ActionListener
 	{
 		String file_path;
 
-		if(new File(project_dir+"src").exists())
+		if(new File(project_dir+"\\src").exists())
 			file_path= project_dir+"\\src\\";       //if src folder exists set path in src
 		else {
 			file_path= project_dir+"\\";            //else set path in folder
