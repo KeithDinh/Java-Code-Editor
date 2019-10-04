@@ -276,8 +276,8 @@ public class MainFrame extends JFrame implements ActionListener
 		
 		//************ Add menuButton to edit menu ************//
 		
-		//Buid edit_menu with cutCopyPasteAction()
-		cutCopyPasteAction();
+		//Buid edit_menu with cut_copy_paste_action()
+		cut_copy_paste_action();
 		findReplaceMenuItem = new JMenuItem("Find/Replace");
 		findReplaceMenuItem.setEnabled(false);//enable when exists a opened file. 
 		edit_menu.add(findReplaceMenuItem);
@@ -440,7 +440,7 @@ public class MainFrame extends JFrame implements ActionListener
 					project_dir =dir_path;
 					//if Main.java file is created successfully, enable active mode for project.
 					if(create_Main_function())
-						activeProjectStatus(true);
+						active_project_status(true);
 				}
 				else 
 				{
@@ -461,6 +461,7 @@ public class MainFrame extends JFrame implements ActionListener
 		//check if there is already an active project
 		if(!close_current_active_project())
 			return;
+		
 		JFileChooser chooser = new JFileChooser(); 						//this class is to open file/directory
 		
 		if(project_dir != null)
@@ -495,10 +496,10 @@ public class MainFrame extends JFrame implements ActionListener
             for(int i=0; i<files.size();i++)
             {
             	//create tab with string (readFileFromPath return the contents in string)
-            	openFileOnATab(files.get(i).getName(),files.get(i).getPath());
+            	open_file_on_new_tab(files.get(i).getName(),files.get(i).getPath());
             }
             //if open project successfully
-            activeProjectStatus(true);
+            active_project_status(true);
             //restore the path to current project folder
             project_dir = path;
             if(project_dir.endsWith("\\src"))
@@ -537,7 +538,7 @@ public class MainFrame extends JFrame implements ActionListener
 	
 	
 	/**This function will close the current active project before creating new project
-	 * or opening another project.
+	 * or opening another project
 	 * @return boolean 
 	 */
 	private boolean close_current_active_project() {
@@ -581,7 +582,7 @@ public class MainFrame extends JFrame implements ActionListener
 			return  false;
 		}
 		tab_bar.removeAll();
-		activeProjectStatus(false);
+		active_project_status(false);
 		tab.clear();
 		last_project_path = project_dir;
 		project_dir = null;
@@ -595,14 +596,14 @@ public class MainFrame extends JFrame implements ActionListener
 	 * will disable these menu items otherwise
 	 * @param isActive
 	 */
-	protected void activeProjectStatus(boolean isActive) {
+	protected void active_project_status(boolean isActive) {
 		save_file.setEnabled(isActive);
 		close_file.setEnabled(isActive);
 		findReplaceMenuItem.setEnabled(isActive);
 		save_project.setEnabled(isActive);
 		close_project.setEnabled(isActive);
 		compile.setEnabled(isActive);
-		execute.setEnabled(!isActive);
+		execute.setEnabled(false);
 	}
 	
 	
@@ -622,10 +623,10 @@ public class MainFrame extends JFrame implements ActionListener
 		//-5 = remove ".java" to get the name only
 		//create default content for Main.java file
 		String contents = "public class Main\n{\n\tpublic static void main(String[] args)\n\t{\n\t}\n}"; 
-		writeFileToFilePath(contents,filePath);
+		write_content_to_filepath(contents,filePath);
 		
 		//files.add(new File(filePath));
-    	openFileOnATab(fileName,filePath);
+    	open_file_on_new_tab(fileName,filePath);
 		System.out.println("***END NEW FILE***");
 		return true;
 	}
@@ -679,9 +680,9 @@ public class MainFrame extends JFrame implements ActionListener
 		System.out.println(filePath);
 		
 		//write the contents to the filePath
-		if(writeFileToFilePath(contents,filePath))
+		if(write_content_to_filepath(contents,filePath))
 			//open fileName on new Tab
-			openFileOnATab(fileName,filePath);
+			open_file_on_new_tab(fileName,filePath);
 		
 		System.out.println("***END NEW FILE***");
 	}
@@ -715,7 +716,7 @@ public class MainFrame extends JFrame implements ActionListener
             if(single_file == null)
             	return;
         	//////////////////////////
-            openFileOnATab(single_file.getName(),single_file.getPath());
+            open_file_on_new_tab(single_file.getName(),single_file.getPath());
         } 
         System.out.println("***END OPENING FILE***");
 	}
@@ -769,7 +770,7 @@ public class MainFrame extends JFrame implements ActionListener
 		tab_bar.remove(index_selected_tab);
 		if(tab.size()==0)
 		{
-			activeProjectStatus(false);
+			active_project_status(false);
 		}
 		System.out.println("***END CLOSE FILE***");
 	}
@@ -778,7 +779,7 @@ public class MainFrame extends JFrame implements ActionListener
 	 * @param String content 
 	 * @param String filePath 
 	 */
-	protected boolean writeFileToFilePath(String content, String filePath) {
+	protected boolean write_content_to_filepath(String content, String filePath) {
 		FileWriter file = null;
 		boolean success=false;
 		try
@@ -798,14 +799,13 @@ public class MainFrame extends JFrame implements ActionListener
 			try { if( file != null ) file.close(); } catch( Exception ee ) { }
 		}
 		return success;
-		
 	}
 	
 	/**This function will open a given file on a new Tab in the tab panel of MainFrame
 	 * @param fileName
 	 * @param filePath
 	 */
-	protected void openFileOnATab(String fileName, String filePath) {
+	protected void open_file_on_new_tab(String fileName, String filePath) {
 		tab.add(new Tab(
 				readFileFromPath(filePath), 
 				fileName, 
@@ -822,7 +822,7 @@ public class MainFrame extends JFrame implements ActionListener
 
 	
 	//****************EDIT FUNCTIONS*******************//
-	public void cutCopyPasteAction() {
+	public void cut_copy_paste_action() {
 		Action cutAction = new DefaultEditorKit.CutAction();
 		Action copyAction = new DefaultEditorKit.CopyAction();
 		Action pasteAction = new DefaultEditorKit.PasteAction();
