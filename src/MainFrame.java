@@ -302,9 +302,9 @@ public class MainFrame extends JFrame implements ActionListener
 	{
 		if(enableMode==true) 
 		{	//short cut keys for menus
-			project_menu.setMnemonic('P');
-			file_menu.setMnemonic('F');
-			edit_menu.setMnemonic('E');
+			//project_menu.setMnemonic('P');
+			//file_menu.setMnemonic('F');
+			//edit_menu.setMnemonic('E');
 			//short-cut keys for Project Menu Item
 			create_project.setAccelerator(KeyStroke.getKeyStroke('N',Event.CTRL_MASK|Event.SHIFT_MASK));
 			save_project.setAccelerator(KeyStroke.getKeyStroke('S',Event.CTRL_MASK|Event.SHIFT_MASK));	//add short cut ctrl+shift+S for saving a project
@@ -391,7 +391,49 @@ public class MainFrame extends JFrame implements ActionListener
 		}
 	}
 	
-	
+	private void add_close_tab_button(String title)
+	{
+		int index = tab_bar.indexOfTab(title);	//get the index from tab title
+		
+		JPanel Tab_with_close = new JPanel(new BorderLayout());
+
+		JLabel tab_title = new JLabel(title);		//name of tab
+		JButton close_button = new JButton("x");	//x button
+		Tab_with_close.setOpaque(false);			//set components' bg color match tab's bg color
+		
+		Tab_with_close.add(tab_title,BorderLayout.WEST);
+		Tab_with_close.add(close_button,BorderLayout.EAST);
+
+		tab_bar.setTabComponentAt(index, Tab_with_close);	//set old tab with new feature(x button)
+
+		close_button.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) 
+			{
+				Object[] options = { "Yes", "No", "Cancel" };
+				int result = JOptionPane.showOptionDialog(null, "Save before closing?", "Warning",
+				        JOptionPane.DEFAULT_OPTION, 
+				        JOptionPane.WARNING_MESSAGE,
+				        null, options, options[0]);
+				if(result==0)
+		        {
+		        	save_file_function();
+		        }
+				else if(result == 2)
+				{
+					return;
+				}
+				int index_selected_tab = tab_bar.indexOfTab(title);
+				tab.remove(index_selected_tab);
+				tab_bar.remove(index_selected_tab);
+				if(tab.size()==0)
+				{
+					active_project_status(false);
+				}
+			}
+			
+		});
+	}
 	//***************PROJECT FUNCTIONS*******************//
 	
 
@@ -497,7 +539,9 @@ public class MainFrame extends JFrame implements ActionListener
             {
             	//create tab with string (readFileFromPath return the contents in string)
             	open_file_on_new_tab(files.get(i).getName(),files.get(i).getPath());
+            	add_close_tab_button(tab.get(i).tabName);
             }
+            
             //if open project successfully
             active_project_status(true);
             //restore the path to current project folder
@@ -815,6 +859,7 @@ public class MainFrame extends JFrame implements ActionListener
     	tab_bar.addTab(
     			tab.get(tab.size()-1).tabName, 
     			tab.get(tab.size()-1).container);
+    	add_close_tab_button(tab.get(tab.size()-1).tabName);
     	
     	save_file.setEnabled(true);
     	close_file.setEnabled(true);
