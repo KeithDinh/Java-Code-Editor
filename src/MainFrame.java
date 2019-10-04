@@ -116,6 +116,7 @@ public class MainFrame extends JFrame implements ActionListener
 	//{
 		private ArrayList<Tab> tab = new ArrayList<Tab>();
 		private JTextArea terminal_tab;
+		private boolean terminal_on_tabbar = false;
 	//}
 	
 	private String project_dir; 			//store current project path
@@ -410,6 +411,14 @@ public class MainFrame extends JFrame implements ActionListener
 			@Override
 			public void actionPerformed(ActionEvent e) 
 			{
+				if(title.endsWith("Terminal Output") )
+				{
+					int terminal_index = tab_bar.indexOfTab("Terminal Output");
+					tab_bar.remove(terminal_index);
+					terminal_tab.setText("");
+					terminal_on_tabbar = false;
+					return;
+				}
 				Object[] options = { "Yes", "No", "Cancel" };
 				int result = JOptionPane.showOptionDialog(null, "Save before closing?", "Warning",
 				        JOptionPane.DEFAULT_OPTION, 
@@ -931,6 +940,8 @@ public class MainFrame extends JFrame implements ActionListener
 	    terminal_tab = new JTextArea();
 	    terminal_tab.setText(compile_output);
 	    tab_bar.add("Terminal Output", terminal_tab);
+	    add_close_tab_button("Terminal Output");
+	    terminal_on_tabbar = true;
 	    
 	    if( process.exitValue() == 0 ) //if compile error -> exitValue() != 0
 	    {
@@ -955,11 +966,18 @@ public class MainFrame extends JFrame implements ActionListener
 		
 		System.out.println(file_path);						//check if the path correct
 		process = new ProcessBuilder("java","-cp",file_path, "Main").start();		//pass cmd to terminal?
-		
+
+		int terminal_index = tab_bar.indexOfTab("Terminal Output");
+		if(terminal_on_tabbar == false)
+		{
+			tab_bar.add("Terminal Output", terminal_tab);
+		    add_close_tab_button("Terminal Output");
+		}
+			
 		if( process.getErrorStream().read() != -1 )				//if not success
 		{
 			BufferedReader error = new BufferedReader(new InputStreamReader(process.getErrorStream()));	//get error
-            terminal_tab.append( "************* Execution Errors *************\n");	
+            terminal_tab.append( "----- Execution Errors -----\n");	
             String line;
             while((line = error.readLine()) != null )
             {
@@ -970,7 +988,7 @@ public class MainFrame extends JFrame implements ActionListener
         else													//if success
         {
         	BufferedReader error = new BufferedReader(new InputStreamReader(process.getInputStream()));	//get output
-        	terminal_tab.append( "************* Execution Success *************\n");
+        	terminal_tab.append( "------ Execution Success ------\n");
         	String line;
             while((line = error.readLine()) != null )
             {
