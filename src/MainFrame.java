@@ -142,7 +142,11 @@ public class MainFrame extends JFrame implements ActionListener
         }
     };
     
-    //take file path(string) as argument, return content of file (string) 
+    
+	/**This function take file path(string) as argument, return content of file (string) 
+	 * @param filePath
+	 * @return
+	 */
 	private String readFileFromPath(String filePath) 				
     {
 		String content = "";
@@ -394,21 +398,9 @@ public class MainFrame extends JFrame implements ActionListener
 	private void create_project_function()
 	{
 		System.out.println("***CREATE PROJECT***");
-		
-		if(project_dir != null)
-		{
-			Object[] options = { "OK", "CANCEL" };
-			int result = JOptionPane.showOptionDialog(null, "Close current project?", "Warning",
-			        JOptionPane.DEFAULT_OPTION, 
-			        JOptionPane.WARNING_MESSAGE,
-			        null, options, options[0]);
-			if(result==JOptionPane.YES_OPTION)
-	        {
-				close_project_function();		//ask user if they want to save and close
-	        }
-			else
-				return;
-		}
+		//check if there is an active project.
+		if(!close_current_active_project())
+			return;
 		
 		JFileChooser chooser = new JFileChooser();
 		chooser.setDialogTitle( "Location to create project" );
@@ -446,7 +438,9 @@ public class MainFrame extends JFrame implements ActionListener
 				{
 					dir_path += "\\" + folderName;
 					project_dir =dir_path;
-					create_Main_function();
+					//if Main.java file is created successfully, enable active mode for project.
+					if(create_Main_function())
+						activeProjectStatus(true);
 				}
 				else 
 				{
@@ -455,12 +449,7 @@ public class MainFrame extends JFrame implements ActionListener
 				}
 			}
 		}
-		compile.setEnabled(true);
-        save_project.setEnabled(true);
-        close_project.setEnabled(true);
-        save_file.setEnabled(true);
-        close_file.setEnabled(true);
-        findReplaceMenuItem.setEnabled(true);
+		
 		System.out.println("***END CREATE PROJECT***");
 
 		return;
@@ -469,21 +458,9 @@ public class MainFrame extends JFrame implements ActionListener
 	private void open_project_function() throws IOException 
 	{
 		System.out.println("***OPENING PROJECT***");
-		//if there is already 
-		if(project_dir != null)
-		{
-			Object[] options = { "OK", "CANCEL" };
-			int result = JOptionPane.showOptionDialog(null, "Close current project?", "Warning",
-			        JOptionPane.DEFAULT_OPTION, 
-			        JOptionPane.WARNING_MESSAGE,
-			        null, options, options[0]);
-			if(result==JOptionPane.YES_OPTION)
-	        {
-				close_project_function();
-	        }
-			else
-				return;
-		}
+		//check if there is already an active project
+		if(!close_current_active_project())
+			return;
 		JFileChooser chooser = new JFileChooser(); 						//this class is to open file/directory
 		
 		if(project_dir != null)
@@ -498,9 +475,7 @@ public class MainFrame extends JFrame implements ActionListener
         
         if (r == JFileChooser.APPROVE_OPTION) 
         {
-        	
         	//get path of directory
-        	
             String path = chooser.getSelectedFile().getPath();
             
             //if (the selected path is NOT src folder) AND (src folder exist) -> add src to path
@@ -512,38 +487,19 @@ public class MainFrame extends JFrame implements ActionListener
             //aslist will convert the array into ArrayList type
             ArrayList<File> files = new ArrayList<File>(Arrays.asList(new File(path).listFiles(javaFilter)));
             
-            
             if(files == null)
             	return ;
             
-            //Each file will be presented on a tab
-            
+            //Each file will be presented on a tab 
             //Iterate through files, get contents, open and write on the tab
             for(int i=0; i<files.size();i++)
             {
-            	
             	//create tab with string (readFileFromPath return the contents in string)
-            	tab.add(new Tab
-	            			(
-		            			readFileFromPath(files.get(i).getPath()), //content of file
-		            			files.get(i).getName(),					  //name of file
-		            			files.get(i).getPath(),					  //path of file
-		            			files.get(i)							  //file itself
-	            			)
-            			);
-            	
-            	tab_bar.addTab(
-            			tab.get(i).tabName, 							  //Name of Tab
-            			tab.get(i).container);				  //Add scrollable version of Tab
+            	openFileOnATab(files.get(i).getName(),files.get(i).getPath());
             }
-            
-            compile.setEnabled(true);
-            save_project.setEnabled(true);
-            close_project.setEnabled(true);
-            save_file.setEnabled(true);
-            close_file.setEnabled(true);
-            findReplaceMenuItem.setEnabled(true);
-            
+            //if open project successfully
+            activeProjectStatus(true);
+            //restore the path to current project folder
             project_dir = path;
             if(project_dir.endsWith("\\src"))
             {
@@ -554,6 +510,10 @@ public class MainFrame extends JFrame implements ActionListener
         return;
 	}
   
+	
+	/**
+	 * This function will save the current project. 
+	 */
 	private void save_project_function()
 	{
 		for(int i=0; i<tab.size();i++)
@@ -564,21 +524,46 @@ public class MainFrame extends JFrame implements ActionListener
 		    	BufferedWriter writer = new BufferedWriter(new FileWriter(tab.get(i).path));
 				writer.write(content);
 				writer.close();
-				
 			} 
 		    catch (IOException e) 
 		    {
 				JOptionPane.showConfirmDialog(null, e.getMessage(),"Error Writing File",
 						JOptionPane.DEFAULT_OPTION,JOptionPane.ERROR_MESSAGE);
-			}
-		    
-		    
+			}   
         }
 		System.out.println("***END SAVE PROJECT***");
 
 	}
 	
-	private void close_project_function()
+	
+	/**This function will close the current active project before creating new project
+	 * or opening another project.
+	 * @return boolean 
+	 */
+	private boolean close_current_active_project() {
+		if(project_dir != null)
+		{
+			Object[] options = { "OK", "CANCEL" };
+			int result = JOptionPane.showOptionDialog(null, "Close current project?", "Warning",
+			        JOptionPane.DEFAULT_OPTION, 
+			        JOptionPane.WARNING_MESSAGE,
+			        null, options, options[0]);
+			if(result==JOptionPane.YES_OPTION)
+	        {
+				return(close_project_function());
+	        }
+			else
+				return false;
+		}
+		else return true;// if there is no active project
+	}
+	
+	
+	/**
+	 * This function will close the current project.
+	 * This function will pop-up an dialog to ask user for saving project options.
+	 */
+	private boolean close_project_function()
 	{
 		Object[] options = { "Yes","No", "Cancel" };
 		int result = JOptionPane.showOptionDialog(null, "Save before closing?", "Warning",
@@ -588,11 +573,12 @@ public class MainFrame extends JFrame implements ActionListener
 		if(result==JOptionPane.YES_OPTION)
         {
         	save_project_function();
+        	//return closed;
         }
 		else if(result == 2)
 		{
 			System.out.println("***STOP CLOSE PROJECT***");
-			return;
+			return  false;
 		}
 		tab_bar.removeAll();
 		activeProjectStatus(false);
@@ -600,55 +586,54 @@ public class MainFrame extends JFrame implements ActionListener
 		last_project_path = project_dir;
 		project_dir = null;
 		System.out.println("***END CLOSE PROJECT***");
+		return true;
 
 	}
+	
+	/** This function will enable all menu items save_file, close_file, findReplaceMenuItem,
+	 * save_project,close_project, compile,execute when a project is active. And this function
+	 * will disable these menu items otherwise
+	 * @param isActive
+	 */
+	protected void activeProjectStatus(boolean isActive) {
+		save_file.setEnabled(isActive);
+		close_file.setEnabled(isActive);
+		findReplaceMenuItem.setEnabled(isActive);
+		save_project.setEnabled(isActive);
+		close_project.setEnabled(isActive);
+		compile.setEnabled(isActive);
+		execute.setEnabled(!isActive);
+	}
+	
 	
 	//****************FILE FUNCTIONS******************//
 	
 
-	private void create_Main_function()
+	/**
+	 * This function will create an default Main.java file when a project is created.
+	 */
+	private boolean create_Main_function()
 	{
 		System.out.println("***NEW FILE***");
 		String fileName = "Main.java";
-		
-		FileWriter file = null;		
 		System.out.println(project_dir);
 		String filePath = project_dir + "\\src\\" + fileName;
 		
 		//-5 = remove ".java" to get the name only
+		//create default content for Main.java file
 		String contents = "public class Main\n{\n\tpublic static void main(String[] args)\n\t{\n\t}\n}"; 
-		try
-		{
-			file = new FileWriter( new File( filePath ) );
-			file.write( contents );
-		}
-		catch( Exception e )
-		{
-			e.printStackTrace();
-			JOptionPane.showConfirmDialog(null, "Unable to create file", null, JOptionPane.WARNING_MESSAGE);
-			return;
-		}
-		finally
-		{
-			try { if( file != null ) file.close(); } catch( Exception ee ) { }
-		}
+		writeFileToFilePath(contents,filePath);
 		
 		//files.add(new File(filePath));
-		tab.add(new Tab(
-				readFileFromPath(filePath), 
-				fileName, 
-				filePath, 
-				new File(filePath)));
-    	
-    	tab_bar.addTab(
-    			tab.get(tab.size()-1).tabName, 
-    			tab.get(tab.size()-1).container);
-    	
-    	activeProjectStatus(true);
+    	openFileOnATab(fileName,filePath);
 		System.out.println("***END NEW FILE***");
-
+		return true;
 	}
 	
+	
+	/**
+	 * This function will create a new file and display it on new Tab
+	 */
 	private void create_file_function()
 	{
 		System.out.println("***NEW FILE***");
@@ -686,47 +671,25 @@ public class MainFrame extends JFrame implements ActionListener
 			return;
 		}
 
-		FileWriter file = null;
 		String filePath = project_dir + "\\src\\" + fileName;
 		
 		//-5 = remove ".java" to get the name only
 		String contents = "public class " + fileName.substring(0, fileName.length() - 5) + "\n{\n\n}"; 
 		
 		System.out.println(filePath);
-
-		try
-		{
-			file = new FileWriter( new File( filePath ) );
-			file.write( contents );
-		}
-		catch( Exception e )
-		{
-			e.printStackTrace();
-			JOptionPane.showConfirmDialog(null, "Unable to create file", null, JOptionPane.WARNING_MESSAGE);
-			return;
-		}
-		finally
-		{
-			try { if( file != null ) file.close(); } catch( Exception ee ) { }
-		}
 		
-		//files.add(new File(filePath));
-		tab.add(new Tab(
-				readFileFromPath(filePath), 
-				fileName, 
-				filePath, 
-				new File(filePath)));
-    	
-    	tab_bar.addTab(
-    			tab.get(tab.size()-1).tabName, 
-    			tab.get(tab.size()-1).container);
-    	
-    	save_file.setEnabled(true);
-    	close_file.setEnabled(true);
+		//write the contents to the filePath
+		if(writeFileToFilePath(contents,filePath))
+			//open fileName on new Tab
+			openFileOnATab(fileName,filePath);
+		
 		System.out.println("***END NEW FILE***");
-
 	}
 	
+	
+	/**
+	 * @throws IOException 
+	 */
 	private void open_file_function() throws IOException 
 	{
 		System.out.println("***OPENING FILE***");
@@ -752,25 +715,15 @@ public class MainFrame extends JFrame implements ActionListener
             if(single_file == null)
             	return;
         	//////////////////////////
-            
-            tab.add(new Tab(
-            		readFileFromPath(single_file.getPath()), 
-            		single_file.getName(),
-            		single_file.getPath(),
-            		single_file));
-        	
-        	tab_bar.addTab(
-        			tab.get(tab.size()-1).tabName, 
-        			tab.get(tab.size()-1).container);
-        	
-        	activeProjectStatus(true);
-        }  
-        //if file is successfully created, change save_file menuItem to enable
-        
-
+            openFileOnATab(single_file.getName(),single_file.getPath());
+        } 
         System.out.println("***END OPENING FILE***");
 	}
-		
+	
+	
+	/**
+	 * 
+	 */
 	private void save_file_function()
 	{
 		int index_selected_tab = tab_bar.getSelectedIndex();
@@ -792,6 +745,10 @@ public class MainFrame extends JFrame implements ActionListener
 		}
 	}
 		
+	
+	/**
+	 * 
+	 */
 	private void close_file_function()
 	{
 		Object[] options = { "Yes", "No", "Cancel" };
@@ -815,9 +772,55 @@ public class MainFrame extends JFrame implements ActionListener
 			activeProjectStatus(false);
 		}
 		System.out.println("***END CLOSE FILE***");
-
+	}
+	
+	/**This function will write a string  to a file with a filePath is given.
+	 * @param String content 
+	 * @param String filePath 
+	 */
+	protected boolean writeFileToFilePath(String content, String filePath) {
+		FileWriter file = null;
+		boolean success=false;
+		try
+		{
+			file = new FileWriter( new File( filePath ) );
+			file.write( content );
+			success=true;
+		}
+		catch( Exception e )
+		{
+			e.printStackTrace();
+			JOptionPane.showConfirmDialog(null, "Unable to create file", null, JOptionPane.WARNING_MESSAGE);
+			//return false;
+		}
+		finally
+		{
+			try { if( file != null ) file.close(); } catch( Exception ee ) { }
+		}
+		return success;
+		
+	}
+	
+	/**This function will open a given file on a new Tab in the tab panel of MainFrame
+	 * @param fileName
+	 * @param filePath
+	 */
+	protected void openFileOnATab(String fileName, String filePath) {
+		tab.add(new Tab(
+				readFileFromPath(filePath), 
+				fileName, 
+				filePath, 
+				new File(filePath)));
+    	
+    	tab_bar.addTab(
+    			tab.get(tab.size()-1).tabName, 
+    			tab.get(tab.size()-1).container);
+    	
+    	save_file.setEnabled(true);
+    	close_file.setEnabled(true);
 	}
 
+	
 	//****************EDIT FUNCTIONS*******************//
 	public void cutCopyPasteAction() {
 		Action cutAction = new DefaultEditorKit.CutAction();
@@ -891,22 +894,12 @@ public class MainFrame extends JFrame implements ActionListener
 	    
 	    terminal_tab.setEditable(false);	//can't write on output terminal
 		
-	}
+	}//end compile_fucntion
 	
-	/** This function will enable all menu items save_file, close_file, findReplaceMenuItem,
-	 * save_project,close_project, compile,execute when a project is active. And this function
-	 * will disable these menu items otherwises
-	 * @param isActive
+	
+	/**
+	 * @throws IOException
 	 */
-	protected void activeProjectStatus(boolean isActive) {
-		save_file.setEnabled(isActive);
-		close_file.setEnabled(isActive);
-		findReplaceMenuItem.setEnabled(isActive);
-		save_project.setEnabled(isActive);
-		close_project.setEnabled(isActive);
-		compile.setEnabled(isActive);
-		execute.setEnabled(isActive);
-	}
 	public void execute_function() throws IOException {
 		String file_path;
 		
@@ -940,10 +933,11 @@ public class MainFrame extends JFrame implements ActionListener
             }
             error.close();
         }
-		
-		
-	}
-}
+	}//end execute_function
+	
+	
+	
+}//end MainFrame
 
 
 
