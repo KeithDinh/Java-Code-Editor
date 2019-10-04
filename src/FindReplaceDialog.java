@@ -298,14 +298,24 @@ public  class FindReplaceDialog {
 	 ** @param str
 	 **/
 	private void updateFindComboBox(String str) {
+		boolean exist=false;
+		
 		 if((findComboBox.getItemCount()==findComboBoxMax)&& str!=null) 
 		 {
 			 findComboBox.removeItemAt(findComboBoxMax-1);
 			 findComboBox.addItem(str);
 		 }
-		 else if(str!="") 
+		 else if(str!="")
 		 {
-			 findComboBox.addItem(str);
+			 for(int i=0; i<findComboBoxMax;i++) {
+					if(str==findComboBox.getItemAt(i)) {
+						exist=true;
+						break;
+					}
+				}
+			// if string is not empty and this keyword is not already in the searched list,add it to the comboBox
+			 if(exist==false)
+				 findComboBox.addItem(str);
 		 }
 	 }
 	
