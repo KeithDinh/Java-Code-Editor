@@ -856,7 +856,7 @@ public class MainFrame extends JFrame implements ActionListener
 		
 		String compile_output="";
 		 //combine all arguments with space, that's it
-		ProcessBuilder processBuilder = new ProcessBuilder("javac", file_path+"\\Main.java"); 
+		ProcessBuilder processBuilder = new ProcessBuilder("javac","-cp", project_dir+"\\lib\\", file_path+"\\Main.java"); 
 		process = processBuilder.start();
 	    if( process.getErrorStream().read() != -1 )
         {
@@ -885,6 +885,7 @@ public class MainFrame extends JFrame implements ActionListener
 	    terminal_tab.setEditable(false);
 		
 	}
+	
 	public void execute_function() throws IOException {
 		String file_path;
 		
