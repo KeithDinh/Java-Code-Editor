@@ -376,7 +376,7 @@ public  class FindReplaceDialog {
     	    	  SearchEngine.find(textArea,context);
     	    	  //JOptionPane.showMessageDialog(findReplaceDialog,"String Not Found","Find Result",JOptionPane.INFORMATION_MESSAGE);
     	      }
-	      }
+	 }
     	  else return;
 	 }
 	 

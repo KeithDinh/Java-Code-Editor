@@ -50,9 +50,9 @@ public class Tab
 	    textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);			 //requirement 6
 	    SyntaxScheme scheme = textArea.getSyntaxScheme();
 	    scheme.getStyle(Token.OPERATOR).foreground = Color.RED;						 //requirement 7
-	    scheme.getStyle(Token.LITERAL_STRING_DOUBLE_QUOTE).foreground = Color.green; //requirement 8
+	    scheme.getStyle(Token.LITERAL_STRING_DOUBLE_QUOTE).foreground = scheme.getStyle(Token.COMMENT_EOL).foreground; //requirement 8
 	    
-	    //*******************************************************************|
+	    //*****************SET UNECCESSARIES TO BLACK******************|
 	    scheme.getStyle(Token.COMMENT_KEYWORD).foreground = Color.BLACK;	 
 	    scheme.getStyle(Token.SEPARATOR).foreground=Color.BLACK;				
 	    scheme.getStyle(Token.LITERAL_BOOLEAN).foreground = Color.BLACK;
@@ -62,11 +62,16 @@ public class Tab
         scheme.getStyle(Token.ERROR_STRING_DOUBLE).foreground = Color.BLACK;
         scheme.getStyle(Token.ERROR_CHAR).foreground = Color.BLACK;
         scheme.getStyle(Token.ERROR_CHAR).foreground = Color.BLACK;
+        scheme.getStyle(Token.COMMENT_DOCUMENTATION).foreground = Color.LIGHT_GRAY;
+        scheme.getStyle(Token.COMMENT_EOL).foreground = Color.LIGHT_GRAY;
+        scheme.getStyle(Token.COMMENT_MULTILINE).foreground = Color.LIGHT_GRAY;
         scheme.getStyle(Token.COMMENT_MARKUP).foreground=Color.YELLOW;
-	    //*******************************************************************|
+	    //*************************************************************|
+        
+        
 	    textArea.setCodeFoldingEnabled(true);
 	    textArea.setText(content);
-	    textArea.revalidate();
+	    textArea.revalidate();					//idk what it does
 	    text_area_with_scroll = new RTextScrollPane(textArea);
 	    
 	    container.setLayout(new BorderLayout());
@@ -80,37 +85,37 @@ public class Tab
 	    /*the function belows will continuously count the number of keywords
 	     * everytime a word gets removed/added/changed
 	     */
-	    textArea.getDocument().addDocumentListener(new DocumentListener() {
-
-			@Override
-			public void insertUpdate(DocumentEvent e) {
-				update_keyword_count();
-			}
-
-			@Override
-			public void removeUpdate(DocumentEvent e) {
-				update_keyword_count();
-			}
-
-			@Override
-			public void changedUpdate(DocumentEvent e) {
-				update_keyword_count();
-			}
-			protected void update_keyword_count() 
-			{
-                try 
-                {
-                	int number = count_all_keyword(get_updated_content());
-                    count_label.setText("Keywords: " + Integer.toString(number));
-                } 
-                catch (Exception e) 
-                {
-                    System.out.println("Error in counting keywords");
-                }
-            }
-			
-			
-	    });
+	    textArea.getDocument().addDocumentListener
+	    (new DocumentListener() 
+		    {
+				@Override
+				public void insertUpdate(DocumentEvent e) {
+					update_keyword_count();
+				}
+	
+				@Override
+				public void removeUpdate(DocumentEvent e) {
+					update_keyword_count();
+				}
+	
+				@Override
+				public void changedUpdate(DocumentEvent e) {
+					update_keyword_count();
+				}
+				protected void update_keyword_count() 
+				{
+	                try 
+	                {
+	                	int number = count_all_keyword(get_updated_content());
+	                    count_label.setText("Keywords: " + Integer.toString(number));
+	                } 
+	                catch (Exception e) 
+	                {
+	                    System.out.println("Error in counting keywords");
+	                }
+	            }	
+		    }
+	    );
 	}
 	
 	public String get_updated_content() {
@@ -120,8 +125,7 @@ public class Tab
 	public RSyntaxTextArea getRSTA() {
 		return textArea;
 	}
-	
-	
+		
 	//count_all_keyword calls count_single_keyword() on "while", "if", "else", and "for" 
 	public int count_all_keyword(String content_of_file) 
 	{
@@ -136,6 +140,7 @@ public class Tab
 		}
 		return 0;
 	}
+	
 	private int count_single_keyword(String content_of_file,String word_to_find) 
 	{ 
 
