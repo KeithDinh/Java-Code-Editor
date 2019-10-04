@@ -469,6 +469,7 @@ public class MainFrame extends JFrame implements ActionListener
 	private void open_project_function() throws IOException 
 	{
 		System.out.println("***OPENING PROJECT***");
+		//if there is already 
 		if(project_dir != null)
 		{
 			Object[] options = { "OK", "CANCEL" };
@@ -594,10 +595,7 @@ public class MainFrame extends JFrame implements ActionListener
 			return;
 		}
 		tab_bar.removeAll();
-		save_project.setEnabled(false);
-		close_project.setEnabled(false);
-		compile.setEnabled(false);
-		execute.setEnabled(false);
+		activeProjectStatus(false);
 		tab.clear();
 		last_project_path = project_dir;
 		project_dir = null;
@@ -646,10 +644,7 @@ public class MainFrame extends JFrame implements ActionListener
     			tab.get(tab.size()-1).tabName, 
     			tab.get(tab.size()-1).container);
     	
-    	save_file.setEnabled(true);
-    	close_file.setEnabled(true);
-    	save_project.setEnabled(true);
-    	close_project.setEnabled(true);
+    	activeProjectStatus(true);
 		System.out.println("***END NEW FILE***");
 
 	}
@@ -768,14 +763,7 @@ public class MainFrame extends JFrame implements ActionListener
         			tab.get(tab.size()-1).tabName, 
         			tab.get(tab.size()-1).container);
         	
-        	
-			save_file.setEnabled(true);
-			close_file.setEnabled(true);
-			findReplaceMenuItem.setEnabled(true);
-			save_project.setEnabled(true);
-			close_project.setEnabled(true);
-			
-            
+        	activeProjectStatus(true);
         }  
         //if file is successfully created, change save_file menuItem to enable
         
@@ -824,10 +812,7 @@ public class MainFrame extends JFrame implements ActionListener
 		tab_bar.remove(index_selected_tab);
 		if(tab.size()==0)
 		{
-			save_project.setEnabled(false);
-			close_project.setEnabled(false);
-			save_file.setEnabled(false);
-			close_file.setEnabled(false);
+			activeProjectStatus(false);
 		}
 		System.out.println("***END CLOSE FILE***");
 
@@ -908,6 +893,20 @@ public class MainFrame extends JFrame implements ActionListener
 		
 	}
 	
+	/** This function will enable all menu items save_file, close_file, findReplaceMenuItem,
+	 * save_project,close_project, compile,execute when a project is active. And this function
+	 * will disable these menu items otherwises
+	 * @param isActive
+	 */
+	protected void activeProjectStatus(boolean isActive) {
+		save_file.setEnabled(isActive);
+		close_file.setEnabled(isActive);
+		findReplaceMenuItem.setEnabled(isActive);
+		save_project.setEnabled(isActive);
+		close_project.setEnabled(isActive);
+		compile.setEnabled(isActive);
+		execute.setEnabled(isActive);
+	}
 	public void execute_function() throws IOException {
 		String file_path;
 		
