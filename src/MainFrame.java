@@ -591,6 +591,8 @@ public class MainFrame extends JFrame implements ActionListener
 
 	}
 	
+	
+	
 	/** This function will enable all menu items save_file, close_file, findReplaceMenuItem,
 	 * save_project,close_project, compile,execute when a project is active. And this function
 	 * will disable these menu items otherwise
@@ -775,6 +777,8 @@ public class MainFrame extends JFrame implements ActionListener
 		System.out.println("***END CLOSE FILE***");
 	}
 	
+	
+	
 	/**This function will write a string  to a file with a filePath is given.
 	 * @param String content 
 	 * @param String filePath 
@@ -800,6 +804,8 @@ public class MainFrame extends JFrame implements ActionListener
 		}
 		return success;
 	}
+	
+	
 	
 	/**This function will open a given file on a new Tab in the tab panel of MainFrame
 	 * @param fileName
