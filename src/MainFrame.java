@@ -430,20 +430,23 @@ public class MainFrame extends JFrame implements ActionListener
 					terminal_on_tabbar = false;
 					return;
 				}
-				Object[] options = { "Yes", "No", "Cancel" };
-				int result = JOptionPane.showOptionDialog(null, "Save before closing?", "Warning",
-				        JOptionPane.DEFAULT_OPTION, 
-				        JOptionPane.WARNING_MESSAGE,
-				        null, options, options[0]);
-				if(result==0)
-		        {
-		        	save_file_function();
-		        }
-				else if(result == 2)
-				{
-					return;
-				}
 				int index_selected_tab = tab_bar.indexOfTab(title);
+				if(tab.get(index_selected_tab).modified == true)
+				{
+					Object[] options = { "Yes", "No", "Cancel" };
+					int result = JOptionPane.showOptionDialog(null, "Save before closing?", "Warning",
+					        JOptionPane.DEFAULT_OPTION, 
+					        JOptionPane.WARNING_MESSAGE,
+					        null, options, options[0]);
+					if(result==0)
+			        {
+			        	save_file_function();
+			        }
+					else if(result == 2)
+					{
+						return;
+					}
+				}
 				tab.remove(index_selected_tab);
 				tab_bar.remove(index_selected_tab);
 				if(tab.size()==0)
@@ -630,20 +633,32 @@ public class MainFrame extends JFrame implements ActionListener
 	 */
 	private boolean close_project_function()
 	{
-		Object[] options = { "Yes","No", "Cancel" };
-		int result = JOptionPane.showOptionDialog(null, "Save before closing?", "Warning",
-		        JOptionPane.DEFAULT_OPTION, 
-		        JOptionPane.WARNING_MESSAGE,
-		        null, options, options[0]);
-		if(result==JOptionPane.YES_OPTION)
-        {
-        	save_project_function();
-        	//return closed;
-        }
-		else if(result == 2)
+		boolean project_modified = false;
+		for(int i=0; i<tab.size();i++)
 		{
-			System.out.println("***STOP CLOSE PROJECT***");
-			return  false;
+			if(tab.get(i).modified == true)
+			{
+				project_modified = true;
+				break;
+			}
+		}
+		if(project_modified == true)
+		{
+			Object[] options = { "Yes","No", "Cancel" };
+			int result = JOptionPane.showOptionDialog(null, "Save before closing?", "Warning",
+			        JOptionPane.DEFAULT_OPTION, 
+			        JOptionPane.WARNING_MESSAGE,
+			        null, options, options[0]);
+			if(result==JOptionPane.YES_OPTION)
+	        {
+	        	save_project_function();
+	        	//return closed;
+	        }
+			else if(result == 2)
+			{
+				System.out.println("***STOP CLOSE PROJECT***");
+				return  false;
+			}
 		}
 		tab_bar.removeAll();
 		active_project_status(false);
@@ -820,24 +835,26 @@ public class MainFrame extends JFrame implements ActionListener
 		}
 	}
 		
-	
 	/**
 	 * 
 	 */
 	private void close_file_function()
 	{
-		Object[] options = { "Yes", "No", "Cancel" };
-		int result = JOptionPane.showOptionDialog(null, "Save before closing?", "Warning",
-		        JOptionPane.DEFAULT_OPTION, 
-		        JOptionPane.WARNING_MESSAGE,
-		        null, options, options[0]);
-		if(result==0)
-        {
-        	save_file_function();
-        }
-		else if(result == 2)
+		if(getCurrentTab().modified == true)
 		{
-			return;
+			Object[] options = { "Yes", "No", "Cancel" };
+			int result = JOptionPane.showOptionDialog(null, "Save before closing?", "Warning",
+			        JOptionPane.DEFAULT_OPTION, 
+			        JOptionPane.WARNING_MESSAGE,
+			        null, options, options[0]);
+			if(result==0)
+	        {
+	        	save_file_function();
+	        }
+			else if(result == 2)
+			{
+				return;
+			}
 		}
 		int index_selected_tab = tab_bar.getSelectedIndex();
 		tab.remove(index_selected_tab);
