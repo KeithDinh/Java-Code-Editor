@@ -30,6 +30,7 @@ public class Tab
 	protected String content;
 	protected String path;											
 	protected File file;
+	protected boolean modified = false;
 	
 	protected JPanel container = new JPanel();		
 	//{
@@ -91,16 +92,19 @@ public class Tab
 				@Override
 				public void insertUpdate(DocumentEvent e) {
 					update_keyword_count();
+					modified = true;
 				}
 	
 				@Override
 				public void removeUpdate(DocumentEvent e) {
 					update_keyword_count();
+					modified = true;
 				}
 	
 				@Override
 				public void changedUpdate(DocumentEvent e) {
 					update_keyword_count();
+					modified = true;
 				}
 				protected void update_keyword_count() 
 				{

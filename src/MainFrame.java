@@ -97,6 +97,7 @@ public class MainFrame extends JFrame implements ActionListener
 				private JMenuItem open_file;
 				private JMenuItem save_file;
 				private JMenuItem close_file;
+				private JMenuItem remove_file;
 			//}
 		private JMenu edit_menu = new JMenu("Edit");
 			//{
@@ -116,6 +117,7 @@ public class MainFrame extends JFrame implements ActionListener
 	//{
 		private ArrayList<Tab> tab = new ArrayList<Tab>();
 		private JTextArea terminal_tab;
+		private boolean terminal_on_tabbar = false;
 	//}
 	
 	private String project_dir; 			//store current project path
@@ -273,6 +275,12 @@ public class MainFrame extends JFrame implements ActionListener
 		close_file.addActionListener(this);
 		close_file.setEnabled(false);
 		file_menu.add(close_file);
+		file_menu.addSeparator();
+
+		remove_file = new JMenuItem("Remove File");
+		remove_file.addActionListener(this);
+		remove_file.setEnabled(false);
+		file_menu.add(remove_file);
 		
 		//************ Add menuButton to edit menu ************//
 		
@@ -302,9 +310,9 @@ public class MainFrame extends JFrame implements ActionListener
 	{
 		if(enableMode==true) 
 		{	//short cut keys for menus
-			project_menu.setMnemonic('P');
-			file_menu.setMnemonic('F');
-			edit_menu.setMnemonic('E');
+			//project_menu.setMnemonic('P');
+			//file_menu.setMnemonic('F');
+			//edit_menu.setMnemonic('E');
 			//short-cut keys for Project Menu Item
 			create_project.setAccelerator(KeyStroke.getKeyStroke('N',Event.CTRL_MASK|Event.SHIFT_MASK));
 			save_project.setAccelerator(KeyStroke.getKeyStroke('S',Event.CTRL_MASK|Event.SHIFT_MASK));	//add short cut ctrl+shift+S for saving a project
@@ -368,6 +376,10 @@ public class MainFrame extends JFrame implements ActionListener
 		{
 			close_file_function();
 		}
+		else if(e.getSource() == remove_file)
+		{
+			remove_file_function();
+		}
 		//******************EDIT******************//
 		else if(e.getSource()==findReplaceMenuItem) {
 			searchTool.searchThisArea(getCurrentTab().getRSTA());
@@ -391,7 +403,60 @@ public class MainFrame extends JFrame implements ActionListener
 		}
 	}
 	
-	
+	private void add_close_tab_button(String title)
+	{
+		int index = tab_bar.indexOfTab(title);	//get the index from tab title
+		
+		JPanel Tab_with_close = new JPanel(new BorderLayout());
+
+		JLabel tab_title = new JLabel(title);		//name of tab
+		JButton close_button = new JButton("x");	//x button
+		Tab_with_close.setOpaque(false);			//set components' bg color match tab's bg color
+		
+		Tab_with_close.add(tab_title,BorderLayout.WEST);
+		Tab_with_close.add(close_button,BorderLayout.EAST);
+
+		tab_bar.setTabComponentAt(index, Tab_with_close);	//set old tab with new feature(x button)
+
+		close_button.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) 
+			{
+				if(title.endsWith("Terminal Output") )
+				{
+					int terminal_index = tab_bar.indexOfTab("Terminal Output");
+					tab_bar.remove(terminal_index);
+					terminal_tab.setText("");
+					terminal_on_tabbar = false;
+					return;
+				}
+				int index_selected_tab = tab_bar.indexOfTab(title);
+				if(tab.get(index_selected_tab).modified == true)
+				{
+					Object[] options = { "Yes", "No", "Cancel" };
+					int result = JOptionPane.showOptionDialog(null, "Save before closing?", "Warning",
+					        JOptionPane.DEFAULT_OPTION, 
+					        JOptionPane.WARNING_MESSAGE,
+					        null, options, options[0]);
+					if(result==0)
+			        {
+			        	save_file_function();
+			        }
+					else if(result == 2)
+					{
+						return;
+					}
+				}
+				tab.remove(index_selected_tab);
+				tab_bar.remove(index_selected_tab);
+				if(tab.size()==0)
+				{
+					active_project_status(false);
+				}
+			}
+			
+		});
+	}
 	//***************PROJECT FUNCTIONS*******************//
 	
 
@@ -497,7 +562,9 @@ public class MainFrame extends JFrame implements ActionListener
             {
             	//create tab with string (readFileFromPath return the contents in string)
             	open_file_on_new_tab(files.get(i).getName(),files.get(i).getPath());
+            	add_close_tab_button(tab.get(i).tabName);
             }
+            
             //if open project successfully
             active_project_status(true);
             //restore the path to current project folder
@@ -566,20 +633,32 @@ public class MainFrame extends JFrame implements ActionListener
 	 */
 	private boolean close_project_function()
 	{
-		Object[] options = { "Yes","No", "Cancel" };
-		int result = JOptionPane.showOptionDialog(null, "Save before closing?", "Warning",
-		        JOptionPane.DEFAULT_OPTION, 
-		        JOptionPane.WARNING_MESSAGE,
-		        null, options, options[0]);
-		if(result==JOptionPane.YES_OPTION)
-        {
-        	save_project_function();
-        	//return closed;
-        }
-		else if(result == 2)
+		boolean project_modified = false;
+		for(int i=0; i<tab.size();i++)
 		{
-			System.out.println("***STOP CLOSE PROJECT***");
-			return  false;
+			if(tab.get(i).modified == true)
+			{
+				project_modified = true;
+				break;
+			}
+		}
+		if(project_modified == true)
+		{
+			Object[] options = { "Yes","No", "Cancel" };
+			int result = JOptionPane.showOptionDialog(null, "Save before closing?", "Warning",
+			        JOptionPane.DEFAULT_OPTION, 
+			        JOptionPane.WARNING_MESSAGE,
+			        null, options, options[0]);
+			if(result==JOptionPane.YES_OPTION)
+	        {
+	        	save_project_function();
+	        	//return closed;
+	        }
+			else if(result == 2)
+			{
+				System.out.println("***STOP CLOSE PROJECT***");
+				return  false;
+			}
 		}
 		tab_bar.removeAll();
 		active_project_status(false);
@@ -599,6 +678,7 @@ public class MainFrame extends JFrame implements ActionListener
 	 * @param isActive
 	 */
 	protected void active_project_status(boolean isActive) {
+		remove_file.setEnabled(isActive);
 		save_file.setEnabled(isActive);
 		close_file.setEnabled(isActive);
 		findReplaceMenuItem.setEnabled(isActive);
@@ -666,7 +746,16 @@ public class MainFrame extends JFrame implements ActionListener
 		{
 			fileName = fileName + ".java";
 		}
-		
+		for(int i=0; i< tab.size();i++)
+		{
+
+			if(tab.get(i).tabName.equals(fileName))
+			{
+				JOptionPane.showMessageDialog(null, "Name already used", null, JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+				
+		}
 		String name_to_check = fileName.substring( 0, fileName.length() - 5);   
 		if( !Character.isLetter( name_to_check.charAt( 0 ) ) || !name_to_check.matches("[a-zA-Z0-9]*" ) )
 		{
@@ -748,24 +837,26 @@ public class MainFrame extends JFrame implements ActionListener
 		}
 	}
 		
-	
 	/**
 	 * 
 	 */
 	private void close_file_function()
 	{
-		Object[] options = { "Yes", "No", "Cancel" };
-		int result = JOptionPane.showOptionDialog(null, "Save before closing?", "Warning",
-		        JOptionPane.DEFAULT_OPTION, 
-		        JOptionPane.WARNING_MESSAGE,
-		        null, options, options[0]);
-		if(result==0)
-        {
-        	save_file_function();
-        }
-		else if(result == 2)
+		if(getCurrentTab().modified == true)
 		{
-			return;
+			Object[] options = { "Yes", "No", "Cancel" };
+			int result = JOptionPane.showOptionDialog(null, "Save before closing?", "Warning",
+			        JOptionPane.DEFAULT_OPTION, 
+			        JOptionPane.WARNING_MESSAGE,
+			        null, options, options[0]);
+			if(result==0)
+	        {
+	        	save_file_function();
+	        }
+			else if(result == 2)
+			{
+				return;
+			}
 		}
 		int index_selected_tab = tab_bar.getSelectedIndex();
 		tab.remove(index_selected_tab);
@@ -777,8 +868,52 @@ public class MainFrame extends JFrame implements ActionListener
 		System.out.println("***END CLOSE FILE***");
 	}
 	
+<<<<<<< HEAD
 	
 	
+=======
+	private void remove_file_function()
+	{
+		System.out.println(getCurrentTab().tabName);
+		if(!getCurrentTab().tabName.equals("Main.java"))
+		{
+			Object[] options = { "Yes", "No" };
+			int result = JOptionPane.showOptionDialog(null, "Do you want to delete file?", "Warning",
+			        JOptionPane.DEFAULT_OPTION, 
+			        JOptionPane.WARNING_MESSAGE,
+			        null, options, options[0]);
+			if(result==0)
+	        {
+				String file_path_to_remove = getCurrentTab().path;
+				int index_selected_tab = tab_bar.getSelectedIndex();
+				tab.remove(index_selected_tab);
+				tab_bar.remove(index_selected_tab);
+				
+				new File(file_path_to_remove).delete();
+				if(tab.size() == 0)
+					remove_file.setEnabled(false);
+	        }
+		}
+		else 
+		{
+			Object[] options = { "Yes", "No" };
+			int result = JOptionPane.showOptionDialog(null, "Project will not compile without Main\nDo you want to delete Main?", "Warning",
+			        JOptionPane.DEFAULT_OPTION, 
+			        JOptionPane.WARNING_MESSAGE,
+			        null, options, options[0]);
+			if(result==0)
+	        {
+				String file_path_to_remove = getCurrentTab().path;
+				int index_selected_tab = tab_bar.getSelectedIndex();
+				tab.remove(index_selected_tab);
+				tab_bar.remove(index_selected_tab);
+				new File(file_path_to_remove).delete();
+				if(tab.size() == 0)
+					remove_file.setEnabled(false);
+	        }
+		}
+	}
+>>>>>>> e618ef7e41615169fa736d97baa3f257fe3dbcef
 	/**This function will write a string  to a file with a filePath is given.
 	 * @param String content 
 	 * @param String filePath 
@@ -821,6 +956,7 @@ public class MainFrame extends JFrame implements ActionListener
     	tab_bar.addTab(
     			tab.get(tab.size()-1).tabName, 
     			tab.get(tab.size()-1).container);
+    	add_close_tab_button(tab.get(tab.size()-1).tabName);
     	
     	save_file.setEnabled(true);
     	close_file.setEnabled(true);
@@ -858,7 +994,7 @@ public class MainFrame extends JFrame implements ActionListener
 	{
 		String file_path;
 
-		if(new File(project_dir+"src").exists())
+		if(new File(project_dir+"\\src").exists())
 			file_path= project_dir+"\\src\\";       //if src folder exists set path in src
 		else {
 			file_path= project_dir+"\\";            //else set path in folder
@@ -892,6 +1028,8 @@ public class MainFrame extends JFrame implements ActionListener
 	    terminal_tab = new JTextArea();
 	    terminal_tab.setText(compile_output);
 	    tab_bar.add("Terminal Output", terminal_tab);
+	    add_close_tab_button("Terminal Output");
+	    terminal_on_tabbar = true;
 	    
 	    if( process.exitValue() == 0 ) //if compile error -> exitValue() != 0
 	    {
@@ -916,11 +1054,18 @@ public class MainFrame extends JFrame implements ActionListener
 		
 		System.out.println(file_path);						//check if the path correct
 		process = new ProcessBuilder("java","-cp",file_path, "Main").start();		//pass cmd to terminal?
-		
+
+		int terminal_index = tab_bar.indexOfTab("Terminal Output");
+		if(terminal_on_tabbar == false)
+		{
+			tab_bar.add("Terminal Output", terminal_tab);
+		    add_close_tab_button("Terminal Output");
+		}
+			
 		if( process.getErrorStream().read() != -1 )				//if not success
 		{
 			BufferedReader error = new BufferedReader(new InputStreamReader(process.getErrorStream()));	//get error
-            terminal_tab.append( "************* Execution Errors *************\n");	
+            terminal_tab.append( "----- Execution Errors -----\n");	
             String line;
             while((line = error.readLine()) != null )
             {
@@ -931,7 +1076,7 @@ public class MainFrame extends JFrame implements ActionListener
         else													//if success
         {
         	BufferedReader error = new BufferedReader(new InputStreamReader(process.getInputStream()));	//get output
-        	terminal_tab.append( "************* Execution Success *************\n");
+        	terminal_tab.append( "------ Execution Success ------\n");
         	String line;
             while((line = error.readLine()) != null )
             {
