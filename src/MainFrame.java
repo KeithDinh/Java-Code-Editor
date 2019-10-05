@@ -3,9 +3,13 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Event;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.Insets;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -51,10 +55,13 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -118,15 +125,17 @@ public class MainFrame extends JFrame implements ActionListener
 			//}
 		private JMenu about_menu = new JMenu("About");
 	//}
-		
-
-
+		private JTextArea console_text_area = new JTextArea();
+		private JSplitPane splitPane= new JSplitPane();
+		private JPanel bottom_terminal_panel = new JPanel();
 	private JTabbedPane tab_bar = new JTabbedPane(JTabbedPane.TOP);
 	//{
 		private ArrayList<Tab> tab = new ArrayList<Tab>();
 		private JTextArea terminal_tab;
-		private boolean terminal_on_tabbar = false;
+		
 	//}
+		
+		
 	
 	private String project_dir; 			//store current project path
 	private String src_dir;
@@ -185,8 +194,9 @@ public class MainFrame extends JFrame implements ActionListener
 	{
 		super("Java Editor by C--"); 				//Set Program's Name
 		setIconImage(new ImageIcon("icons/javaTextEditorIcon2.PNG").getImage());
-		createMenuItem();
+		getContentPane().setLayout(new GridLayout() );
 		
+		createMenuItem();
 		enableShortCutKeys(true);			//add shortcut keys 
 		
 		//MenuBar(TaskBar) > menu(Project, File, Edit) > each menuButton(new,create,..)
@@ -197,10 +207,21 @@ public class MainFrame extends JFrame implements ActionListener
 		menuBar.add(about_menu);
 		
 		setJMenuBar(menuBar); 			//Add the menu bar to the frame
+		
 		pack(); 						//no idea what this is but without it, menu bar won't display on the frame
 		
+		this.setSize(800,600);
 		
-		this.setSize(700,600);
+		//use this splitPane to split the contentPane into the main area (under tab_bar pane),
+		//and the terminal area under(bottom_terminal_panel)
+		splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+		splitPane.setDividerLocation(getHeight()*2/3);//devide with proprotion 2/3 1/3
+		splitPane.setTopComponent(tab_bar);
+		splitPane.setBottomComponent(bottom_terminal_panel);
+		//this function create the terminal under the main area
+		openTerminal();
+		
+		
 		this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		this.addWindowListener(new WindowAdapter() 
 		{
@@ -230,9 +251,12 @@ public class MainFrame extends JFrame implements ActionListener
 		});
 			
 		this.setVisible(true); 
-	
-        getContentPane().add(tab_bar);
-  
+        getContentPane().add(splitPane);
+        
+        //Center the frame on the Screen
+        Dimension screenSize= Toolkit.getDefaultToolkit().getScreenSize();//screenSize 
+		setBounds((int)(0.5*(screenSize.width-getWidth())),
+				(int)(0.5*(screenSize.height-getHeight())),getWidth(),getHeight());
 	}
 
 	private void createMenuItem()
@@ -444,15 +468,8 @@ public class MainFrame extends JFrame implements ActionListener
 			@Override
 			public void actionPerformed(ActionEvent e) 
 			{
-				if(title.endsWith("Terminal Output") )
-				{
-					int terminal_index = tab_bar.indexOfTab("Terminal Output");
-					tab_bar.remove(terminal_index);
-					terminal_tab.setText("");
-					terminal_on_tabbar = false;
-					return;
-				}
 				int index_selected_tab = tab_bar.indexOfTab(title);
+				
 				if(tab.get(index_selected_tab).modified == true)
 				{
 					Object[] options = { "Yes", "No", "Cancel" };
@@ -1042,44 +1059,34 @@ public class MainFrame extends JFrame implements ActionListener
 			file_path= project_dir+"\\";            //else set path in folder
 		}
 		
-		String compile_output="";
-		
 		 //combine all arguments with space, that's it 
 		ProcessBuilder processBuilder = new ProcessBuilder("javac","-cp", project_dir+"\\lib\\", file_path+"\\Main.java"); 
 		process = processBuilder.start();	//compiling
-		
+		StringBuilder compile_output=new StringBuilder();
+		String line=null;
 	    if( process.getErrorStream().read() != -1 )
         {
             BufferedReader error = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-            compile_output += "----- Compilation Errors -----\n";
-            String line;
+            compile_output.append( "----- Compilation Errors -----\n");
             while((line = error.readLine()) != null )
             {
-                compile_output += line + "\n";
+                compile_output.append(line + "\n");
             }
             error.close();
         }
 	    else 
 	    {
-	    	compile_output += "----- Compilation Success -----\n";
+	    	compile_output.append( "----- Compilation Success -----\n");
 	    }
 	    /*	
 	     * Will need to move all class files to bin
 	     */
-	    
-	    terminal_tab = new JTextArea();
-	    terminal_tab.setText(compile_output);
-	    tab_bar.add("Terminal Output", terminal_tab);
-	    add_close_tab_button("Terminal Output");
-	    terminal_on_tabbar = true;
-	    
+	    outputToTerminal(compile_output.toString(),project_dir);
 	    if( process.exitValue() == 0 ) //if compile error -> exitValue() != 0
 	    {
 	    	execute.setEnabled(true);
 	    }
-	    
-	    terminal_tab.setEditable(false);	//can't write on output terminal
-		
+	   
 	}//end compile_fucntion
 	
 	
@@ -1098,39 +1105,73 @@ public class MainFrame extends JFrame implements ActionListener
 		
 		System.out.println(file_path);						//check if the path correct
 		process = new ProcessBuilder("java","-cp",file_path, "Main").start();		//pass cmd to terminal?
-
-		int terminal_index = tab_bar.indexOfTab("Terminal Output");
-		if(terminal_on_tabbar == false)
-		{
-			tab_bar.add("Terminal Output", terminal_tab);
-		    add_close_tab_button("Terminal Output");
-		}
-			
+		
+		String line=null;
+		StringBuilder output=new StringBuilder();
 		if( process.getErrorStream().read() != -1 )				//if not success
 		{
 			BufferedReader error = new BufferedReader(new InputStreamReader(process.getErrorStream()));	//get error
-            terminal_tab.append( "----- Execution Errors -----\n");	
-            String line;
-            while((line = error.readLine()) != null )
+			output.append("----- Execution Errors -----\n");
+			while((line = error.readLine()) != null )
             {
-            	terminal_tab.append(line + "\n");		//output error
+            	output.append(line + "\n");		//output error
             }
             error.close();
         }
         else													//if success
         {
         	BufferedReader error = new BufferedReader(new InputStreamReader(process.getInputStream()));	//get output
-        	terminal_tab.append( "------ Execution Success ------\n");
-        	String line;
+        	output.append( "------ Execution Success ------\n");
             while((line = error.readLine()) != null )
             {
-            	terminal_tab.append(line + "\n");				//output result
+            	output.append(line + "\n");				//output result
             }
             error.close();
         }
+		
+		outputToTerminal(output.toString(),project_dir);
 	}//end execute_function
 	
 	
+	/**
+	 * This function creates a terminal Pane in the bottom of the main Pane
+	 */
+	protected void openTerminal() {
+	//with this layout, grid default is (1,1),when we add textArea to thisPanel, 
+	//this panel will be filled out completely
+	bottom_terminal_panel.setLayout(new GridLayout());
+	
+	console_text_area.setEditable(false);
+	console_text_area.setSize(600,50);
+	console_text_area.setBackground(new Color(0,49,82));//set background color
+	console_text_area.setForeground(new Color(255,255,255));//set text color
+	console_text_area.setText("");
+	
+	JTabbedPane terminal_tab_bar=new JTabbedPane();
+	JScrollPane console_scroll_pane=new JScrollPane();
+	console_scroll_pane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+	console_scroll_pane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+	console_scroll_pane.setViewportView(console_text_area);
+	ImageIcon console_icon= new ImageIcon("icons/code_console.PNG");
+	String tooptip="This is a terminal";//hovering text
+	
+	terminal_tab_bar.addTab("Console",console_icon,console_scroll_pane,tooptip);
+	bottom_terminal_panel.add(terminal_tab_bar);
+	bottom_terminal_panel.setOpaque(true);
+	}
+	
+	
+	/**This function will write the current project directory and the  output to the
+	 * terminal.
+	 * @param output
+	 * @param project_dir
+	 */
+	private void outputToTerminal(String output,String project_dir) {
+		console_text_area.setText("");//clear console
+		console_text_area.setText(project_dir+"\n"+output);
+		console_text_area.setLineWrap(true);
+		console_text_area.setForeground(Color.WHITE);
+	}
 	
 }//end MainFrame
 
