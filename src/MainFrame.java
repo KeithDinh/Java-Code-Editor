@@ -10,8 +10,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -19,6 +22,7 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -28,9 +32,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -66,6 +72,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.TabbedPaneUI;
 
@@ -111,8 +118,9 @@ public class MainFrame extends JFrame implements ActionListener
 			//}
 		private JMenu about_menu = new JMenu("About");
 	//}
-				
-				
+		
+
+
 	private JTabbedPane tab_bar = new JTabbedPane(JTabbedPane.TOP);
 	//{
 		private ArrayList<Tab> tab = new ArrayList<Tab>();
@@ -121,6 +129,7 @@ public class MainFrame extends JFrame implements ActionListener
 	//}
 	
 	private String project_dir; 			//store current project path
+	private String src_dir;
 	private String last_project_path;		//will save the recent closed project path
 	Process process;						//for compile and execute
 
@@ -223,6 +232,7 @@ public class MainFrame extends JFrame implements ActionListener
 		this.setVisible(true); 
 	
         getContentPane().add(tab_bar);
+  
 	}
 
 	private void createMenuItem()
@@ -408,11 +418,23 @@ public class MainFrame extends JFrame implements ActionListener
 		int index = tab_bar.indexOfTab(title);	//get the index from tab title
 		
 		JPanel Tab_with_close = new JPanel(new BorderLayout());
-
+		ImageIcon disableCloseIcon= new ImageIcon("icons/square_close_hollow.PNG");
+		ImageIcon enableCloseIcon= new ImageIcon("icons/square_close_filled.PNG");
 		JLabel tab_title = new JLabel(title);		//name of tab
-		JButton close_button = new JButton("x");	//x button
-		Tab_with_close.setOpaque(false);			//set components' bg color match tab's bg color
+		JButton close_button = new JButton(disableCloseIcon);	//x button
+		//set a clear border for close button
+		close_button.setBorder(BorderFactory.createEmptyBorder(0,4,0,0)); 
+		close_button.setContentAreaFilled(false);
+		close_button.addMouseListener(new MouseAdapter(){
+			public void mouseEntered(MouseEvent e) {
+				close_button.setIcon(enableCloseIcon);
+			}
+			public void mouseExited(MouseEvent e) {
+				close_button.setIcon(disableCloseIcon);
+			}
+		});
 		
+		Tab_with_close.setOpaque(false);			//set components' bg color match tab's bg color
 		Tab_with_close.add(tab_title,BorderLayout.WEST);
 		Tab_with_close.add(close_button,BorderLayout.EAST);
 
@@ -503,6 +525,7 @@ public class MainFrame extends JFrame implements ActionListener
 				{
 					dir_path += "\\" + folderName;
 					project_dir =dir_path;
+					src_dir=project_dir+"\\src";
 					//if Main.java file is created successfully, enable active mode for project.
 					if(create_Main_function())
 						active_project_status(true);
@@ -579,6 +602,10 @@ public class MainFrame extends JFrame implements ActionListener
 	}
   
 	
+	
+	
+	
+	
 	/**
 	 * This function will save the current project. 
 	 */
@@ -609,7 +636,7 @@ public class MainFrame extends JFrame implements ActionListener
 	 * @return boolean 
 	 */
 	private boolean close_current_active_project() {
-		if(project_dir != null)
+		if(project_dir != null||project_dir=="")
 		{
 			Object[] options = { "OK", "CANCEL" };
 			int result = JOptionPane.showOptionDialog(null, "Close current project?", "Warning",
@@ -686,6 +713,7 @@ public class MainFrame extends JFrame implements ActionListener
 		close_project.setEnabled(isActive);
 		compile.setEnabled(isActive);
 		execute.setEnabled(false);
+		
 	}
 	
 	
@@ -779,6 +807,7 @@ public class MainFrame extends JFrame implements ActionListener
 	}
 	
 	
+	
 	/**
 	 * @throws IOException 
 	 */
@@ -813,6 +842,7 @@ public class MainFrame extends JFrame implements ActionListener
 	}
 	
 	
+	
 	/**
 	 * 
 	 */
@@ -836,6 +866,8 @@ public class MainFrame extends JFrame implements ActionListener
 			JOptionPane.showConfirmDialog(null, e.getMessage(),"Error Writing File",JOptionPane.DEFAULT_OPTION,JOptionPane.ERROR_MESSAGE);
 		}
 	}
+	
+	
 		
 	/**
 	 * 
@@ -868,10 +900,7 @@ public class MainFrame extends JFrame implements ActionListener
 		System.out.println("***END CLOSE FILE***");
 	}
 	
-<<<<<<< HEAD
-	
-	
-=======
+
 	private void remove_file_function()
 	{
 		System.out.println(getCurrentTab().tabName);
@@ -913,7 +942,9 @@ public class MainFrame extends JFrame implements ActionListener
 	        }
 		}
 	}
->>>>>>> e618ef7e41615169fa736d97baa3f257fe3dbcef
+	
+	
+	
 	/**This function will write a string  to a file with a filePath is given.
 	 * @param String content 
 	 * @param String filePath 
@@ -963,7 +994,12 @@ public class MainFrame extends JFrame implements ActionListener
 	}
 
 	
+	
+	
 	//****************EDIT FUNCTIONS*******************//
+	/**
+	 * 
+	 */
 	public void cut_copy_paste_action() {
 		Action cutAction = new DefaultEditorKit.CutAction();
 		Action copyAction = new DefaultEditorKit.CopyAction();
@@ -990,12 +1026,18 @@ public class MainFrame extends JFrame implements ActionListener
 	
 	//****************BUILD FUNCTIONS*******************//
 	
+	
+	
+	
+	/**
+	 * @throws IOException
+	 */
 	public void compile_function() throws IOException
 	{
 		String file_path;
 
 		if(new File(project_dir+"\\src").exists())
-			file_path= project_dir+"\\src\\";       //if src folder exists set path in src
+			file_path= project_dir+"src\\";       //if src folder exists set path in src
 		else {
 			file_path= project_dir+"\\";            //else set path in folder
 		}
@@ -1041,6 +1083,8 @@ public class MainFrame extends JFrame implements ActionListener
 	}//end compile_fucntion
 	
 	
+	
+	
 	/**
 	 * @throws IOException
 	 */
@@ -1048,7 +1092,7 @@ public class MainFrame extends JFrame implements ActionListener
 		String file_path;
 		
 		if(new File(project_dir+"\\src").exists())			//if src folder exists set path in src
-			file_path= project_dir+"\\src\\";				//else set path in folder
+			file_path= project_dir+"src\\";				//else set path in folder
 		else 
 			file_path= project_dir+"\\";
 		
