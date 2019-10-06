@@ -32,7 +32,7 @@ public class Main
             final UIManager.LookAndFeelInfo[] infos =
                     UIManager.getInstalledLookAndFeels();
             
-            UIManager.setLookAndFeel(infos[1].getClassName()); 
+            UIManager.setLookAndFeel(infos[3].getClassName()); 
             // plafInfo[0]=Meta,plafInfo[1]=Nimbus,plafInfo=[2]=Motif,plafInfo[3,4]=Windows
             
         } catch (ClassNotFoundException ex) {
