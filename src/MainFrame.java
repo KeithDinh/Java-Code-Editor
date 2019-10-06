@@ -280,7 +280,7 @@ public class MainFrame extends JFrame implements ActionListener
 		project_menu.add(save_project);
 		project_menu.addSeparator();
 		
-		close_project = new JMenuItem("Close Project");
+		close_project = new JMenuItem("Close Project",new ImageIcon("icons/document-close-3-22.PNG"));
 		close_project.addActionListener(this);
 		close_project.setEnabled(false);
 		project_menu.add(close_project);
@@ -293,7 +293,7 @@ public class MainFrame extends JFrame implements ActionListener
 		file_menu.add(create_file);
 		file_menu.addSeparator();
 		
-		open_file = new JMenuItem("Open File",new ImageIcon("icons/document-open-5-22"));
+		open_file = new JMenuItem("Open File",new ImageIcon("icons/document-open-5-22.PNG"));
 		open_file.addActionListener(this);
 		file_menu.add(open_file);
 		file_menu.addSeparator();
@@ -333,7 +333,7 @@ public class MainFrame extends JFrame implements ActionListener
 		build_menu.add(compile);
 		build_menu.addSeparator();
 		
-		execute = new JMenuItem("Execute");
+		execute = new JMenuItem("Execute",new ImageIcon("icons/run.PNG"));
 		execute.addActionListener(this);
 		execute.setEnabled(false);
 		build_menu.add(execute);
@@ -1023,19 +1023,19 @@ public class MainFrame extends JFrame implements ActionListener
 		Action pasteAction = new DefaultEditorKit.PasteAction();
 		
 		cutAction.putValue(Action.NAME,"Cut");
-		cutAction.putValue(Action.SMALL_ICON, new ImageIcon("icons/cut.gif"));
+		cutAction.putValue(Action.SMALL_ICON, new ImageIcon("icons/edit-cut-4-22.PNG"));
 		cutAction.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke('X',Event.CTRL_MASK));
 		edit_menu.add(cutAction);
 		edit_menu.addSeparator();
 		
 		copyAction.putValue(Action.NAME,"Copy");
-		copyAction.putValue(Action.SMALL_ICON, new ImageIcon("icons/copy.gif"));
+		copyAction.putValue(Action.SMALL_ICON, new ImageIcon("icons/edit-copy-4-22.PNG"));
 		copyAction.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke('C',Event.CTRL_MASK));
 		edit_menu.add(copyAction);
 		edit_menu.addSeparator();
 		
 		pasteAction.putValue(Action.NAME,"Paste");
-		pasteAction.putValue(Action.SMALL_ICON, new ImageIcon("icons/paste.gif"));
+		pasteAction.putValue(Action.SMALL_ICON, new ImageIcon("icons/edit-paste-5-22.PNG"));
 		pasteAction.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke('V',Event.CTRL_MASK));
 		edit_menu.add(pasteAction);
 		edit_menu.addSeparator();
