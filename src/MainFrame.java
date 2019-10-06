@@ -263,18 +263,18 @@ public class MainFrame extends JFrame implements ActionListener
 	{
 		//************ Add menuButton to project menu ************//
 		
-		create_project = new JMenuItem("New Project");
+		create_project = new JMenuItem("New Project",new ImageIcon("icons/folder-new-4-22.PNG"));
 		create_project.addActionListener(this);
 		project_menu.add(create_project);
 		project_menu.addSeparator();
 
 		
-		open_project = new JMenuItem("Open Project");
+		open_project = new JMenuItem("Open Project",new ImageIcon("icons/folder-open-3-22.PNG"));
 		open_project.addActionListener(this);
 		project_menu.add(open_project);
 		project_menu.addSeparator();
 		
-		save_project = new JMenuItem("Save Project (Save All)");
+		save_project = new JMenuItem("Save Project (Save All)",new ImageIcon("icons/document-save-all-22.PNG"));
 		save_project.setEnabled(false);	
 		save_project.addActionListener(this);
 		project_menu.add(save_project);
@@ -288,30 +288,30 @@ public class MainFrame extends JFrame implements ActionListener
 		
 		//************ Add menuButton to file menu ************//
 		
-		create_file = new JMenuItem("New File");
+		create_file = new JMenuItem("New File",new ImageIcon("icons/document-new-5-22.PNG"));
 		create_file.addActionListener(this);
 		file_menu.add(create_file);
 		file_menu.addSeparator();
 		
-		open_file = new JMenuItem("Open File");
+		open_file = new JMenuItem("Open File",new ImageIcon("icons/document-open-5-22"));
 		open_file.addActionListener(this);
 		file_menu.add(open_file);
 		file_menu.addSeparator();
 		
-		save_file = new JMenuItem("Save File");
+		save_file = new JMenuItem("Save File",new ImageIcon("icons/document-save-5-22.PNG"));
 		save_file.addActionListener(this);
 		file_menu.add(save_file);
 		file_menu.addSeparator();
 		save_file.setEnabled(false); //initialize save_file menuItem in disable mode when no file to be saved
 		
 		
-		close_file = new JMenuItem("Close File");
+		close_file = new JMenuItem("Close File",new ImageIcon("icons/document-close-4-22.PNG"));
 		close_file.addActionListener(this);
 		close_file.setEnabled(false);
 		file_menu.add(close_file);
 		file_menu.addSeparator();
 
-		remove_file = new JMenuItem("Remove File");
+		remove_file = new JMenuItem("Remove File",new ImageIcon("icons/edit-delete-6-22.PNG"));
 		remove_file.addActionListener(this);
 		remove_file.setEnabled(false);
 		file_menu.add(remove_file);
@@ -320,14 +320,14 @@ public class MainFrame extends JFrame implements ActionListener
 		
 		//Buid edit_menu with cut_copy_paste_action()
 		cut_copy_paste_action();
-		findReplaceMenuItem = new JMenuItem("Find/Replace");
+		findReplaceMenuItem = new JMenuItem("Find/Replace",new ImageIcon("icons/edit-find-and-replace-22.PNG"));
 		findReplaceMenuItem.setEnabled(false);//enable when exists a opened file. 
 		edit_menu.add(findReplaceMenuItem);
 		findReplaceMenuItem.addActionListener(this);
 		
 		//************ Add menuButton to build menu ************//
 		
-		compile = new JMenuItem("Compile");
+		compile = new JMenuItem("Compile",new ImageIcon("icons/run-build-22.PNG"));
 		compile.addActionListener(this);
 		compile.setEnabled(false);
 		build_menu.add(compile);
@@ -1141,6 +1141,7 @@ public class MainFrame extends JFrame implements ActionListener
 	//this panel will be filled out completely
 	bottom_terminal_panel.setLayout(new GridLayout());
 	
+	//the problem is what if user want to type in input?
 	console_text_area.setEditable(false);
 	console_text_area.setSize(600,50);
 	console_text_area.setBackground(new Color(0,49,82));//set background color
