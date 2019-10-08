@@ -1010,7 +1010,8 @@ public class MainFrame extends JFrame implements ActionListener
 			if( i == 0) 
 				newName = currentTab.fileName;
 			else
-				newName = currentTab.fileName + " (" + tab.get(index).count-- + ")";
+				newName = currentTab.fileName + " (" + (i+1) + ")";
+			tab.get(index).count--;
 			tab.get(index).tabName = newName;
 			add_close_tab_button( currentName, newName );
 			tab_bar.setTitleAt(index, newName);
