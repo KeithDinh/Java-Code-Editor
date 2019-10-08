@@ -442,12 +442,12 @@ public class MainFrame extends JFrame implements ActionListener
 		int index = tab_bar.indexOfTab(title);	//get the index from tab title
 		
 		JPanel Tab_with_close = new JPanel(new BorderLayout());
-		ImageIcon disableCloseIcon= new ImageIcon("icons/delete7.PNG");
-		ImageIcon enableCloseIcon= new ImageIcon("icons/delete8.PNG");
+		ImageIcon disableCloseIcon= new ImageIcon("icons/tab-close1.PNG");
+		ImageIcon enableCloseIcon= new ImageIcon("icons/tab-close2.PNG");
 		JLabel tab_title = new JLabel(title);		//name of tab
 		JButton close_button = new JButton(disableCloseIcon);	//x button
 		//set a clear border for close button
-		close_button.setBorder(BorderFactory.createEmptyBorder(0,4,0,0)); //change size
+		close_button.setBorder(BorderFactory.createEmptyBorder(0,5,0,0)); //change size
 		close_button.setContentAreaFilled(false);
 		close_button.addMouseListener(new MouseAdapter(){
 			public void mouseEntered(MouseEvent e) {
