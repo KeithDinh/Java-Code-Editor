@@ -161,6 +161,14 @@ public class MainFrame extends JFrame implements ActionListener
             return name.endsWith(".java");
         }
     };
+    private FilenameFilter classFilter = new FilenameFilter()		
+    {
+        @Override
+        public boolean accept(File dir, String name)
+        {
+            return name.endsWith(".class");
+        }
+    };
     
     
 	/**This function take file path(string) as argument, return content of file (string) 
@@ -1051,14 +1059,23 @@ public class MainFrame extends JFrame implements ActionListener
 	 */
 	public void compile_function() throws IOException
 	{
+		save_project_function();
 		String file_path;
 
 		if(new File(project_dir+"\\src").exists())
-			file_path= project_dir+"src\\";       //if src folder exists set path in src
+			file_path= project_dir+"\\src\\";       //if src folder exists set path in src
 		else {
 			file_path= project_dir+"\\";            //else set path in folder
 		}
 		
+		ArrayList<File> files = new ArrayList<File>(Arrays.asList(new File(project_dir + "\\src").listFiles(classFilter)));
+		if(files.size() > 0)
+		{
+			for(int i=0 ; i< files.size(); i++)
+			{
+				files.get(i).delete();
+			}
+		}
 		 //combine all arguments with space, that's it 
 		ProcessBuilder processBuilder = new ProcessBuilder("javac","-cp", project_dir+"\\lib\\", file_path+"\\Main.java"); 
 		process = processBuilder.start();	//compiling
@@ -1099,7 +1116,7 @@ public class MainFrame extends JFrame implements ActionListener
 		String file_path;
 		
 		if(new File(project_dir+"\\src").exists())			//if src folder exists set path in src
-			file_path= project_dir+"src\\";				//else set path in folder
+			file_path= project_dir+"\\src\\";				//else set path in folder
 		else 
 			file_path= project_dir+"\\";
 		
