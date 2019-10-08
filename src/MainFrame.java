@@ -161,6 +161,14 @@ public class MainFrame extends JFrame implements ActionListener
             return name.endsWith(".java");
         }
     };
+    private FilenameFilter classFilter = new FilenameFilter()		
+    {
+        @Override
+        public boolean accept(File dir, String name)
+        {
+            return name.endsWith(".class");
+        }
+    };
     
     
 	/**This function take file path(string) as argument, return content of file (string) 
@@ -263,18 +271,18 @@ public class MainFrame extends JFrame implements ActionListener
 	{
 		//************ Add menuButton to project menu ************//
 		
-		create_project = new JMenuItem("New Project",new ImageIcon("icons/project-new.PNG"));
+		create_project = new JMenuItem("New Project",new ImageIcon("icons/folder-new-4.PNG"));
 		create_project.addActionListener(this);
 		project_menu.add(create_project);
 		project_menu.addSeparator();
 
 		
-		open_project = new JMenuItem("Open Project",new ImageIcon("icons/project-open.PNG"));
+		open_project = new JMenuItem("Open Project",new ImageIcon("icons/folder-open-2.PNG"));
 		open_project.addActionListener(this);
 		project_menu.add(open_project);
 		project_menu.addSeparator();
 		
-		save_project = new JMenuItem("Save Project (Save All)",new ImageIcon("icons/project-save.PNG"));
+		save_project = new JMenuItem("Save Project (Save All)",new ImageIcon("icons/document-save-all.PNG"));
 		save_project.setEnabled(false);	
 		save_project.addActionListener(this);
 		project_menu.add(save_project);
@@ -288,30 +296,30 @@ public class MainFrame extends JFrame implements ActionListener
 		
 		//************ Add menuButton to file menu ************//
 		
-		create_file = new JMenuItem("New File",new ImageIcon("icons/file-new.PNG"));
+		create_file = new JMenuItem("New File",new ImageIcon("icons/document-new-3.PNG"));
 		create_file.addActionListener(this);
 		file_menu.add(create_file);
 		file_menu.addSeparator();
 		
-		open_file = new JMenuItem("Open File",new ImageIcon("icons/file-open.PNG"));
+		open_file = new JMenuItem("Open File",new ImageIcon("icons/document-open-4.PNG"));
 		open_file.addActionListener(this);
 		file_menu.add(open_file);
 		file_menu.addSeparator();
 		
-		save_file = new JMenuItem("Save File",new ImageIcon("icons/file-save.PNG"));
+		save_file = new JMenuItem("Save File",new ImageIcon("icons/document-save-4.PNG"));
 		save_file.addActionListener(this);
 		file_menu.add(save_file);
 		file_menu.addSeparator();
 		save_file.setEnabled(false); //initialize save_file menuItem in disable mode when no file to be saved
 		
 		
-		close_file = new JMenuItem("Close File",new ImageIcon("icons/file-close.PNG"));
+		close_file = new JMenuItem("Close File",new ImageIcon("icons/document-close-4.PNG"));
 		close_file.addActionListener(this);
 		close_file.setEnabled(false);
 		file_menu.add(close_file);
 		file_menu.addSeparator();
 
-		remove_file = new JMenuItem("Remove File",new ImageIcon("icons/file-remove.PNG"));
+		remove_file = new JMenuItem("Remove File",new ImageIcon("icons/edit-delete-6.PNG"));
 		remove_file.addActionListener(this);
 		remove_file.setEnabled(false);
 		file_menu.add(remove_file);
@@ -320,20 +328,20 @@ public class MainFrame extends JFrame implements ActionListener
 		
 		//Buid edit_menu with cut_copy_paste_action()
 		cut_copy_paste_action();
-		findReplaceMenuItem = new JMenuItem("Find/Replace",new ImageIcon("icons/edit-find-and-replace.PNG"));
+		findReplaceMenuItem = new JMenuItem("Find/Replace",new ImageIcon("icons/edit-find-and-replace-2.PNG"));
 		findReplaceMenuItem.setEnabled(false);//enable when exists a opened file. 
 		edit_menu.add(findReplaceMenuItem);
 		findReplaceMenuItem.addActionListener(this);
 		
 		//************ Add menuButton to build menu ************//
 		
-		compile = new JMenuItem("Compile",new ImageIcon("icons/build-compile.PNG"));
+		compile = new JMenuItem("Compile",new ImageIcon("icons/Compile.PNG"));
 		compile.addActionListener(this);
 		compile.setEnabled(false);
 		build_menu.add(compile);
 		build_menu.addSeparator();
 		
-		execute = new JMenuItem("Execute",new ImageIcon("icons/build-run.PNG"));
+		execute = new JMenuItem("Execute",new ImageIcon("icons/run1.PNG"));
 		execute.addActionListener(this);
 		execute.setEnabled(false);
 		build_menu.add(execute);
@@ -442,12 +450,12 @@ public class MainFrame extends JFrame implements ActionListener
 		int index = tab_bar.indexOfTab(title);	//get the index from tab title
 		
 		JPanel Tab_with_close = new JPanel(new BorderLayout());
-		ImageIcon disableCloseIcon= new ImageIcon("icons/tab-close1.PNG");
-		ImageIcon enableCloseIcon= new ImageIcon("icons/tab-close2.PNG");
+		ImageIcon disableCloseIcon= new ImageIcon("icons/delete7.PNG");
+		ImageIcon enableCloseIcon= new ImageIcon("icons/delete8.PNG");
 		JLabel tab_title = new JLabel(title);		//name of tab
 		JButton close_button = new JButton(disableCloseIcon);	//x button
 		//set a clear border for close button
-		close_button.setBorder(BorderFactory.createEmptyBorder(0,5,0,0)); //change size
+		close_button.setBorder(BorderFactory.createEmptyBorder(0,4,0,0)); //change size
 		close_button.setContentAreaFilled(false);
 		close_button.addMouseListener(new MouseAdapter(){
 			public void mouseEntered(MouseEvent e) {
@@ -1023,19 +1031,19 @@ public class MainFrame extends JFrame implements ActionListener
 		Action pasteAction = new DefaultEditorKit.PasteAction();
 		
 		cutAction.putValue(Action.NAME,"Cut");
-		cutAction.putValue(Action.SMALL_ICON, new ImageIcon("icons/edit-cut.PNG"));
+		cutAction.putValue(Action.SMALL_ICON, new ImageIcon("icons/edit-cut-4.PNG"));
 		cutAction.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke('X',Event.CTRL_MASK));
 		edit_menu.add(cutAction);
 		edit_menu.addSeparator();
 		
 		copyAction.putValue(Action.NAME,"Copy");
-		copyAction.putValue(Action.SMALL_ICON, new ImageIcon("icons/edit-copy.PNG"));
+		copyAction.putValue(Action.SMALL_ICON, new ImageIcon("icons/edit-copy-3.PNG"));
 		copyAction.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke('C',Event.CTRL_MASK));
 		edit_menu.add(copyAction);
 		edit_menu.addSeparator();
 		
 		pasteAction.putValue(Action.NAME,"Paste");
-		pasteAction.putValue(Action.SMALL_ICON, new ImageIcon("icons/edit-paste.PNG"));
+		pasteAction.putValue(Action.SMALL_ICON, new ImageIcon("icons/edit-paste-6.PNG"));
 		pasteAction.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke('V',Event.CTRL_MASK));
 		edit_menu.add(pasteAction);
 		edit_menu.addSeparator();
@@ -1051,14 +1059,23 @@ public class MainFrame extends JFrame implements ActionListener
 	 */
 	public void compile_function() throws IOException
 	{
+		save_project_function();
 		String file_path;
 
 		if(new File(project_dir+"\\src").exists())
-			file_path= project_dir+"src\\";       //if src folder exists set path in src
+			file_path= project_dir+"\\src\\";       //if src folder exists set path in src
 		else {
 			file_path= project_dir+"\\";            //else set path in folder
 		}
 		
+		ArrayList<File> files = new ArrayList<File>(Arrays.asList(new File(project_dir + "\\src").listFiles(classFilter)));
+		if(files.size() > 0)
+		{
+			for(int i=0 ; i< files.size(); i++)
+			{
+				files.get(i).delete();
+			}
+		}
 		 //combine all arguments with space, that's it 
 		ProcessBuilder processBuilder = new ProcessBuilder("javac","-cp", project_dir+"\\lib\\", file_path+"\\Main.java"); 
 		process = processBuilder.start();	//compiling
@@ -1099,7 +1116,7 @@ public class MainFrame extends JFrame implements ActionListener
 		String file_path;
 		
 		if(new File(project_dir+"\\src").exists())			//if src folder exists set path in src
-			file_path= project_dir+"src\\";				//else set path in folder
+			file_path= project_dir+"\\src\\";				//else set path in folder
 		else 
 			file_path= project_dir+"\\";
 		
@@ -1153,7 +1170,7 @@ public class MainFrame extends JFrame implements ActionListener
 	console_scroll_pane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 	console_scroll_pane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 	console_scroll_pane.setViewportView(console_text_area);
-	ImageIcon console_icon= new ImageIcon("icons/terminal-console.PNG");
+	ImageIcon console_icon= new ImageIcon("icons/console1.PNG");
 	String tooptip="This is a terminal";//hovering text
 	
 	terminal_tab_bar.addTab("Console",console_icon,console_scroll_pane,tooptip);
