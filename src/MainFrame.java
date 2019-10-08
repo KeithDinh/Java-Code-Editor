@@ -485,14 +485,14 @@ public class MainFrame extends JFrame implements ActionListener
 		}
 	}
 	
-	private void add_close_tab_button( String title )
+	private void add_close_tab_button( String title, String newTitle )
 	{	
 		int index = tab_bar.indexOfTab( title );
 		
 		JPanel Tab_with_close = new JPanel(new BorderLayout());
 		ImageIcon disableCloseIcon= new ImageIcon("icons/close.PNG");
 		ImageIcon enableCloseIcon= new ImageIcon("icons/close-.PNG");
-		JLabel tab_title = new JLabel( title ); //name of tab
+		JLabel tab_title = new JLabel( (newTitle == null) ? title : newTitle ); //name of tab
 		JButton close_button = new JButton(disableCloseIcon);	//x button
 		//set a clear border for close button
 		close_button.setBorder(BorderFactory.createEmptyBorder(0,4,0,0)); 
@@ -516,7 +516,7 @@ public class MainFrame extends JFrame implements ActionListener
 			@Override
 			public void actionPerformed(ActionEvent e) 
 			{
-				int index_selected_tab = tab_bar.indexOfTab( title );
+				int index_selected_tab = tab_bar.indexOfTab( (newTitle == null) ? title : newTitle );
 				
 				if(tab.get(index_selected_tab).modified == true)
 				{
@@ -783,6 +783,7 @@ public class MainFrame extends JFrame implements ActionListener
 			}
 		}
 		tab_bar.removeAll();
+		duplicates.clear();
 		setSaveEnabled();
 		active_project_status(false);
 		execute.setEnabled( false );
@@ -998,16 +999,27 @@ public class MainFrame extends JFrame implements ActionListener
 	 */
 	void setNewTabNumbers( Tab currentTab )
 	{
-//		int count = duplicates.get( currentTab.fileName );
-//  
-//		for( int i = currentTab.count; i < count; i++ ) 
-//		{
-//			int index = tab_bar.indexOfTab( currentTab.fileName + " (" + (i+2) + ")" );
-//			String newName = currentTab.fileName + " (" + tab.get(index).count-- + ")";
-//			tab.get(index).tabName = newName;
-//			
-//		} 
-//		duplicates.put( currentTab.fileName, count-- );
+		int count = duplicates.get( currentTab.fileName );
+		String newName;
+		String currentName;
+		
+		for(int i = currentTab.count; i < count; i++ ) 
+		{
+			currentName = currentTab.fileName + " (" + (i+2) + ")";
+			int index = tab_bar.indexOfTab( currentName );
+			if( i == 0) 
+				newName = currentTab.fileName;
+			else
+				newName = currentTab.fileName + " (" + tab.get(index).count-- + ")";
+			tab.get(index).tabName = newName;
+			add_close_tab_button( currentName, newName );
+			tab_bar.setTitleAt(index, newName);
+		} 
+		count--;
+		if( count == 0 )
+			duplicates.remove( currentTab.fileName );
+		else
+			duplicates.put( currentTab.fileName, count-- );
 	}
 		
 	/**
@@ -1031,14 +1043,13 @@ public class MainFrame extends JFrame implements ActionListener
 				return;
 			}
 		}
-		if( duplicates.containsKey(currentTab.fileName) )
-			setNewTabNumbers( currentTab );
 		int index = tab_bar.indexOfTab( currentTab.tabName );
 		tab.remove(index);
 		tab_bar.remove(index);
 		boolean active = false;
 		if(tab.size()==0) 
 		{
+			duplicates.clear();
 			setSaveProject();
 			active_project_status(false);
 		}
@@ -1055,6 +1066,8 @@ public class MainFrame extends JFrame implements ActionListener
 			setSaveProject();
 			active_project_status(false);
 		}
+		if( duplicates.containsKey(currentTab.fileName) )
+			setNewTabNumbers( currentTab );
 		System.out.println("***END CLOSE FILE***");
 	}
 	
@@ -1171,7 +1184,7 @@ public class MainFrame extends JFrame implements ActionListener
     			tab.get(tab.size()-1).tabName,
     			tab.get(tab.size()-1).container);
     	
-    	add_close_tab_button(tab.get(tab.size()-1).tabName);
+    	add_close_tab_button(tab.get(tab.size()-1).tabName, null);
     	
     	findReplaceMenuItem.setEnabled( true );
     	close_file.setEnabled(true);
@@ -1219,8 +1232,7 @@ public class MainFrame extends JFrame implements ActionListener
 		 *  How to add lib - external dependencies to compile? 
 		 */
 		save_project_function(); 
-		String projectDirectory = ( new File(project_dir+"src\\").exists() ) ? project_dir+"src\\" : project_dir;
-		// combine all arguments with space, that's it 
+		String projectDirectory = ( new File(project_dir+"src\\").exists() ) ? project_dir+"src\\" : project_dir; 
 		StringBuilder compileOutput = new StringBuilder();
 		compileOutput.append("Compiling " + projectDirectory + "Main.java...");
 		Compile.CompilationResult r = new Compile( projectDirectory, "Main.java" ).compile();
@@ -1237,9 +1249,7 @@ public class MainFrame extends JFrame implements ActionListener
 			else
 				compileOutput.append( r.errorMessage );
 		}
-	
 	    outputToTerminal( compileOutput.toString(), projectDirectory );
-	   
 	}//end compile_fucntion
 	
 	
