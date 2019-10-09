@@ -1,3 +1,3 @@
-TODO:
-Execute w/ user input 
-Compile w/ External Library 
+TODO:<br>
+Execute w/ user input<br>
+Compile w/ External Library<br>
