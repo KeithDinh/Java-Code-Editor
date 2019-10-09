@@ -636,8 +636,11 @@ public class MainFrame extends JFrame implements ActionListener
             //aslist will convert the array into ArrayList type
             ArrayList<File> files = new ArrayList<File>(Arrays.asList(new File(path).listFiles(javaFilter)));
             
-            if(files == null)
-            	return;
+            if(files.isEmpty()) 
+            {
+            	JOptionPane.showMessageDialog(null, "Cannot Open Project", "Error", JOptionPane.ERROR_MESSAGE);
+            	return;	
+            }
             
             //Each file will be presented on a tab 
             //Iterate through files, get contents, open and write on the tab
