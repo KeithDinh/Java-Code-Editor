@@ -1,1 +1,3 @@
-Still need to fix something with tabs.
+TODO:
+Execute w/ user input 
+Compile w/ External Library 
