@@ -125,9 +125,9 @@ public class MainFrame extends JFrame implements ActionListener
 			//}
 		private JMenu about_menu = new JMenu("About");
 	//}
-		private JTextArea console_text_area = new JTextArea();
-		private JSplitPane splitPane= new JSplitPane();
-		private JPanel bottom_terminal_panel = new JPanel();
+	private JTextArea console_text_area = new JTextArea();
+	private JSplitPane splitPane= new JSplitPane();
+	private JPanel bottom_terminal_panel = new JPanel();
 	private JTabbedPane tab_bar = new JTabbedPane(JTabbedPane.TOP);
 	//{
 		private ArrayList<Tab> tab = new ArrayList<Tab>();
@@ -142,7 +142,7 @@ public class MainFrame extends JFrame implements ActionListener
 	private String last_project_path;		//will save the recent closed project path
 	Process process;						//for compile and execute
 
-	/* ********************************************************** */
+	/* ************************************************************************************* */
 	
 	/* ********************************** CLASS FUNCTIONS ********************************** */
 	
@@ -503,6 +503,7 @@ public class MainFrame extends JFrame implements ActionListener
 			
 		});
 	}
+	
 	//***************PROJECT FUNCTIONS*******************//
 	
 
@@ -624,11 +625,6 @@ public class MainFrame extends JFrame implements ActionListener
 	    System.out.println("***END OPENING PROJECT***");
         return;
 	}
-  
-	
-	
-	
-	
 	
 	/**
 	 * This function will save the current project. 
@@ -677,7 +673,6 @@ public class MainFrame extends JFrame implements ActionListener
 		else return true;// if there is no active project
 	}
 	
-	
 	/**
 	 * This function will close the current project.
 	 * This function will pop-up an dialog to ask user for saving project options.
@@ -721,8 +716,6 @@ public class MainFrame extends JFrame implements ActionListener
 
 	}
 	
-	
-	
 	/** This function will enable all menu items save_file, close_file, findReplaceMenuItem,
 	 * save_project,close_project, compile,execute when a project is active. And this function
 	 * will disable these menu items otherwise
@@ -736,13 +729,11 @@ public class MainFrame extends JFrame implements ActionListener
 		save_project.setEnabled(isActive);
 		close_project.setEnabled(isActive);
 		compile.setEnabled(isActive);
-		execute.setEnabled(false);
+		execute.setEnabled(isActive);
 		
 	}
-	
-	
-	//****************FILE FUNCTIONS******************//
-	
+
+	//****************FILE FUNCTIONS******************//	
 
 	/**
 	 * This function will create an default Main.java file when a project is created.
@@ -764,7 +755,6 @@ public class MainFrame extends JFrame implements ActionListener
 		System.out.println("***END NEW FILE***");
 		return true;
 	}
-	
 	
 	/**
 	 * This function will create a new file and display it on new Tab
@@ -829,9 +819,7 @@ public class MainFrame extends JFrame implements ActionListener
 		
 		System.out.println("***END NEW FILE***");
 	}
-	
-	
-	
+
 	/**
 	 * @throws IOException 
 	 */
@@ -859,14 +847,24 @@ public class MainFrame extends JFrame implements ActionListener
             
             if(single_file == null)
             	return;
-        	//////////////////////////
+            
+            
+        	//***********  Check if duplicate tab ***********//
+            for(int i=0; i< tab.size();i++)
+    		{
+
+    			if(tab.get(i).tabName.equals(single_file.getName()))
+    			{
+    				JOptionPane.showMessageDialog(null, "Tab is openning", null, JOptionPane.ERROR_MESSAGE);
+    				return;
+    			}
+    				
+    		}
             open_file_on_new_tab(single_file.getName(),single_file.getPath());
         } 
         System.out.println("***END OPENING FILE***");
 	}
-	
-	
-	
+
 	/**
 	 * 
 	 */
@@ -890,8 +888,6 @@ public class MainFrame extends JFrame implements ActionListener
 			JOptionPane.showConfirmDialog(null, e.getMessage(),"Error Writing File",JOptionPane.DEFAULT_OPTION,JOptionPane.ERROR_MESSAGE);
 		}
 	}
-	
-	
 		
 	/**
 	 * 
@@ -923,7 +919,6 @@ public class MainFrame extends JFrame implements ActionListener
 		}
 		System.out.println("***END CLOSE FILE***");
 	}
-	
 
 	private void remove_file_function()
 	{
@@ -967,8 +962,6 @@ public class MainFrame extends JFrame implements ActionListener
 		}
 	}
 	
-	
-	
 	/**This function will write a string  to a file with a filePath is given.
 	 * @param String content 
 	 * @param String filePath 
@@ -995,8 +988,6 @@ public class MainFrame extends JFrame implements ActionListener
 		return success;
 	}
 	
-	
-	
 	/**This function will open a given file on a new Tab in the tab panel of MainFrame
 	 * @param fileName
 	 * @param filePath
@@ -1017,9 +1008,6 @@ public class MainFrame extends JFrame implements ActionListener
     	close_file.setEnabled(true);
 	}
 
-	
-	
-	
 	//****************EDIT FUNCTIONS*******************//
 	/**
 	 * 
@@ -1050,15 +1038,14 @@ public class MainFrame extends JFrame implements ActionListener
 	
 	//****************BUILD FUNCTIONS*******************//
 	
-	
-	
-	
 	/**
 	 * @throws IOException
 	 */
 	public void compile_function() throws IOException
 	{
+		// ************ Save all before compiling ************ \\
 		save_project_function();
+		
 		String file_path;
 
 		if(new File(project_dir+"\\src").exists())
@@ -1077,7 +1064,9 @@ public class MainFrame extends JFrame implements ActionListener
 		}
 		
 		 //combine all arguments with space, that's it 
-		ProcessBuilder processBuilder = new ProcessBuilder("javac","-cp", project_dir+"\\lib\\", file_path+"\\Main.java"); 
+		ProcessBuilder processBuilder = new ProcessBuilder();
+		processBuilder.command("cmd.exe", "/c", "javac", "Main.java");
+		processBuilder.directory(new File(file_path));
 		process = processBuilder.start();	//compiling
 		StringBuilder compile_output=new StringBuilder();
 		String line=null;
@@ -1106,22 +1095,25 @@ public class MainFrame extends JFrame implements ActionListener
 	   
 	}//end compile_fucntion
 	
-	
-	
-	
 	/**
 	 * @throws IOException
 	 */
-	public void execute_function() throws IOException {
+	public void execute_function() throws IOException 
+	{
+		compile_function();
+		
 		String file_path;
 		
 		if(new File(project_dir+"\\src").exists())			//if src folder exists set path in src
-			file_path= project_dir+"src\\";				//else set path in folder
+			file_path= project_dir+"\\src\\";				//else set path in folder
 		else 
 			file_path= project_dir+"\\";
 		
-		System.out.println(file_path);						//check if the path correct
-		process = new ProcessBuilder("java","-cp",file_path, "Main").start();		//pass cmd to terminal?
+		ProcessBuilder pb = new ProcessBuilder();		//pass cmd to terminal?
+		
+		pb.command("java", "Main");
+		pb.directory( new File(file_path));
+		process = pb.start();
 		
 		String line=null;
 		StringBuilder output=new StringBuilder();
@@ -1148,8 +1140,7 @@ public class MainFrame extends JFrame implements ActionListener
 		
 		outputToTerminal(output.toString(),project_dir);
 	}//end execute_function
-	
-	
+
 	/**
 	 * This function creates a terminal Pane in the bottom of the main Pane
 	 */
@@ -1177,7 +1168,6 @@ public class MainFrame extends JFrame implements ActionListener
 	bottom_terminal_panel.add(terminal_tab_bar);
 	bottom_terminal_panel.setOpaque(true);
 	}
-	
 	
 	/**This function will write the current project directory and the  output to the
 	 * terminal.
