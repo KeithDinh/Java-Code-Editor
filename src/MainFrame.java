@@ -10,22 +10,9 @@ import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -66,6 +53,7 @@ import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.TextAction;
@@ -139,7 +127,12 @@ public class MainFrame extends JFrame implements ActionListener
 	//{
 		private ArrayList<Tab> tab = new ArrayList<Tab>();
 		private JTextArea terminal_tab;
-		
+	//variables to write output to console
+	int lastCaretPositionFromOuput=0;
+	int endCaretPos=0;
+	private String completion="";
+	private File istrFile;
+	BufferedWriter bw;
 	//}
 		
 		
@@ -479,7 +472,7 @@ public class MainFrame extends JFrame implements ActionListener
 		{
 			try {
 				execute_function();
-			} catch (IOException e1) {
+			} catch (IOException | InterruptedException e1) {
 				System.out.println("Execute Error");
 			}
 		}
@@ -1106,8 +1099,8 @@ public class MainFrame extends JFrame implements ActionListener
 	
 	
 	/**This function will write a string  to a file with a filePath is given.
-	 * @param String content 
-	 * @param String filePath 
+	 * @param String content
+	 * @param String filePath
 	 */
 	protected boolean write_content_to_filepath(String content, String filePath) {
 		FileWriter file = null;
@@ -1219,11 +1212,11 @@ public class MainFrame extends JFrame implements ActionListener
 	/**
 	 * @throws IOException
 	 */
-	public void compile_function() throws IOException
+	/*public void compile_function() throws IOException
 	{
 		/*
 		 *  How to add lib - external dependencies to compile? , put class files in Bin. 
-		 */
+
 		save_project_function(); 
 		String projectDirectory = ( new File(project_dir+"\\src").exists() ) ? project_dir+"\\src\\" : project_dir+"\\"; 
 		StringBuilder compileOutput = new StringBuilder();
@@ -1243,12 +1236,12 @@ public class MainFrame extends JFrame implements ActionListener
 				compileOutput.append( r.errorMessage );
 		}
 	    outputToTerminal( compileOutput.toString(), projectDirectory );
-	}//end compile_fucntion
+	}//end compile_fucntion */
 	
 	/**
 	 * @throws IOException
 	 */
-	public void execute_function() throws IOException {
+	/*public void execute_function() throws IOException {
 		String file_path;
 		file_path = ( new File(project_dir+"\\src").exists() ) ? project_dir+"\\src\\" : project_dir+"\\";
 		System.out.println(file_path); //check if the path correct
@@ -1277,9 +1270,118 @@ public class MainFrame extends JFrame implements ActionListener
         }
 		
 		outputToTerminal(output.toString(),project_dir);
+	}//end execute_function */
+	/**
+	 * @throws IOException
+
+	/*public void compile_function() throws IOException
+	 */
+
+	public void compile_function() throws IOException
+	{
+		String file_path;
+		//1. get Main file that need to be compile
+		if (new File(project_dir + "\\src").exists())            //if src folder exists set path in src
+			file_path = project_dir + "src\\";                //else set path in folder
+		else
+			file_path = project_dir + "\\";
+
+		System.out.println(file_path);                        //check if the path correct
+
+		//2. Compile
+		Process p;
+		StringBuilder compileOutput = new StringBuilder();
+		try {
+			// We are running "dir" and "ping" command on cmd
+			//p = Runtime.getRuntime().exec("cmd /c cmd.exe /k \"cd " + file_path );
+			Runtime rt = Runtime.getRuntime();
+			if (isWindows) {
+				p = rt.exec("cmd.exe /c cd \"" + file_path + "\" & start cmd.exe /c \"javac Main.java\"");
+			}
+			else {
+
+				p = rt.exec("cmd.exe /c cd \"" + file_path + "\" & start cmd.exe /c \"javac Main.java\""); //need Linux terminal command
+			}
+			//p = Runtime.getRuntime().exec("cmd cd /d"+ file_path);
+			compileOutput.append("Compiling " + file_path + "Main.java...");
+			new Thread(new SyncPipe(p.getErrorStream(), System.err)).start();
+			new Thread(new SyncPipe(p.getInputStream(), System.out)).start();
+			PrintWriter stdin = new PrintWriter(p.getOutputStream());
+			stdin.flush();
+			stdin.close();
+			p.waitFor();
+
+			if (p.exitValue() == 0) //if compile error -> exitValue() != 0
+			{
+				compileOutput.append("\n----- Compilation Success -----\n");
+				System.out.println("---------Compile Successful-------------");
+				execute.setEnabled(true);
+			}
+
+		} catch (Exception e) {
+			System.out.println("Error Compiling file. Please check your Main file and try again!");
+			e.printStackTrace();
+		}
+	}
+
+	public static boolean isAlive(Process p) {
+		try {
+			p.exitValue();
+			return false;
+		}
+		catch (IllegalThreadStateException e) {
+			return true;
+		}
+	}
+	boolean isWindows = System.getProperty("os.name")
+			.toLowerCase().startsWith("windows");
+
+	/**
+	 * @throws IOException
+	 */
+	public void execute_function() throws IOException, InterruptedException {
+		String file_path;
+		//1. get Main file that need to be executed
+		if (new File(project_dir + "\\src").exists())            //if src folder exists set path in src
+			file_path = project_dir + "src\\";                //else set path in folder
+		else
+			file_path = project_dir + "\\";
+
+		System.out.println(file_path);                        //check if the path correct
+
+		//2.Execute main class file - works with user input
+		Process p;
+		StringBuilder exeOutput = new StringBuilder();
+		try
+		{
+			Runtime rt = Runtime.getRuntime();
+			p =rt.exec("cmd.exe /c cd \""+file_path+"\" & start cmd.exe /k \"java Main");
+
+			new Thread (new SyncPipe(p.getErrorStream(),System.err)).start();
+			new Thread (new SyncPipe(p.getInputStream(),System.out)).start();
+			PrintWriter stdin = new PrintWriter(p.getOutputStream());
+			stdin.flush();
+			stdin.close();
+			p.waitFor();
+			//p =rt.exec("&& exit"); //TODO close cmd window after executing
+
+			if (p.exitValue() == 0) //if execution error -> exitValue() != 0
+			{
+				exeOutput.append("\n----- Execution Success -----\n");
+				System.out.println("---------Execution Successful-------------");
+				execute.setEnabled(true);
+			}
+
+		}
+		catch (Exception e)
+		{
+			System.out.println("ERROR EXECUTING FILE! Please recompile try again! ");
+			e.printStackTrace();
+		}
+
 	}//end execute_function
-	
-	
+
+
 	/**
 	 * This function creates a terminal Pane in the bottom of the main Pane
 	 */
@@ -1292,7 +1394,8 @@ public class MainFrame extends JFrame implements ActionListener
 	console_text_area.setSize(600,50);
 	console_text_area.setFont( new Font("Consolas", Font.PLAIN, 12 ) ); //set background color
 	console_text_area.setText("");
-	
+
+	console();
 	JTabbedPane terminal_tab_bar=new JTabbedPane();
 	JScrollPane console_scroll_pane=new JScrollPane();
 	console_scroll_pane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -1317,5 +1420,62 @@ public class MainFrame extends JFrame implements ActionListener
 		console_text_area.setText(output);
 		console_text_area.setLineWrap(true);
 	}
+
+
+
+	//new function substitute for inputToTerminal function
+	private	void console() {
+		//System.console();
+		int startCaretPos;
+		//console_text_area.setBackground(new Color(0,0,35));
+		// console_text_area.setForeground(Color.WHITE);
+		//console_text_area.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+
+
+		console_text_area.addKeyListener(new KeyAdapter() {
+			public void keyPressed(KeyEvent e) {
+				int key =e.getKeyCode();
+				if(key==KeyEvent.VK_ENTER) {
+					endCaretPos=console_text_area.getCaretPosition();
+
+					try {
+						//System.out.println("last "+lastCaretPositionFromOuput+5);
+						completion=console_text_area.getText(lastCaretPositionFromOuput,
+								endCaretPos-lastCaretPositionFromOuput);
+							/*try {
+								bw.write(completion);
+							} catch (IOException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}*/
+						System.out.print(completion+lastCaretPositionFromOuput+" "+endCaretPos);
+						//System.out.println("end "+endCaretPos+4);
+					} catch (BadLocationException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+			}
+		}); //end console()
+
+
+		System.setOut(new PrintStream(new OutputStream() {
+			@Override
+			public void write(int b) throws IOException {
+
+				console_text_area.append(String.valueOf((char) b));
+				console_text_area.setFocusable(true);
+
+				//update the caret position when System.out tothe console
+				//add a
+				lastCaretPositionFromOuput=console_text_area.getCaretPosition();
+
+			}
+		}));
+
+
+	} // end setOut()
+
+
 	
 } 
