@@ -170,7 +170,7 @@ public class Tab
 				  "\\b" + word_to_find +"\\b", 
 				  Pattern.CASE_INSENSITIVE).matcher(content_of_file);
 		  while (matcher.find()) 
-			  count++;
+				  count++;
 		  return count;
 	}  
 }

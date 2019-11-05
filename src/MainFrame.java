@@ -10,26 +10,15 @@ import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -66,6 +55,7 @@ import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.TextAction;
@@ -96,7 +86,8 @@ import javax.swing.plaf.TabbedPaneUI;
 
 //CTRL + SHIFT + Numpad /: collapse all
 
-public class MainFrame extends JFrame implements ActionListener  
+@SuppressWarnings("unchecked")
+class MainFrame extends JFrame implements ActionListener
 {	
 	/* ********************************** CLASS MEMBERS ********************************** */
 	private JMenuBar menuBar = new JMenuBar();
@@ -128,6 +119,7 @@ public class MainFrame extends JFrame implements ActionListener
 		private JMenu build_menu = new JMenu("Build");
 			//{
 				private JMenuItem compile;
+				private JMenuItem compileAll;
 				private JMenuItem execute;
 			//}
 		private JMenu about_menu = new JMenu("About");
@@ -139,13 +131,20 @@ public class MainFrame extends JFrame implements ActionListener
 	//{
 		private ArrayList<Tab> tab = new ArrayList<Tab>();
 		private JTextArea terminal_tab;
-		
+	//variables to write output to console
+	int lastCaretPositionFromOuput=0;
+	int endCaretPos=0;
+	private String completion="";
+	private File istrFile;
+	BufferedWriter bw;
 	//}
 		
 		
-	private HashMap<String, Integer> duplicates = new HashMap();
+	private HashMap<String, Integer> duplicates = new HashMap<String, Integer>();
 	private String project_dir; 			//store current project path
 	private String src_dir;
+	private String bin_dir;
+	private String lib_dir;
 	private String last_project_path;		//will save the recent closed project path
 	Process process;						//for compile and execute
 
@@ -166,6 +165,15 @@ public class MainFrame extends JFrame implements ActionListener
         public boolean accept(File dir, String name)
         {
             return name.endsWith(".java");
+        }
+    };
+    
+	private FilenameFilter classFilter = new FilenameFilter()		
+    {
+        @Override
+        public boolean accept(File dir, String name)
+        {
+            return name.endsWith(".class");
         }
     };
     
@@ -232,8 +240,13 @@ public class MainFrame extends JFrame implements ActionListener
 	        	if( tab_bar.getSelectedComponent() != null ) 
 	        	{
 	        		Tab currentTab = tab.get( tab_bar.getSelectedIndex() ); 
-		            save_file.setEnabled( currentTab.modified );	
+		            save_file.setEnabled( currentTab.modified );
+		            compile.setText( "Compile " + currentTab.fileName );
 	        	}  
+	        	else 
+	        	{
+	        		compile.setText( "Compile" );
+	        	}
 	        }
 	    });
 		
@@ -246,7 +259,7 @@ public class MainFrame extends JFrame implements ActionListener
 				boolean project_modified = false;
 				for(int i=0; i<tab.size();i++)
 				{
-					if(tab.get(i).modified == true)
+					if(tab.get(i).modified)
 					{
 						project_modified = true;
 						break;
@@ -254,7 +267,7 @@ public class MainFrame extends JFrame implements ActionListener
 				}
 				if(tab.size() > 0 && project_modified )
 				{	
-				  String option_button[] = {"Yes","No", "Cancel"};
+				  String[] option_button = {"Yes","No", "Cancel"};
 				  int option = JOptionPane.showOptionDialog(null, 
 						  "Save before closing", 	//content description
 						  "Warning", 			 //top title of the pop-up window
@@ -362,11 +375,17 @@ public class MainFrame extends JFrame implements ActionListener
 		
 		//************ Add menuButton to build menu ************//
 		
-		compile = new JMenuItem("Compile All");
+		compile = new JMenuItem("Compile");
 		compile.addActionListener(this);
 		compile.setIcon( new ImageIcon("icons/build.PNG") );
 		compile.setEnabled(false);
 		build_menu.add(compile);
+		
+		compileAll = new JMenuItem("Compile All");
+		compileAll.addActionListener(this);
+		compileAll.setIcon( new ImageIcon("icons/compileAll.PNG") );
+		compileAll.setEnabled(false);
+		build_menu.add(compileAll);
 		
 		execute = new JMenuItem("Execute");
 		execute.addActionListener(this);
@@ -378,7 +397,7 @@ public class MainFrame extends JFrame implements ActionListener
 	
 	private void enableShortCutKeys(boolean enableMode) 
 	{
-		if(enableMode==true) 
+		if(enableMode)
 		{	//short cut keys for menus
 			project_menu.setMnemonic( KeyEvent.VK_P );
 			file_menu.setMnemonic( KeyEvent.VK_F );
@@ -404,7 +423,8 @@ public class MainFrame extends JFrame implements ActionListener
 			findReplaceMenuItem.setAccelerator(KeyStroke.getKeyStroke('F',Event.CTRL_MASK));
 			
 			//short cut keys for compile and execute menuItems in Build Menu
-			compile.setAccelerator(KeyStroke.getKeyStroke( KeyEvent.VK_B, KeyEvent.CTRL_DOWN_MASK + KeyEvent.SHIFT_DOWN_MASK ) );
+			compile.setAccelerator(KeyStroke.getKeyStroke( KeyEvent.VK_B, KeyEvent.CTRL_DOWN_MASK ) );
+			compileAll.setAccelerator(KeyStroke.getKeyStroke( KeyEvent.VK_B, KeyEvent.CTRL_DOWN_MASK + KeyEvent.SHIFT_DOWN_MASK ) );
 			execute.setAccelerator(KeyStroke.getKeyStroke( KeyEvent.VK_F5, 0 ) );
 		}
 		
@@ -470,7 +490,15 @@ public class MainFrame extends JFrame implements ActionListener
 		else if(e.getSource() == compile)
 		{
 			try {
-				compile_function();
+				compile_function( null );
+			} catch (IOException e1) {
+				System.out.println("Compile Error");
+			}
+		}
+		else if(e.getSource() == compileAll)
+		{
+			try {
+				compile_all();
 			} catch (IOException e1) {
 				System.out.println("Compile Error");
 			}
@@ -479,8 +507,11 @@ public class MainFrame extends JFrame implements ActionListener
 		{
 			try {
 				execute_function();
-			} catch (IOException e1) {
+			} catch ( IOException e1 ) {
 				System.out.println("Execute Error");
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
 		}
 	}
@@ -518,7 +549,7 @@ public class MainFrame extends JFrame implements ActionListener
 			{
 				int index_selected_tab = tab_bar.indexOfTab( (newTitle == null) ? title : newTitle );
 				
-				if(tab.get(index_selected_tab).modified == true)
+				if(tab.get(index_selected_tab).modified)
 				{
 					Object[] options = { "Yes", "No", "Cancel" };
 					int result = JOptionPane.showOptionDialog(null, "Save before closing?", "Warning",
@@ -544,7 +575,7 @@ public class MainFrame extends JFrame implements ActionListener
 
 	private void create_project_function()
 	{
-		System.out.println("***CREATE PROJECT***");
+		//System.out.println("***CREATE PROJECT***");
 		//check if there is an active project.
 		if(!close_current_active_project())
 			return;
@@ -576,16 +607,24 @@ public class MainFrame extends JFrame implements ActionListener
 					return;
 				}
 				
-				//create folder
-				new File(dir_path+ "\\" + folderName).mkdir();
-				new File(dir_path+ "\\" + folderName + "\\lib").mkdir();
-				new File(dir_path+ "\\" + folderName + "\\src").mkdir();
+				//create folders
+				String projectPath = dir_path+ "\\" + folderName;
+				String libPath = dir_path+ "\\" + folderName + "\\lib";
+				String srcPath = dir_path+ "\\" + folderName + "\\src";
+				String binPath = dir_path+ "\\" + folderName + "\\bin";
+				
+				new File(projectPath).mkdir();
+				new File(libPath).mkdir();
+				new File(srcPath).mkdir();
+				new File(binPath).mkdir();
 				
 				if(new File(dir_path + "\\" + folderName).exists()) //created but not exist? -> invalid
 				{
-					dir_path += "\\" + folderName;
-					project_dir =dir_path;
-					src_dir=project_dir+"\\src";
+					project_dir = projectPath;
+					src_dir= srcPath;
+					lib_dir = libPath;
+					bin_dir = binPath;
+					
 					//if Main.java file is created successfully, enable active mode for project.
 					if(create_Main_function())
 						active_project_status(true);
@@ -598,14 +637,14 @@ public class MainFrame extends JFrame implements ActionListener
 			}
 		}
 		
-		System.out.println("***END CREATE PROJECT***");
+		//System.out.println("***END CREATE PROJECT***");
 
 		return;
 	}
 	
 	private void open_project_function() throws IOException 
 	{
-		System.out.println("***OPENING PROJECT***");
+		//System.out.println("***OPENING PROJECT***");
 		//check if there is already an active project
 		if(!close_current_active_project())
 			return;
@@ -656,10 +695,26 @@ public class MainFrame extends JFrame implements ActionListener
             project_dir = path;
             if(project_dir.endsWith("\\src"))
             {
-            	project_dir=project_dir.substring(0, project_dir.length()-3);
+            	src_dir = project_dir;
+            	project_dir=project_dir.substring(0, project_dir.length()-4);
+            }
+            else
+            	src_dir = project_dir;
+            
+            // set bin_dir, and lib_dir, if they do not exist, create them
+			String libPath = project_dir + "\\lib";
+			String binPath = project_dir + "\\bin";
+            if( !new File(libPath).exists() ) new File(libPath).mkdir();
+            if( !new File(binPath).exists() ) new File(binPath).mkdir();
+            
+            // check that the folders have been created
+            if( new File(libPath).exists() && new File(binPath).exists() ) 
+            {
+            	lib_dir = libPath;
+            	bin_dir = binPath;
             }
         }
-	    System.out.println("***END OPENING PROJECT***");
+	    //System.out.println("***END OPENING PROJECT***");
         return;
 	}
   
@@ -689,7 +744,7 @@ public class MainFrame extends JFrame implements ActionListener
 			} 
         }
 		setSaveProject();
-		System.out.println("***END SAVE PROJECT***");
+		//System.out.println("***END SAVE PROJECT***");
 
 	}
 
@@ -725,7 +780,7 @@ public class MainFrame extends JFrame implements ActionListener
 			}   
         }
 		setSaveEnabled();
-		System.out.println("***END SAVE ALL***");
+		//System.out.println("***END SAVE ALL***");
 	}
 	
 	
@@ -761,13 +816,13 @@ public class MainFrame extends JFrame implements ActionListener
 		boolean project_modified = false;
 		for(int i=0; i<tab.size();i++)
 		{
-			if(tab.get(i).modified == true)
+			if(tab.get(i).modified)
 			{
 				project_modified = true;
 				break;
 			}
 		}
-		if(project_modified == true)
+		if(project_modified)
 		{
 			Object[] options = { "Yes","No", "Cancel" };
 			int result = JOptionPane.showOptionDialog(null, "Save before closing?", "Warning",
@@ -781,7 +836,7 @@ public class MainFrame extends JFrame implements ActionListener
 	        }
 			else if(result == 2)
 			{
-				System.out.println("***STOP CLOSE PROJECT***");
+				//System.out.println("***STOP CLOSE PROJECT***");
 				return  false;
 			}
 		}
@@ -793,7 +848,7 @@ public class MainFrame extends JFrame implements ActionListener
 		tab.clear();
 		last_project_path = project_dir;
 		project_dir = null;
-		System.out.println("***END CLOSE PROJECT***");
+		//System.out.println("***END CLOSE PROJECT***");
 		return true;
 
 	}
@@ -809,7 +864,8 @@ public class MainFrame extends JFrame implements ActionListener
 		remove_file.setEnabled(isActive);
 		close_file.setEnabled(isActive);
 		close_project.setEnabled(isActive);
-		compile.setEnabled(isActive);
+		compile.setEnabled(isActive); 
+		compileAll.setEnabled(isActive);
 		findReplaceMenuItem.setEnabled(isActive);
 	}
 	
@@ -822,7 +878,7 @@ public class MainFrame extends JFrame implements ActionListener
 	 */
 	private boolean create_Main_function() 
 	{
-		System.out.println("***NEW FILE***");
+		//System.out.println("***NEW FILE***");
 		String fileName = "Main.java";
 		System.out.println(project_dir);
 		String filePath = project_dir + "\\src\\" + fileName;
@@ -834,7 +890,7 @@ public class MainFrame extends JFrame implements ActionListener
 		
 		//files.add(new File(filePath));
     	open_file_on_new_tab(fileName, filePath, true );
-		System.out.println("***END NEW FILE***");
+		//System.out.println("***END NEW FILE***");
 		return true;
 	}
 	
@@ -844,7 +900,7 @@ public class MainFrame extends JFrame implements ActionListener
 	 */
 	private void create_file_function()
 	{
-		System.out.println("***NEW FILE***");
+		//System.out.println("***NEW FILE***");
 		
 		if(project_dir == null)
 		{
@@ -900,7 +956,7 @@ public class MainFrame extends JFrame implements ActionListener
 			//open fileName on new Tab
 			open_file_on_new_tab(fileName,filePath, true );
 		
-		System.out.println("***END NEW FILE***");
+		//System.out.println("***END NEW FILE***");
 	}
 	
 	
@@ -910,7 +966,7 @@ public class MainFrame extends JFrame implements ActionListener
 	 */
 	private void open_file_function() throws IOException 
 	{
-		System.out.println("***OPENING FILE***");
+		//System.out.println("***OPENING FILE***");
 		JFileChooser chooser = new JFileChooser(); 						//this class is to open file/directory
 		if(project_dir != null)
 			chooser.setCurrentDirectory(new File(project_dir)); 		//set current dir as window popup	
@@ -942,13 +998,13 @@ public class MainFrame extends JFrame implements ActionListener
             	projectFile = false;
             }
             else if( project_dir != null ) 
-            	projectFile = (directory.contains(project_dir)) ? true : false;
+            	projectFile = directory.contains(project_dir);
             else
             	projectFile = true;
             	
             open_file_on_new_tab(single_file.getName(),single_file.getPath(), projectFile );
         } 
-        System.out.println("***END OPENING FILE***");
+        //System.out.println("***END OPENING FILE***");
 	}
 	
 
@@ -1034,7 +1090,7 @@ public class MainFrame extends JFrame implements ActionListener
 	 */
 	private void close_file_function( Tab currentTab )
 	{
-		if(currentTab.modified == true)
+		if(currentTab.modified)
 		{
 			Object[] options = { "Yes", "No", "Cancel" };
 			int result = JOptionPane.showOptionDialog(null, "Save before closing?", "Warning",
@@ -1077,7 +1133,7 @@ public class MainFrame extends JFrame implements ActionListener
 		}
 		if( duplicates.containsKey(currentTab.fileName) )
 			setNewTabNumbers( currentTab );
-		System.out.println("***END CLOSE FILE***");
+		//System.out.println("***END CLOSE FILE***");
 	}
 	
 
@@ -1106,8 +1162,8 @@ public class MainFrame extends JFrame implements ActionListener
 	
 	
 	/**This function will write a string  to a file with a filePath is given.
-	 * @param String content 
-	 * @param String filePath 
+	 * @param String content
+	 * @param String filePath
 	 */
 	protected boolean write_content_to_filepath(String content, String filePath) {
 		FileWriter file = null;
@@ -1212,74 +1268,81 @@ public class MainFrame extends JFrame implements ActionListener
 	}
 	
 	//****************BUILD FUNCTIONS*******************//
-	
-	
-	
-	
 	/**
 	 * @throws IOException
+	/*public void compile_function() throws IOException
 	 */
-	public void compile_function() throws IOException
+
+	private void moveFile( File classFile )
 	{
-		/*
-		 *  How to add lib - external dependencies to compile? , put class files in Bin. 
-		 */
+		if( classFile.getName().equals("Main.class") )
+			execute.setEnabled( true );
+		File replace = new File(bin_dir + "\\" + classFile.getName() );
+		if( replace.exists() )
+			replace.delete();
+		if(classFile.renameTo( new File(bin_dir + "\\" + classFile.getName() ) ) ) 
+			classFile.delete();
+	}
+	private void moveClassFilestoBin() 
+	{
+		new ArrayList<File>(Arrays.asList(new File(src_dir).listFiles(classFilter))).forEach( classFile -> moveFile(classFile) );
+	}
+	
+	public void compile_function( String s ) throws IOException // maybe change later so that we store the compiled classes in a folder called bin
+	{
 		save_project_function(); 
-		String projectDirectory = ( new File(project_dir+"\\src").exists() ) ? project_dir+"\\src\\" : project_dir+"\\"; 
 		StringBuilder compileOutput = new StringBuilder();
-		compileOutput.append("Compiling " + projectDirectory + "Main.java...");
-		Compile.CompilationResult r = new Compile( projectDirectory, "Main.java" ).compile();
+		String fileName = (s == null) ? getCurrentTab().fileName : s; 
+		compileOutput.append("Compiling " + src_dir + "\\" + fileName );
+		Compile.CompilationResult r = new Compile( src_dir, fileName ).compile();
 		if( r.success ) 
 		{
-			compileOutput.append("\n----- Compilation Success -----\n");
-			execute.setEnabled(true);
+			compileOutput.append("... success \n");
 		} 
 		else 
 		{	
-			compileOutput.append("\n----- Compilation Errors -----\n");
+			compileOutput.append("... failed \n");
 			if( r.javacOutput != null && r.javacOutputComplete )
 				compileOutput.append( r.javacOutput.toString() );
 			else
 				compileOutput.append( r.errorMessage );
 		}
-	    outputToTerminal( compileOutput.toString(), projectDirectory );
-	}//end compile_fucntion
+	    if( s == null ) 
+	    {
+	    	outputToTerminal( compileOutput.toString() );
+	    	moveClassFilestoBin();
+	    } 
+	    else outputCompileAll( compileOutput.toString() );
+	}
 	
+	public void compile_all() throws IOException 
+	{
+		clearTerminal();
+		for( int i = 0; i < tab.size(); i++ ) // only compile project files, non project files will not compile (like visual studio) 
+		{
+			Tab tb = tab.get( i );
+			if( tb.projectFile ) 
+			{
+				compile_function( tb.fileName );
+			}
+		}
+	    moveClassFilestoBin();
+	}
+
 	/**
 	 * @throws IOException
+	 * @throws InterruptedException 
 	 */
-	public void execute_function() throws IOException {
-		String file_path;
-		file_path = ( new File(project_dir+"\\src").exists() ) ? project_dir+"\\src\\" : project_dir+"\\";
-		System.out.println(file_path); //check if the path correct
-		process = new ProcessBuilder("java","-cp", file_path, "Main").start(); //pass cmd to terminal?
-		String line=null;
-		StringBuilder output=new StringBuilder();
-		if( process.getErrorStream().read() != -1 )				//if not success
-		{
-			BufferedReader error = new BufferedReader(new InputStreamReader(process.getErrorStream()));	//get error
-			output.append("----- Execution Errors -----\n");
-			while((line = error.readLine()) != null )
-            {
-            	output.append(line + "\n");		//output error
-            }
-            error.close();
-        }
-        else													//if success
-        {
-        	BufferedReader error = new BufferedReader(new InputStreamReader(process.getInputStream()));	//get output
-        	output.append( "------ Execution Success ------\n");
-            while((line = error.readLine()) != null )
-            {
-            	output.append(line + "\n");				//output result
-            }
-            error.close();
-        }
-		
-		outputToTerminal(output.toString(),project_dir);
+	public void execute_function() throws IOException, InterruptedException {
+		StringBuilder executionResult = new StringBuilder();
+		executionResult.append("Executing " + bin_dir + "\\Main");
+		Execute execute = new Execute( bin_dir, "Main.class");
+		String result = execute.execute() ? "... done" : "... failed \n";
+		if( execute.getErrorMessage() != null ) result += result + execute.getErrorMessage();
+		executionResult.append( result );
+		outputToTerminal( executionResult.toString() );
 	}//end execute_function
-	
-	
+
 	/**
 	 * This function creates a terminal Pane in the bottom of the main Pane
 	 */
@@ -1292,7 +1355,8 @@ public class MainFrame extends JFrame implements ActionListener
 	console_text_area.setSize(600,50);
 	console_text_area.setFont( new Font("Consolas", Font.PLAIN, 12 ) ); //set background color
 	console_text_area.setText("");
-	
+
+	console();
 	JTabbedPane terminal_tab_bar=new JTabbedPane();
 	JScrollPane console_scroll_pane=new JScrollPane();
 	console_scroll_pane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -1312,10 +1376,72 @@ public class MainFrame extends JFrame implements ActionListener
 	 * @param output
 	 * @param project_dir
 	 */
-	private void outputToTerminal(String output,String project_dir) {
+	private void outputToTerminal(String output ) {
 		console_text_area.setText("");//clear console
 		console_text_area.setText(output);
 		console_text_area.setLineWrap(true);
 	}
 	
+	private void outputCompileAll( String output  ) 
+	{
+		console_text_area.append(output);
+	}
+	private void clearTerminal() 
+	{
+		console_text_area.setText("");
+	}
+
+
+	//new function substitute for inputToTerminal function
+	private	void console() {
+		//System.console();
+		int startCaretPos;
+		//console_text_area.setBackground(new Color(0,0,35));
+		// console_text_area.setForeground(Color.WHITE);
+		//console_text_area.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+
+
+		console_text_area.addKeyListener(new KeyAdapter() {
+			public void keyPressed(KeyEvent e) {
+				int key =e.getKeyCode();
+				if(key==KeyEvent.VK_ENTER) {
+					endCaretPos=console_text_area.getCaretPosition();
+
+					try {
+						//System.out.println("last "+lastCaretPositionFromOuput+5);
+						completion=console_text_area.getText(lastCaretPositionFromOuput,
+								endCaretPos-lastCaretPositionFromOuput);
+							/*try {
+								bw.write(completion);
+							} catch (IOException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}*/
+						System.out.print(completion+lastCaretPositionFromOuput+" "+endCaretPos);
+						//System.out.println("end "+endCaretPos+4);
+					} catch (BadLocationException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+			}
+		}); //end console()
+
+
+		System.setOut(new PrintStream(new OutputStream() {
+			@Override
+			public void write(int b) throws IOException {
+
+				console_text_area.append(String.valueOf((char) b));
+				console_text_area.setFocusable(true);
+
+				//update the caret position when System.out tothe console
+				//add a
+				lastCaretPositionFromOuput=console_text_area.getCaretPosition();
+
+			}
+		}));
+
+
+	} // end setOut()
 } 
