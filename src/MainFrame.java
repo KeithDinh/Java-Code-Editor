@@ -1035,7 +1035,7 @@ class MainFrame extends JFrame implements ActionListener
 	private void save_file_function()
 	{
 		int index_selected_tab = tab_bar.getSelectedIndex();
-		System.out.println(index_selected_tab);
+		//System.out.println(index_selected_tab);
 		Tab current_selected_tab = tab.get(index_selected_tab);
 		
 		/////////get current contents on the textArea///////////////
