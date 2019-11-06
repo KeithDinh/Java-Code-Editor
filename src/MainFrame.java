@@ -82,6 +82,13 @@ class MainFrame extends JFrame implements ActionListener
 				private JMenuItem compileAll;
 				private JMenuItem execute;
 			//}
+				
+		private JMenu classLoaderMenu = new JMenu("Class Loader");
+			//{
+				private JMenuItem classLoaderCompile;
+				private JMenuItem classLoaderRun;
+			//}
+				
 		private JMenu about_menu = new JMenu("About");
 	//}
 		private JTextArea console_text_area = new JTextArea();
@@ -178,6 +185,7 @@ class MainFrame extends JFrame implements ActionListener
 		menuBar.add(file_menu);
 		menuBar.add(edit_menu);
 		menuBar.add(build_menu);
+		menuBar.add(classLoaderMenu);
 		menuBar.add(about_menu);
 		
 		setJMenuBar(menuBar); 			//Add the menu bar to the frame
@@ -353,6 +361,19 @@ class MainFrame extends JFrame implements ActionListener
 		execute.setEnabled(false);
 		build_menu.add(execute);
 		
+		//************ Add menuButton to classLoaderMenu ************//
+		
+		classLoaderCompile = new JMenuItem("Compile Main.java");
+		classLoaderCompile.addActionListener(this);
+		classLoaderCompile.setIcon( new ImageIcon("icons/build.PNG") );
+		classLoaderCompile.setEnabled(false);
+		classLoaderMenu.add(classLoaderCompile);
+		
+		classLoaderRun = new JMenuItem("Run");
+		classLoaderRun.addActionListener(this);
+		classLoaderRun.setIcon( new ImageIcon("icons/run.PNG") );
+		classLoaderRun.setEnabled(false);
+		classLoaderMenu.add(classLoaderRun);
 	}
 	
 	private void enableShortCutKeys(boolean enableMode) 
@@ -363,6 +384,7 @@ class MainFrame extends JFrame implements ActionListener
 			file_menu.setMnemonic( KeyEvent.VK_F );
 			edit_menu.setMnemonic( KeyEvent.VK_E );
 			build_menu.setMnemonic( KeyEvent.VK_B );
+			classLoaderMenu.setMnemonic( KeyEvent.VK_C );
 			about_menu.setMnemonic( KeyEvent.VK_A );
 			
 			// short-cut keys for Project Menu Item
@@ -805,6 +827,7 @@ class MainFrame extends JFrame implements ActionListener
 		setSaveEnabled();
 		active_project_status(false);
 		execute.setEnabled( false );
+		classLoaderRun.setEnabled( false );
 		tab.clear();
 		last_project_path = project_dir;
 		project_dir = null;
@@ -826,6 +849,7 @@ class MainFrame extends JFrame implements ActionListener
 		close_project.setEnabled(isActive);
 		compile.setEnabled(isActive); 
 		compileAll.setEnabled(isActive);
+		classLoaderCompile.setEnabled(isActive);
 		findReplaceMenuItem.setEnabled(isActive);
 	}
 	
@@ -1076,6 +1100,7 @@ class MainFrame extends JFrame implements ActionListener
 			setSaveProject();
 			active_project_status(false);
 			execute.setEnabled( false );
+			classLoaderRun.setEnabled( false );
 		}
 		else 
 		{
@@ -1090,6 +1115,7 @@ class MainFrame extends JFrame implements ActionListener
 			setSaveProject();
 			active_project_status(false);
 			execute.setEnabled( false );
+			classLoaderRun.setEnabled( false );
 		}
 		if( duplicates.containsKey(currentTab.fileName) )
 			setNewTabNumbers( currentTab );
@@ -1235,8 +1261,11 @@ class MainFrame extends JFrame implements ActionListener
 
 	private void moveFile( File classFile )
 	{
-		if( classFile.getName().equals("Main.class") )
+		if( classFile.getName().equals("Main.class") ) 
+		{
 			execute.setEnabled( true );
+			classLoaderRun.setEnabled( true );	
+		}
 		File replace = new File(bin_dir + "\\" + classFile.getName() );
 		if( replace.exists() )
 			replace.delete();
@@ -1298,7 +1327,7 @@ class MainFrame extends JFrame implements ActionListener
 		executionResult.append("Executing " + bin_dir + "\\Main");
 		Execute execute = new Execute( bin_dir, "Main.class");
 		String result = execute.execute() ? "... done" : "... failed \n";
-		if( execute.getErrorMessage() != null ) result += result + execute.getErrorMessage();
+		if( execute.getErrorMessage() != null ) result += execute.getErrorMessage();
 		executionResult.append( result );
 		outputToTerminal( executionResult.toString() );
 	}//end execute_function

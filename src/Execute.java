@@ -37,7 +37,7 @@ public class Execute // simple version, stdin, stdout, stderr handled by console
 		
 		if( System.getProperty( "os.name" ).toLowerCase().startsWith( "windows" ) ) 
 		{
-			commands = Arrays.asList("java Main", "@echo off", "pause", "exit");
+			commands = Arrays.asList("@echo off", "java Main", "@echo on", "@echo off", "pause", "exit");
 			script = new File( binDirectory + "\\run.bat");
 		}
 		else // for linux/unix change later
@@ -89,7 +89,7 @@ public class Execute // simple version, stdin, stdout, stderr handled by console
 		try
 		{
 			ProcessBuilder pb = new ProcessBuilder();
-			
+
 			if( System.getProperty( "os.name" ).toLowerCase().startsWith( "windows" ) )
 				pb.command( "cmd.exe", "/c", "start", binDirectory + "\\run" );
 			else
