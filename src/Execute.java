@@ -42,7 +42,7 @@ public class Execute // simple version, stdin, stdout, stderr handled by console
 		}
 		else // for linux/unix change later
 		{
-			commands = Arrays.asList("java Main", "read -p \"Press enter to continue...\"", "exit 0");
+			commands = Arrays.asList("java Main", "echo","read -p \"Press enter to continue...\"", "exit 0");
 			script = new File(binDirectory + "\\run.sh");
 		}
 	}
@@ -91,9 +91,9 @@ public class Execute // simple version, stdin, stdout, stderr handled by console
 			ProcessBuilder pb = new ProcessBuilder();
 
 			if( System.getProperty( "os.name" ).toLowerCase().startsWith( "windows" ) )
-				pb.command( "cmd.exe", "/c", "start", binDirectory + "\\run" );
+				pb.command( "cmd.exe", "/c", "start", "cd" + binDirectory, "run" );
 			else
-				pb.command( "sh", "-c", binDirectory + "\\run.sh" );
+				pb.command( "sh", "-c", "cd" + binDirectory, "./run.sh" );
 
 			pb.directory( new File( binDirectory ) ); 
 			pb.redirectErrorStream( true ); // combine standard output and standard error

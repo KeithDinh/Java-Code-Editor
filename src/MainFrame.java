@@ -85,15 +85,16 @@ class MainFrame extends JFrame implements ActionListener
 				
 		private JMenu classLoaderMenu = new JMenu("Class Loader");
 			//{
-				private JMenuItem classLoaderCompile;
 				private JMenuItem classLoaderRun;
 			//}
 				
 		private JMenu about_menu = new JMenu("About");
 	//}
 		private JTextArea console_text_area = new JTextArea();
+		private static JTextArea classloader_text_area = new JTextArea();
 		private JSplitPane splitPane= new JSplitPane();
 		private JPanel bottom_terminal_panel = new JPanel();
+		
 	private JTabbedPane tab_bar = new JTabbedPane(JTabbedPane.TOP);
 	//{
 		private ArrayList<Tab> tab = new ArrayList<Tab>();
@@ -362,13 +363,6 @@ class MainFrame extends JFrame implements ActionListener
 		build_menu.add(execute);
 		
 		//************ Add menuButton to classLoaderMenu ************//
-		
-		classLoaderCompile = new JMenuItem("Compile Main.java");
-		classLoaderCompile.addActionListener(this);
-		classLoaderCompile.setIcon( new ImageIcon("icons/build.PNG") );
-		classLoaderCompile.setEnabled(false);
-		classLoaderMenu.add(classLoaderCompile);
-		
 		classLoaderRun = new JMenuItem("Run");
 		classLoaderRun.addActionListener(this);
 		classLoaderRun.setIcon( new ImageIcon("icons/run.PNG") );
@@ -493,6 +487,14 @@ class MainFrame extends JFrame implements ActionListener
 				System.out.println("Execute Error");
 			} catch (InterruptedException e1) {
 				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+		else if(e.getSource() == classLoaderRun) 
+		{
+			try {
+				classLoaderRunFunction();
+			} catch (ClassNotFoundException e1) {
 				e1.printStackTrace();
 			}
 		}
@@ -849,7 +851,7 @@ class MainFrame extends JFrame implements ActionListener
 		close_project.setEnabled(isActive);
 		compile.setEnabled(isActive); 
 		compileAll.setEnabled(isActive);
-		classLoaderCompile.setEnabled(isActive);
+		classLoaderRun.setEnabled(isActive);
 		findReplaceMenuItem.setEnabled(isActive);
 	}
 	
@@ -1331,6 +1333,13 @@ class MainFrame extends JFrame implements ActionListener
 		executionResult.append( result );
 		outputToTerminal( executionResult.toString() );
 	}//end execute_function
+	
+	private void classLoaderRunFunction() throws ClassNotFoundException 
+	{
+		CompilingClassLoader classLoader = new CompilingClassLoader();
+		classLoader.loadClass("Main", true);
+		// method
+	}
 
 	/**
 	 * This function creates a terminal Pane in the bottom of the main Pane
@@ -1344,17 +1353,31 @@ class MainFrame extends JFrame implements ActionListener
 	console_text_area.setSize(600,50);
 	console_text_area.setFont( new Font("Consolas", Font.PLAIN, 12 ) ); //set background color
 	console_text_area.setText("");
+	
+	classloader_text_area.setEditable(  false );
+	classloader_text_area.setSize(600,50);
+	classloader_text_area.setFont( new Font("Consolas", Font.PLAIN, 12 ) ); //set background color
+	classloader_text_area.setText("");
 
 	console();
 	JTabbedPane terminal_tab_bar=new JTabbedPane();
 	JScrollPane console_scroll_pane=new JScrollPane();
+	JScrollPane classloader_scroll_pane=new JScrollPane();
+	
 	console_scroll_pane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 	console_scroll_pane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 	console_scroll_pane.setViewportView(console_text_area);
 	ImageIcon console_icon= new ImageIcon("icons/console1.PNG");
+	
+	classloader_scroll_pane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+	classloader_scroll_pane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+	classloader_scroll_pane.setViewportView(classloader_text_area);
+	ImageIcon class_icon= new ImageIcon("icons/javaclass.PNG");
 	String tooptip="This is a terminal";//hovering text
 	
 	terminal_tab_bar.addTab("Console",console_icon,console_scroll_pane,tooptip);
+	terminal_tab_bar.addTab("Class Loader",class_icon,classloader_scroll_pane,tooptip);
+	
 	bottom_terminal_panel.add(terminal_tab_bar);
 	bottom_terminal_panel.setOpaque(true);
 	}
@@ -1379,7 +1402,14 @@ class MainFrame extends JFrame implements ActionListener
 	{
 		console_text_area.setText("");
 	}
-
+	public static void outputClassLoader(String output) 
+	{
+		classloader_text_area.append( output + "\n");
+	}
+	public static void clearClassLoader() 
+	{
+		classloader_text_area.setText("");
+	}
 
 	//new function substitute for inputToTerminal function
 	private	void console() {
