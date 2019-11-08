@@ -1,229 +1,112 @@
-import java.io.*;
-import java.nio.file.*;
-import java.nio.file.attribute.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 
-public class Compile implements Runnable
+public class Execute // simple version, stdin, stdout, stderr handled by console
 {
-	public class CompilationResult
+	private final File script;
+	private final List<String> commands;
+	private final String binDirectory;		
+	private final String fileName;
+	private String errorMessage;
+	private boolean directoryExists;
+	private boolean error;
+	
+	public Execute() 
 	{
-		public boolean success;
-		public boolean directoryExists;
-		public boolean fileExists;
-		public boolean fileEndsWithDotJava;
-		public StringBuilder javacOutput;
-		public boolean javacOutputComplete;
-		public Exception javacOutputException;
-		public boolean javacProcessExecuted;
-		public Exception javacProcessExecutionException;
-		public int javacExitCode;
-		public boolean classFileCreated;
-		public String errorMessage;
-
-		public CompilationResult()
-		{
-			success = false;
-			directoryExists = false;
-			fileExists = false;
-			fileEndsWithDotJava = false;
-			javacOutput = null;
-			javacOutputComplete = false;
-			javacOutputException = null;
-			javacProcessExecuted = false;
-			javacProcessExecutionException = null;
-			javacExitCode = -1;
-			classFileCreated = false;
-			errorMessage = null;
-		}
-
-		// for debug, ignore
-		public void print()
-		{
-			System.out.print( "success:  " );  System.out.println( success );
-			System.out.print( "directory exists:  " ); System.out.println( directoryExists );
-			System.out.print( "source file exists:  " ); System.out.println( fileExists );
-			System.out.print( "source file ends with .java:  " ); System.out.println( fileEndsWithDotJava );
-			System.out.println( "javac standard output and standard error: " );  System.out.println( ( javacOutput == null ) ? ( "(none)" ) : ( javacOutput.toString() ) );
-			System.out.print( "javac standard output and standard error complete:  " ); System.out.println( javacOutputComplete );
-			System.out.print( "javac output exception:  " );  System.out.println( ( javacOutputException == null ) ? ( "(none)" ) : ( javacOutputException.getMessage() ) );
-			System.out.print( "javac executed:  " ); System.out.println( javacProcessExecuted );
-			System.out.print( "javac process execution exception:  " );  System.out.println( ( javacProcessExecutionException == null ) ? ( "(none)" ) : ( javacProcessExecutionException.getMessage() ) );
-			System.out.print( "javac exit code:  " ); System.out.println( javacExitCode );
-			System.out.print( "class filed created:  " );  System.out.println( classFileCreated );
-			System.out.print( "error message:  " );    System.out.println( ( errorMessage == null ) ? ( "(none)" ) : ( errorMessage ) );
-		}
+		commands = null;
+		binDirectory = null;
+		fileName = null;
+		script = null;
+		errorMessage = null;
+		directoryExists = false;
+		error = false;
 	}
-
-	private String directory;
-	private String file;
-	private InputStream processInputStream;
-	private CompilationResult result;
+	
+	public Execute( String binDirectory, String fileName ) 
+	{
+		this.fileName = fileName;
+		this.binDirectory = binDirectory;
+		error = false;
 		
-	public Compile()
-	{
-		directory = null;
-		file = null;
-		processInputStream = null;
-		result = null;
-	}
-	public Compile( String directory, String file )
-	{
-		this.directory = directory;
-		this.file = file;
-		processInputStream = null;
-		result = null;
-	}
-	private Compile( InputStream processInputStream ) // constructor for thread that reads and saves standard output and standard error
-	{
-		directory = null;
-		file = null;
-		this.processInputStream = processInputStream;
-		result = new CompilationResult();
-	}
-
-	public void setDirectory( String directory )
-	{
-		this.directory = directory;
-	}
-	public String getDirectory()
-	{
-		return directory;
-	}
-	public void setFile( String file )
-	{
-		this.file = file;
-	}
-	public String getFile()
-	{
-		return file;
-	}
-	private CompilationResult getCompilationResult()
-	{
-		return result;
-	}
-
-	// method for thread that reads and saves the standard output AND standard error from javac
-
-	public void run()
-	{
-		if( processInputStream == null )
+		if( System.getProperty( "os.name" ).toLowerCase().startsWith( "windows" ) ) 
 		{
-			result.errorMessage = "the standard input/standard output stream is null";
-			return;
+			commands = Arrays.asList("@echo off", "java Main", "@echo on", "@echo off", "pause", "exit");
+			script = new File( binDirectory + "\\run.bat");
 		}
-
-		BufferedReader br = null;
-		try
+		else // for linux/unix change later
 		{
-			result.javacOutput = new StringBuilder();
-			br = new BufferedReader( new InputStreamReader( processInputStream ) );
-			String line = br.readLine();
-			while( line != null )
-			{
-				result.javacOutput.append( line );
-				result.javacOutput.append( System.lineSeparator() );
-				line = br.readLine();
-			}
-			result.javacOutputComplete = true;
-			result.javacOutputException = null;
-		}
-		catch( Exception e )
-		{
-			result.javacOutputException = e;
-			result.errorMessage = "unable to read all the standard output and standard error from javac";
-		}
-		finally
-		{
-			try { if( br != null ) br.close(); } catch( Exception ee ) { }
+			commands = Arrays.asList("java Main", "echo","read -p \"Press enter to continue...\"", "exit 0");
+			script = new File(binDirectory + "\\run.sh");
 		}
 	}
-
-	// compiles one java source file
-
-	public CompilationResult compile()
+	
+	public String getErrorMessage() 
 	{
-		result = new CompilationResult();
-
-		if( directory == null )
-			result.errorMessage = "no directory";
-		if( directory != null && Files.notExists( Paths.get( directory ) ) )
-			result.errorMessage = "directory " + directory + " does not exists";
-		result.directoryExists = true;
-
-		if( file == null )
-			result.errorMessage = "no source file";
-		if( file != null && !file.endsWith( ".java" ) )
-			result.errorMessage = "source file " + file + " does not end with .java";
-		result.fileEndsWithDotJava = true;
-		if( result.directoryExists && Files.notExists( Paths.get( directory + File.separator + file ) ) )
-			result.errorMessage = "source file " + directory + File.separator + file + " does not exist";
+		return errorMessage;
+	}
+	private void createScript() throws FileNotFoundException, UnsupportedEncodingException
+	{
+		PrintWriter writer = new PrintWriter(script, "UTF-8");
+		
+		for( String command : commands ) 
+		{
+			writer.println(command);
+		}
+		
+		writer.close();
+	}
+	
+	public boolean execute() throws FileNotFoundException, UnsupportedEncodingException 
+	{
+		
+		if( binDirectory == null )
+			errorMessage = "no directory";
+		if( binDirectory != null && Files.notExists( Paths.get( binDirectory ) ) )
+			errorMessage = "directory " + binDirectory + " does not exists";
 		else
-			result.fileExists = true;
+			directoryExists = true;
+		
+		if( fileName == null )
+			errorMessage = "no source file";
+		if( fileName != null && !fileName.endsWith( ".class" ) )
+			errorMessage = "source file " + fileName + " does not end with .java";
+		
+		if( directoryExists && Files.notExists( Paths.get( binDirectory + File.separator + fileName ) ) )
+			errorMessage = "source file " + binDirectory + File.separator + fileName + " does not exist";
 
-		if( result.errorMessage != null )
-			return result;
-
-		Compile c = null;
+		if( errorMessage != null )
+			return false;
+		
+		createScript();
+		
 		try
 		{
 			ProcessBuilder pb = new ProcessBuilder();
 
-			// use cmd.exe /c javac <file> with Windows.  use sh -c javac <file> with UNIX
-
 			if( System.getProperty( "os.name" ).toLowerCase().startsWith( "windows" ) )
-				pb.command( "cmd.exe", "/c", "javac", file );
+				pb.command( "cmd.exe", "/c", "start", "cd" + binDirectory, "run" );
 			else
-				pb.command( "sh", "-c", "javac", file );
+				pb.command( "sh", "-c", "cd" + binDirectory, "./run.sh" );
 
-			pb.directory( new File( directory ) ); 
+			pb.directory( new File( binDirectory ) ); 
 			pb.redirectErrorStream( true ); // combine standard output and standard error
-			long beforeCompilationTime = System.currentTimeMillis(); // make sure the last modified time on the created class file is greater than the current time
-			Process p = pb.start(); // execute javac
-			c = new Compile( p.getInputStream() ); // create a new object for the thread that reads and saves standard output and standard error from javac
-			result = c.getCompilationResult(); // use the CompilationResult from the new thread but already know we have a valid directory and file
-			result.directoryExists = true;
-			result.fileEndsWithDotJava = true;
-			result.fileExists = true;
-			new Thread( c ).start(); // get standard output and standard error from javac
-			result.javacExitCode = p.waitFor(); // wait for javac to end
-			if( result.javacExitCode != 0 )
-				result.errorMessage = "javac did not return a 0 exit code";  // if compilation fails, javac will set the exit code to a non-zero value
-			result.javacProcessExecuted = true;
-			result.javacProcessExecutionException = null;
-
-			if( result.javacExitCode == 0 ) // check to make sure the .class file was created even thought javac returned a 0 exit code
-			{
-				String classFile = directory + File.separator + file.substring( 0, file.length() - 5 ) + ".class";
-				if( Files.exists( Paths.get( classFile ) ) )
-				{
-					long afterCompilationTime = Files.readAttributes( Paths.get( classFile ), BasicFileAttributes.class ).lastModifiedTime().toMillis();
-					if( beforeCompilationTime > afterCompilationTime )
-						result.errorMessage = "a new class file " + classFile + " was not created";
-					else
-						result.classFileCreated = true;
-				}
-				else
-				{
-					result.errorMessage = "class file " + classFile + " was not created";
-				}
-			}
+			Process p = pb.start(); // execute process
+			if( p.waitFor() != 0 )
+				error = true;
 		}
 		catch( Exception e )
 		{
-			result.javacProcessExecutionException = e;
-			result.errorMessage = "javac did not execute";
+			errorMessage = "java did not execute";
+			error = true;
 		}
-
-		result.success =
-				( result.directoryExists )
-			&&	( result.fileExists )
-			&&	( result.fileEndsWithDotJava )
-			&&	( result.javacOutput != null )
-			&&	( result.javacOutputComplete )
-			&&	( result.javacOutputException == null )
-			&&	( result.javacProcessExecuted )
-			&&	( result.javacProcessExecutionException == null )
-			&&	( result.javacExitCode == 0 )
-			&&	( result.classFileCreated );
-		return result;
+		
+		return error ? false : true;
 	}
 }
