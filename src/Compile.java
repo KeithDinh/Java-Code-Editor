@@ -9,7 +9,6 @@ public class Compile implements Runnable
 		public boolean success;
 		public boolean directoryExists;
 		public boolean fileExists;
-		public boolean libExists;
 		public boolean fileEndsWithDotJava;
 		public StringBuilder javacOutput;
 		public boolean javacOutputComplete;
@@ -24,7 +23,6 @@ public class Compile implements Runnable
 		{
 			success = false;
 			directoryExists = false;
-			libExists = false;
 			fileExists = false;
 			fileEndsWithDotJava = false;
 			javacOutput = null;
@@ -37,7 +35,7 @@ public class Compile implements Runnable
 			errorMessage = null;
 		}
 
-		// for debug
+		// for debug, ignore
 		public void print()
 		{
 			System.out.print( "success:  " );  System.out.println( success );
@@ -57,7 +55,6 @@ public class Compile implements Runnable
 
 	private String directory;
 	private String file;
-	private String lib;
 	private InputStream processInputStream;
 	private CompilationResult result;
 		
@@ -177,7 +174,7 @@ public class Compile implements Runnable
 			else
 				pb.command( "sh", "-c", "javac", file );
 
-			pb.directory( new File( directory ) ); // set working directory
+			pb.directory( new File( directory ) ); 
 			pb.redirectErrorStream( true ); // combine standard output and standard error
 			long beforeCompilationTime = System.currentTimeMillis(); // make sure the last modified time on the created class file is greater than the current time
 			Process p = pb.start(); // execute javac
