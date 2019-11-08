@@ -6,11 +6,19 @@ import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.*;
 import java.io.*;
+import java.lang.instrument.Instrumentation;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Vector;
 
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -91,7 +99,7 @@ class MainFrame extends JFrame implements ActionListener
 		private JMenu about_menu = new JMenu("About");
 	//}
 		private JTextArea console_text_area = new JTextArea();
-		private static JTextArea classloader_text_area = new JTextArea();
+		private JTextArea classloader_text_area = new JTextArea();
 		private JSplitPane splitPane= new JSplitPane();
 		private JPanel bottom_terminal_panel = new JPanel();
 		
@@ -494,7 +502,7 @@ class MainFrame extends JFrame implements ActionListener
 		{
 			try {
 				classLoaderRunFunction();
-			} catch (ClassNotFoundException e1) {
+			} catch (ClassNotFoundException | IllegalArgumentException | SecurityException | NoSuchMethodException | IllegalAccessException | InvocationTargetException | NoSuchFieldException e1) {
 				e1.printStackTrace();
 			}
 		}
@@ -1333,12 +1341,10 @@ class MainFrame extends JFrame implements ActionListener
 		executionResult.append( result );
 		outputToTerminal( executionResult.toString() );
 	}//end execute_function
-	
-	private void classLoaderRunFunction() throws ClassNotFoundException 
+  
+	private void classLoaderRunFunction() throws ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException 
 	{
-		CompilingClassLoader classLoader = new CompilingClassLoader();
-		classLoader.loadClass("Main", true);
-		// method
+		//////***////
 	}
 
 	/**
@@ -1402,11 +1408,11 @@ class MainFrame extends JFrame implements ActionListener
 	{
 		console_text_area.setText("");
 	}
-	public static void outputClassLoader(String output) 
+	private void outputClassLoader(String output) 
 	{
 		classloader_text_area.append( output + "\n");
 	}
-	public static void clearClassLoader() 
+	private void clearClassLoader() 
 	{
 		classloader_text_area.setText("");
 	}
