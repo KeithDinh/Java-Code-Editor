@@ -85,6 +85,7 @@ class MainFrame extends JFrame implements ActionListener
 			//{
 				private JMenuItem compile;
 				private JMenuItem compileAll;
+				private JMenuItem compileMain;
 				private JMenuItem execute;
 			//}
 				
@@ -234,7 +235,7 @@ class MainFrame extends JFrame implements ActionListener
 	        	{
 	        		Tab currentTab = tab.get( tab_bar.getSelectedIndex() ); 
 		            save_file.setEnabled( currentTab.modified );
-		            compile.setText( "Compile " + currentTab.fileName );
+		            compile.setText( "Compile Current " + "(" + currentTab.fileName + ")" );
 	        	}  
 	        	else 
 	        	{
@@ -368,11 +369,16 @@ class MainFrame extends JFrame implements ActionListener
 		
 		//************ Add menuButtons to build menu ************//
 		
-		compile = new JMenuItem("Compile");
+		compile = new JMenuItem("Compile Current");
 		compile.addActionListener(this);
-		compile.setIcon( new ImageIcon("icons/build.PNG") );
 		compile.setEnabled(false);
 		build_menu.add(compile);
+		
+		compileMain = new JMenuItem("Compile Main");
+		compileMain.addActionListener(this);
+		compileMain.setIcon( new ImageIcon("icons/build.PNG") );
+		compileMain.setEnabled(false);
+		build_menu.add(compileMain);
 		
 		compileAll = new JMenuItem("Compile All");
 		compileAll.addActionListener(this);
@@ -440,7 +446,7 @@ class MainFrame extends JFrame implements ActionListener
 			findReplaceMenuItem.setAccelerator(KeyStroke.getKeyStroke('F',Event.CTRL_MASK));
 			
 			//short cut keys for compile and execute menuItems in Build Menu
-			compile.setAccelerator(KeyStroke.getKeyStroke( KeyEvent.VK_B, KeyEvent.CTRL_DOWN_MASK ) );
+			compileMain.setAccelerator(KeyStroke.getKeyStroke( KeyEvent.VK_B, KeyEvent.CTRL_DOWN_MASK ) );
 			compileAll.setAccelerator(KeyStroke.getKeyStroke( KeyEvent.VK_B, KeyEvent.CTRL_DOWN_MASK + KeyEvent.SHIFT_DOWN_MASK ) );
 			execute.setAccelerator(KeyStroke.getKeyStroke( KeyEvent.VK_F5, 0 ) );
 		}
@@ -504,6 +510,14 @@ class MainFrame extends JFrame implements ActionListener
 			searchTool.searchThisArea(getCurrentTab().getRSTA());
 		}
 		//******************BUILD******************//
+		else if(e.getSource() == compileMain)
+		{
+			try {
+				compileMain_function( );
+			} catch (IOException e1) {
+				System.out.println("Compile Error");
+			}
+		}
 		else if(e.getSource() == compile)
 		{
 			try {
@@ -902,10 +916,11 @@ class MainFrame extends JFrame implements ActionListener
 		remove_file.setEnabled(isActive);
 		close_file.setEnabled(isActive);
 		close_project.setEnabled(isActive);
+		compileMain.setEnabled(isActive);
 		compile.setEnabled(isActive); 
+		compileAll.setEnabled(isActive);
 		addJar.setEnabled(isActive);
 		removeJar.setEnabled(isActive);
-		compileAll.setEnabled(isActive);
 		classLoaderRun.setEnabled(isActive);
 		findReplaceMenuItem.setEnabled(isActive);
 	}
@@ -1401,6 +1416,13 @@ class MainFrame extends JFrame implements ActionListener
 	    	moveClassFilestoBin();
 	    } 
 	    else outputCompileAll( compileOutput.toString() );
+	}
+	
+	public void compileMain_function() throws IOException 
+	{
+		clearTerminal();
+		compile_function( "Main.java" );
+		moveClassFilestoBin();
 	}
 	
 	public void compile_all() throws IOException 
