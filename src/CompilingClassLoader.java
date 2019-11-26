@@ -4,7 +4,6 @@ import java.io.*;
  
 Compiles your Java source code before loading it. Checks for non-existent .class files, or .class files that are older than there corresponding source code.
 Java class files are not all loaded in memory at once, rather they are loaded on demand, as needed by the program.
-
 */
 
 // FIX FORMATTING, ALSO WE NEED TO SET THE DIRECTORY SOMEHOW

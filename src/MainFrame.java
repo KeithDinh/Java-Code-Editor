@@ -1,4 +1,5 @@
 import java.awt.BorderLayout;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.Font;
@@ -6,6 +7,7 @@ import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.*;
 import java.io.*;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -96,6 +98,9 @@ class MainFrame extends JFrame implements ActionListener
 			//}
 				
 		private JMenu about_menu = new JMenu("About");
+			//{
+				private JMenuItem githubMenuItem;
+			//}
 		private JMenu classpath_menu = new JMenu("Set Classpath");
 			//{
 				private JMenuItem addJar;
@@ -414,6 +419,14 @@ class MainFrame extends JFrame implements ActionListener
 		removeJar.setIcon( new ImageIcon("icons/removejar.PNG") );
 		classpath_menu.add(removeJar);
 		
+		//************ Add menuButtons to file menu ************//
+		
+		githubMenuItem = new JMenuItem("Github");
+		githubMenuItem.addActionListener(this);
+		githubMenuItem.setEnabled(true);
+		githubMenuItem.setIcon( new ImageIcon("icons/github.PNG") );
+		about_menu.add(githubMenuItem);
+		
 	}
 	
 	private void enableShortCutKeys(boolean enableMode) 
@@ -465,7 +478,8 @@ class MainFrame extends JFrame implements ActionListener
 	            try {
 					open_project_function();
 				} catch (IOException e1) {
-					System.out.println("Error of open project");
+					e1.printStackTrace();
+					System.out.println("Cannot open project");
 				}
 		}
 		else if(e.getSource() == save_project) //Save all files
@@ -490,7 +504,8 @@ class MainFrame extends JFrame implements ActionListener
 			try {
 				open_file_function();
 			} catch (IOException e1) {
-				System.out.println("Error of open file");
+				e1.printStackTrace();
+				System.out.println("Error opening file");
 			}
 		}
 		else if(e.getSource() == save_file)
@@ -560,6 +575,10 @@ class MainFrame extends JFrame implements ActionListener
 		else if( e.getSource() == removeJar ) 
 		{
 			removeJar_function();
+		}
+		else if( e.getSource() == githubMenuItem ) 
+		{
+			openWebpage("https://github.com/KeithDinh/Java-Code-Editor");
 		}
 	}
 	
@@ -671,10 +690,14 @@ class MainFrame extends JFrame implements ActionListener
 					src_dir= srcPath;
 					lib_dir = libPath;
 					bin_dir = binPath;
-					
 					//if Main.java file is created successfully, enable active mode for project.
 					if(create_Main_function())
 						active_project_status(true);
+					
+					if ( new ArrayList<File>(Arrays.asList(new File(lib_dir).listFiles(jarFilter))).size() > 0 ) // if there are external dependencies 
+	            		externalJARs = true;
+	            	else
+	            		removeJar.setEnabled(false);
 				}
 				else 
 				{
@@ -936,7 +959,7 @@ class MainFrame extends JFrame implements ActionListener
 	{
 		//System.out.println("***NEW FILE***");
 		String fileName = "Main.java";
-		System.out.println(project_dir);
+		//System.out.println(project_dir);
 		String filePath = project_dir + "\\src\\" + fileName;
 		
 		//-5 = remove ".java" to get the name only
@@ -1005,7 +1028,7 @@ class MainFrame extends JFrame implements ActionListener
 		//-5 = remove ".java" to get the name only
 		String contents = "public class " + fileName.substring(0, fileName.length() - 5) + "\n{\n\n}"; 
 		
-		System.out.println(filePath);
+		//System.out.println(filePath);
 		
 		//write the contents to the filePath
 		if(write_content_to_filepath(contents,filePath))
@@ -1197,7 +1220,7 @@ class MainFrame extends JFrame implements ActionListener
 
 	private void remove_file_function()
 	{
-		System.out.println(getCurrentTab().tabName);
+		//System.out.println(getCurrentTab().tabName);
 		Object[] options = { "Yes", "No" };
 		int result = JOptionPane.showOptionDialog(
 				null, 
@@ -1393,7 +1416,7 @@ class MainFrame extends JFrame implements ActionListener
 	
 	public void compile_function( String s ) throws IOException // maybe change later so that we store the compiled classes in a folder called bin
 	{
-		save_project_function(); 
+		if (s == null ) save_project_function(); // so we don't call this more than once for compile_all 
 		StringBuilder compileOutput = new StringBuilder();
 		String fileName = (s == null) ? getCurrentTab().fileName : s; 
 		compileOutput.append("Compiling " + src_dir + "\\" + fileName );
@@ -1420,6 +1443,7 @@ class MainFrame extends JFrame implements ActionListener
 	
 	public void compileMain_function() throws IOException 
 	{
+		save_project_function();
 		clearTerminal();
 		compile_function( "Main.java" );
 		moveClassFilestoBin();
@@ -1427,6 +1451,7 @@ class MainFrame extends JFrame implements ActionListener
 	
 	public void compile_all() throws IOException 
 	{
+		save_project_function();
 		clearTerminal();
 		for( int i = 0; i < tab.size(); i++ ) // only compile project files, non project files will not compile (like visual studio) 
 		{
@@ -1459,6 +1484,17 @@ class MainFrame extends JFrame implements ActionListener
 	public void classLoaderRun() 
 	{
 		
+	}
+	
+	/**
+	 * Function to open github webpage
+	 */
+	public static void openWebpage(String urlString) {
+	    try {
+	        Desktop.getDesktop().browse(new URL(urlString).toURI());
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
 	}
 
 	/**
@@ -1531,7 +1567,7 @@ class MainFrame extends JFrame implements ActionListener
 		classloader_text_area.setText("");	
 	}
 
-	//new function substitute for inputToTerminal function
+	//new function substitute for inputToTerminal function (currently not being used)
 	private	void console() {
 		//System.console();
 		int startCaretPos;
@@ -1556,7 +1592,7 @@ class MainFrame extends JFrame implements ActionListener
 								// TODO Auto-generated catch block
 								e1.printStackTrace();
 							}*/
-						System.out.print(completion+lastCaretPositionFromOuput+" "+endCaretPos);
+						//System.out.print(completion+lastCaretPositionFromOuput+" "+endCaretPos);
 						//System.out.println("end "+endCaretPos+4);
 					} catch (BadLocationException e1) {
 						// TODO Auto-generated catch block

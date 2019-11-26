@@ -1,19 +1,9 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.GridLayout;
-
-import javax.swing.text.Style;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.text.DefaultStyledDocument;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleContext;
-import javax.swing.text.StyledDocument;
-import javax.swing.text.Utilities;
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,6 +11,15 @@ import java.util.regex.Pattern;
 import org.fife.ui.rtextarea.*;
 import org.fife.ui.rsyntaxtextarea.*;
 import org.fife.ui.rtextarea.RTextScrollPane.*;
+
+import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.IfStatement;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.WhileStatement;
+import org.eclipse.jdt.core.dom.ForStatement;
 
 /*Tab will contain file's information and text area*/
 
@@ -32,6 +31,7 @@ public class Tab
 	protected String path;											
 	protected File file;
 	protected int count = 0;
+	private int keyWordCount;
 	protected boolean modified = false;
 	protected boolean projectFile; 
 	
@@ -84,7 +84,8 @@ public class Tab
 	    
 	    container.add(text_area_with_scroll, BorderLayout.CENTER);
 	    
-	    count_label = new JLabel("Keywords: " + Integer.toString(count_all_keyword(content)));
+	    keyWordCount = count_all_keyword(content);
+	    count_label = new JLabel("Keywords: " + Integer.toString(keyWordCount));
 	    
 	    container.add(count_label, BorderLayout.SOUTH);
 	    
@@ -127,8 +128,8 @@ public class Tab
 				{
 	                try 
 	                {
-	                	int number = count_all_keyword(get_updated_content());
-	                    count_label.setText("Keywords: " + Integer.toString(number));
+	                	if( keyWordCount != count_all_keyword( get_updated_content() ) )
+                			count_label.setText("Keywords: " + Integer.toString(keyWordCount));
 	                } 
 	                catch (Exception e) 
 	                {
@@ -137,6 +138,7 @@ public class Tab
 	            }	
 		    }
 	    );
+	    textArea.setCaretPosition(0);
 	}
 	
 	public String get_updated_content() {
@@ -146,22 +148,58 @@ public class Tab
 	public RSyntaxTextArea getRSTA() {
 		return textArea;
 	}
-		
+	
 	//count_all_keyword calls count_single_keyword() on "while", "if", "else", and "for" 
-	public int count_all_keyword(String content_of_file) 
+	public int count_all_keyword(String fileContents) 
 	{
-		if(content_of_file.length() > 0) 
+		int newCount = 0;
+		if(fileContents.length() > 0) 
 		{
 			
-			int number = count_single_keyword(content_of_file,"if")+
-					count_single_keyword(content_of_file,"else")+
-					count_single_keyword(content_of_file,"while")+
-					count_single_keyword(content_of_file,"for");
-			return number;
+			newCount = count_single_keyword(fileContents,"if")
+					+ count_single_keyword(fileContents,"else")
+					+ count_single_keyword(fileContents,"while")
+					+ count_single_keyword(fileContents,"for");
 		}
-		return 0;
+		else
+			return 0;  
+		
+		if( keyWordCount != newCount ) // check if the statement is valid using the Abstract Syntax Tree
+		{ 
+			keyWordCount = 0;
+			@SuppressWarnings("deprecation")
+			ASTParser parser = ASTParser.newParser(AST.JLS3);
+			parser.setKind(ASTParser.K_COMPILATION_UNIT);
+			parser.setSource(fileContents.toCharArray());
+			CompilationUnit cu =  (CompilationUnit) parser.createAST(null);
+			cu.accept(new ASTVisitor() 
+			{
+				public boolean visit(MethodDeclaration md) 
+				{
+					return true;
+				}
+				public boolean visit (ForStatement node) {
+					keyWordCount++;
+					return true;
+				}
+				 
+				public boolean visit (WhileStatement node) {
+					keyWordCount++;
+					return true;
+				}
+				 
+				public boolean visit (IfStatement node) {
+					if( node.getElseStatement() != null )
+						keyWordCount++;
+					keyWordCount++;
+					return true;
+				}
+			});	
+			return keyWordCount;
+		}
+		else 
+			return keyWordCount;
 	}
-	
 	private int count_single_keyword(String content_of_file,String word_to_find) 
 	{ 
 
@@ -172,5 +210,5 @@ public class Tab
 		  while (matcher.find()) 
 			  count++;
 		  return count;
-	}  
+	} 
 }
