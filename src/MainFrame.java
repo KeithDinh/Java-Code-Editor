@@ -1363,9 +1363,9 @@ class MainFrame extends JFrame implements ActionListener
 		{
 			File file = chooser.getSelectedFile().getAbsoluteFile();
 			Files.copy(file.toPath(), new File(lib_dir + "\\" + file.getName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
+			externalJARs = true;
+			removeJar.setEnabled(true);
 		} 
-		externalJARs = true;
-		removeJar.setEnabled(true);
 		return;
 	}
 	
