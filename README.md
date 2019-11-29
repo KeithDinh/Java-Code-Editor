@@ -2,7 +2,7 @@
 
 ## KeyWord Count 
 
-* **Keyword count uses the Java Abstract Syntax Tree, thus the keyword count is updated only when there are no compile errors. Invalid keywords are those found in strings or comments, these will not be counted towards the keywords.**
+* **Keyword count uses the Java Abstract Syntax Tree, thus the keyword count is updated only when there are no compile errors.
 
 * Examples of keywords <br> 
 ```
@@ -26,6 +26,13 @@ if(true)
   i = 0;
 else
   i = 1;
+```
+
+* Examples of **invalid** keywords <br> 
+```
+String s = "if";
+
+// while 
 ```
 
 ## Compiling
