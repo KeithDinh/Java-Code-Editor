@@ -4,7 +4,7 @@
 
 * **Keyword count uses the Java Abstract Syntax Tree, thus the keyword count is updated only when there are no compile errors.**
 
-* Examples of valid keywords <br> 
+* Examples of **valid** keywords <br> 
 ```
 for(int i = 0; i < 10; i++) {
 }
