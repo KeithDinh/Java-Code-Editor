@@ -22,6 +22,7 @@ while(true){}
 
 if(true){}
 
+// this will count as 2 keywords
 if(true)
   i = 0;
 else
