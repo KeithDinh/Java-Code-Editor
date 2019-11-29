@@ -26,6 +26,7 @@ if(true)
   i = 0;
 else
   i = 1;
+ 
 ```
 
 * Examples of **invalid** keywords <br> 
@@ -34,7 +35,13 @@ String s = "if";
 
 // while 
 ```
-
+* **Based on the project description, the following code will count as 6 keywords, because there are 3 ifs and 3 elses.**
+```
+if(...){}
+else if(...){}
+else if(...){}
+else
+```
 ## Compiling
 
 * Compile All will copmile all project files. Similar to visual studio, if a file is not part of a project it will not be able to compile. 
