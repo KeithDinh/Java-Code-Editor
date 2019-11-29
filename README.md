@@ -6,14 +6,18 @@
 
 * Examples of for loops that **will not** count as a keyword <br> 
 ```
+// this will not count because the loop as no valid condition/range
 for() {
 }
+
+// this will not count because the loop has no body
 for(int i = 0; i < 10; i++)
 ```
 * Examples of for loops that **will** count as a keyword <br> 
 ```
 for(int i = 0; i < 10; i++) {
 }
+
 for(;;)
   doSomething();
 ```
