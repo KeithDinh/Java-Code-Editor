@@ -1,8 +1,8 @@
 # Simple Java Code Editor 
 
-## Key Word Count 
+## KeyWord Count 
 
-* **Keyword count uses the Java Abstract Syntax Tree, thus the keywordcount is updated only when there are no compile errors. Invalid keywords are those found in strings or comments, these will not be counted towards the keywords.**
+* **Keyword count uses the Java Abstract Syntax Tree, thus the keyword count is updated only when there are no compile errors. Invalid keywords are those found in strings or comments, these will not be counted towards the keywords.**
 
 * Examples of keywords <br> 
 ```
