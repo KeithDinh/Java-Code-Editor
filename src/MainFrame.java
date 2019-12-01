@@ -8,6 +8,7 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.*;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,11 +17,14 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Vector;
 
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JEditorPane;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -36,7 +40,7 @@ import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
-
+import javax.swing.text.Document;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -155,7 +159,7 @@ class MainFrame extends JFrame implements ActionListener
         }
     };
     
-	private FilenameFilter classFilter = new FilenameFilter()		
+	public static FilenameFilter classFilter = new FilenameFilter()		
     {
         @Override
         public boolean accept(File dir, String name)
@@ -561,7 +565,31 @@ class MainFrame extends JFrame implements ActionListener
 		}
 		else if( e.getSource() == classLoaderRun ) 
 		{
-			classLoaderRun();
+			try {
+				classLoaderRun_function();
+			} catch (ClassNotFoundException exception) {
+				if( exception.getMessage() != null )
+					outputClassLoader( exception.getMessage() );
+				else
+					outputClassLoader("Error: Could not find Main class");
+			} catch( NoSuchMethodException exception ) {
+				outputClassLoader("Error: public static void main not found within project");
+			} catch( IllegalAccessException exception ) {
+				outputClassLoader("Error: Illegal Access Exception");
+			} catch( IllegalArgumentException exception ) {
+				outputClassLoader("Error: Illegal Argument Exception");
+			} catch( InvocationTargetException exception ) {
+				outputClassLoader("Error: Invocation Target Exception");
+			} catch( SecurityException  exception ) {
+				outputClassLoader("Error: Security Exception");
+			} catch( NoSuchFieldException exception ) {
+				outputClassLoader("Error: NoSuchFieldException");
+			} catch( IOException exception ) {
+				outputClassLoader("Error: NoSuchFieldException");
+			} catch( InterruptedException exception ) {
+				outputClassLoader("Error: InterruptedException: process interrupted");
+			}
+			
 		}
 		else if( e.getSource() == addJar ) 
 		{
@@ -1405,6 +1433,7 @@ class MainFrame extends JFrame implements ActionListener
 		if(classFile.renameTo( new File(bin_dir + "\\" + classFile.getName() ) ) ) 
 			classFile.delete();
 	}
+	
 	private void moveClassFilestoBin() 
 	{
 		File file = new File(bin_dir); // make sure that the bin folder still exists, if not create it 
@@ -1413,7 +1442,7 @@ class MainFrame extends JFrame implements ActionListener
 		new ArrayList<File>(Arrays.asList(new File(src_dir).listFiles(classFilter))).forEach( classFile -> moveFile(classFile) );
 	}
 	
-	public void compile_function( String s ) throws IOException // maybe change later so that we store the compiled classes in a folder called bin
+	private void compile_function( String s ) throws IOException // maybe change later so that we store the compiled classes in a folder called bin
 	{
 		if (s == null ) save_project_function(); // so we don't call this more than once for compile_all 
 		StringBuilder compileOutput = new StringBuilder();
@@ -1440,7 +1469,7 @@ class MainFrame extends JFrame implements ActionListener
 	    else outputCompileAll( compileOutput.toString() );
 	}
 	
-	public void compileMain_function() throws IOException 
+	private void compileMain_function() throws IOException 
 	{
 		save_project_function();
 		clearTerminal();
@@ -1448,7 +1477,7 @@ class MainFrame extends JFrame implements ActionListener
 		moveClassFilestoBin();
 	}
 	
-	public void compile_all() throws IOException 
+	private void compile_all() throws IOException 
 	{
 		save_project_function();
 		clearTerminal();
@@ -1467,7 +1496,7 @@ class MainFrame extends JFrame implements ActionListener
 	 * @throws IOException
 	 * @throws InterruptedException 
 	 */
-	public void execute_function() throws IOException, InterruptedException {
+	private void execute_function() throws IOException, InterruptedException {
 		StringBuilder executionResult = new StringBuilder();
 		executionResult.append("Executing " + bin_dir + "\\Main");
 		Execute execute = new Execute( project_dir, bin_dir, lib_dir, externalJARs, "Main.class");
@@ -1479,11 +1508,57 @@ class MainFrame extends JFrame implements ActionListener
 	
 	/**
 	 * ClassLoaderRun, compiles, executes, and outputs methods during RunTime
+	 * @throws ClassNotFoundException 
+	 * @throws SecurityException 
+	 * @throws NoSuchMethodException 
+	 * @throws InvocationTargetException 
+	 * @throws IllegalArgumentException 
+	 * @throws IllegalAccessException 
+	 * @throws NoSuchFieldException 
+	 * @throws InterruptedException 
+	 * @throws IOException 
 	 */
-	public void classLoaderRun() 
+	public void classLoaderRun_function() throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, NoSuchFieldException, IOException, InterruptedException 
 	{
+		save_project_function();
 		
+		CompilingClassLoader loader = new CompilingClassLoader(bin_dir, src_dir, lib_dir, "Main", true, externalJARs);
+		
+		// compile
+		Class clas = loader.loadClass();
+		
+		//String progArgs[] = new String[0]; 
+		//Object argsArray[] = { progArgs }; 
+		//Class mainArgType[] = { (new String[0]).getClass() };
+		
+		// Output the classes loaded into memory
+		outputClassLoader("Classes Loaded:"); 
+        while (loader != null) {
+            for (Iterator iter = list(loader); iter.hasNext(); ) {
+            	outputClassLoader("\t" + iter.next());
+            }
+            loader = (CompilingClassLoader) loader.getParent();
+        }
+		
+		// Output the names of methods that are being called during execution  
+		outputClassLoader("Methods:");
+		outputClassLoader("\tmain");
+        
+		execute_function();
+		//clas.getMethod("main", mainArgType).invoke(null, argsArray);
 	}
+	
+    private static Iterator list(ClassLoader CL) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException 
+    {
+    	Class CL_class = CL.getClass();
+        while (CL_class != java.lang.ClassLoader.class) {
+        	CL_class = CL_class.getSuperclass();
+        }
+        java.lang.reflect.Field ClassLoader_classes_field = CL_class.getDeclaredField("classes");
+        ClassLoader_classes_field.setAccessible(true);
+        Vector classes = (Vector) ClassLoader_classes_field.get(CL);
+        return classes.iterator();
+    }
 	
 	/**
 	 * Function to open github webpage
@@ -1514,7 +1589,7 @@ class MainFrame extends JFrame implements ActionListener
 	classloader_text_area.setFont( new Font("Consolas", Font.PLAIN, 12 ) ); //set background color	
 	classloader_text_area.setText("");
 
-	console();
+	//console();
 	JTabbedPane terminal_tab_bar=new JTabbedPane();
 	JScrollPane console_scroll_pane=new JScrollPane();
 	JScrollPane classloader_scroll_pane=new JScrollPane();
@@ -1560,62 +1635,9 @@ class MainFrame extends JFrame implements ActionListener
 	public static void outputClassLoader(String output) 	
 	{	
 		classloader_text_area.append( output + "\n");	
-	}	
+	}
 	public static void clearClassLoader() 	
 	{	
 		classloader_text_area.setText("");	
 	}
-
-	//new function substitute for inputToTerminal function (currently not being used)
-	private	void console() {
-		//System.console();
-		int startCaretPos;
-		//console_text_area.setBackground(new Color(0,0,35));
-		// console_text_area.setForeground(Color.WHITE);
-		//console_text_area.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-
-
-		console_text_area.addKeyListener(new KeyAdapter() {
-			public void keyPressed(KeyEvent e) {
-				int key =e.getKeyCode();
-				if(key==KeyEvent.VK_ENTER) {
-					endCaretPos=console_text_area.getCaretPosition();
-
-					try {
-						//System.out.println("last "+lastCaretPositionFromOuput+5);
-						completion=console_text_area.getText(lastCaretPositionFromOuput,
-								endCaretPos-lastCaretPositionFromOuput);
-							/*try {
-								bw.write(completion);
-							} catch (IOException e1) {
-								// TODO Auto-generated catch block
-								e1.printStackTrace();
-							}*/
-						//System.out.print(completion+lastCaretPositionFromOuput+" "+endCaretPos);
-						//System.out.println("end "+endCaretPos+4);
-					} catch (BadLocationException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-				}
-			}
-		}); //end console()
-
-
-		System.setOut(new PrintStream(new OutputStream() {
-			@Override
-			public void write(int b) throws IOException {
-
-				console_text_area.append(String.valueOf((char) b));
-				console_text_area.setFocusable(true);
-
-				//update the caret position when System.out tothe console
-				//add a
-				lastCaretPositionFromOuput=console_text_area.getCaretPosition();
-
-			}
-		}));
-
-
-	} // end setOut()
 } 
