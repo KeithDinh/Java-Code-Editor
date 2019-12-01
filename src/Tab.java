@@ -5,21 +5,19 @@ import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.io.File;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.fife.ui.rtextarea.*;
 import org.fife.ui.rsyntaxtextarea.*;
-import org.fife.ui.rtextarea.RTextScrollPane.*;
-
-import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ASTParser;
-import org.eclipse.jdt.core.dom.ASTVisitor;
-import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.IfStatement;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.WhileStatement;
-import org.eclipse.jdt.core.dom.ForStatement;
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.stmt.IfStmt;
+import com.github.javaparser.ast.stmt.ForEachStmt;
+import com.github.javaparser.ast.stmt.ForStmt;
+import com.github.javaparser.ast.stmt.WhileStmt;
+import com.github.javaparser.ast.stmt.DoStmt;
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 /*Tab will contain file's information and text area*/
 
@@ -30,19 +28,16 @@ public class Tab
 	protected String content;
 	protected String path;											
 	protected File file;
-	protected int count = 0;
+	protected int count;
 	private int keyWordCount;
-	protected boolean modified = false;
+	private int oldCount;
+	protected boolean modified;
 	protected boolean projectFile; 
 	
 	protected JPanel container = new JPanel();		
-	//{
-		protected RTextScrollPane text_area_with_scroll;					//add scroll feature -> textarea
-		//{
-			protected RSyntaxTextArea textArea = new RSyntaxTextArea(); 	//create textarea
-		//}
-		protected JLabel count_label;
-	//}
+	protected RTextScrollPane scrollPane;				
+	protected RSyntaxTextArea textArea = new RSyntaxTextArea(); 	
+	protected JLabel keyWordLabel;
 	
 	public Tab(String content, String tabName, String path, File file, boolean projectFile )
 	{
@@ -52,6 +47,8 @@ public class Tab
 		this.content = content;
 		this.file = file;
 		this.projectFile = projectFile;
+		modified = false;
+		count = 0;
 		
 	    textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);			 //requirement 6
 	    SyntaxScheme scheme = textArea.getSyntaxScheme();
@@ -77,17 +74,16 @@ public class Tab
         
 	    textArea.setCodeFoldingEnabled(true);
 	    textArea.setText(content);
-	    textArea.revalidate();					//idk what it does
-	    text_area_with_scroll = new RTextScrollPane(textArea);
+	    textArea.revalidate();
+	    scrollPane = new RTextScrollPane(textArea);
 	    
 	    container.setLayout(new BorderLayout());
 	    
-	    container.add(text_area_with_scroll, BorderLayout.CENTER);
+	    container.add(scrollPane, BorderLayout.CENTER);
 	    
-	    keyWordCount = count_all_keyword(content);
-	    count_label = new JLabel("Keywords: " + Integer.toString(keyWordCount));
-	    
-	    container.add(count_label, BorderLayout.SOUTH);
+	    countKeywords(content);
+	    keyWordLabel = new JLabel( "Keywords: " + keyWordCount );
+	    container.add(keyWordLabel, BorderLayout.SOUTH );
 	    
 	    /*the function belows will continuously count the number of keywords
 	     * everytime a word gets removed/added/changed
@@ -97,7 +93,7 @@ public class Tab
 		    {
 				@Override
 				public void insertUpdate(DocumentEvent e) {
-					update_keyword_count();
+					updateKeywordCount(getUpdatedContent());
 					modified = true;
 					MainFrame.save_file.setEnabled( true );
 					if( projectFile )
@@ -107,7 +103,7 @@ public class Tab
 	
 				@Override
 				public void removeUpdate(DocumentEvent e) {
-					update_keyword_count();
+					updateKeywordCount(getUpdatedContent());
 					modified = true;
 					MainFrame.save_file.setEnabled( true );
 					if( projectFile )
@@ -117,31 +113,13 @@ public class Tab
 	
 				@Override
 				public void changedUpdate(DocumentEvent e) {
-					update_keyword_count();
-					modified = true;
-					MainFrame.save_file.setEnabled( true );
-					if( projectFile )
-						MainFrame.save_project.setEnabled( true );
-					MainFrame.save_all.setEnabled( true );
-				}
-				protected void update_keyword_count() 
-				{
-	                try 
-	                {
-	                	if( keyWordCount != count_all_keyword( get_updated_content() ) )
-                			count_label.setText("Keywords: " + Integer.toString(keyWordCount));
-	                } 
-	                catch (Exception e) 
-	                {
-	                    System.out.println("Error in counting keywords");
-	                }
-	            }	
+				}	
 		    }
 	    );
 	    textArea.setCaretPosition(0);
 	}
 	
-	public String get_updated_content() {
+	public String getUpdatedContent() {
 		return textArea.getText();
 	}
 	
@@ -149,66 +127,55 @@ public class Tab
 		return textArea;
 	}
 	
-	//count_all_keyword calls count_single_keyword() on "while", "if", "else", and "for" 
-	public int count_all_keyword(String fileContents) 
-	{
-		int newCount = 0;
-		if(fileContents.length() > 0) 
-		{
-			
-			newCount = count_single_keyword(fileContents,"if")
-					+ count_single_keyword(fileContents,"else")
-					+ count_single_keyword(fileContents,"while")
-					+ count_single_keyword(fileContents,"for");
+	private void updateKeywordCount(String fileContents) 
+	{	
+		countKeywords( fileContents );
+		keyWordLabel.setText("Keywords: " + keyWordCount );
+    }
+	
+	private void countKeywords(String fileContents) 
+	{		
+		
+		if( fileContents.length() > 0 )
+		{ 
+			oldCount = keyWordCount;
+			keyWordCount = 0;
+			try 
+			{
+				new VoidVisitorAdapter<Object>() {
+				    @Override
+				    public void visit(IfStmt n, Object arg) {
+				    	super.visit(n, arg);
+				    	if( n.hasElseBranch() ) 
+				    	{
+				    		keyWordCount++;
+				    	}
+				        keyWordCount++;
+				    }
+				    public void visit(ForStmt n, Object arg) {
+				        super.visit(n, arg);
+				        keyWordCount++;
+				    }
+				    public void visit(WhileStmt n, Object arg) {
+				        super.visit(n, arg);
+				        keyWordCount++;
+				    }
+				    public void visit(ForEachStmt n, Object arg) {
+				        super.visit(n, arg);
+				        keyWordCount++;
+				    }
+				    public void visit(DoStmt n, Object arg) {
+				        super.visit(n, arg);
+				        keyWordCount++;
+				    }
+				}.visit(StaticJavaParser.parse(fileContents), null);
+			}
+			catch( Exception e ) 
+			{
+				keyWordCount = oldCount;
+			}
 		}
 		else
-			return 0;  
-		
-		if( keyWordCount != newCount ) // check if the statement is valid using the Abstract Syntax Tree
-		{ 
 			keyWordCount = 0;
-			@SuppressWarnings("deprecation")
-			ASTParser parser = ASTParser.newParser(AST.JLS3);
-			parser.setKind(ASTParser.K_COMPILATION_UNIT);
-			parser.setSource(fileContents.toCharArray());
-			CompilationUnit cu =  (CompilationUnit) parser.createAST(null);
-			cu.accept(new ASTVisitor() 
-			{
-				public boolean visit(MethodDeclaration md) 
-				{
-					return true;
-				}
-				public boolean visit (ForStatement node) {
-					keyWordCount++;
-					return true;
-				}
-				 
-				public boolean visit (WhileStatement node) {
-					keyWordCount++;
-					return true;
-				}
-				 
-				public boolean visit (IfStatement node) {
-					if( node.getElseStatement() != null )
-						keyWordCount++;
-					keyWordCount++;
-					return true;
-				}
-			});	
-			return keyWordCount;
-		}
-		else 
-			return keyWordCount;
-	}
-	private int count_single_keyword(String content_of_file,String word_to_find) 
-	{ 
-
-		  int count = 0;  
-		  Matcher matcher = Pattern.compile(
-				  "\\b" + word_to_find +"\\b", 
-				  Pattern.CASE_INSENSITIVE).matcher(content_of_file);
-		  while (matcher.find()) 
-			  count++;
-		  return count;
 	} 
 }

@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.*;
 import java.io.*;
@@ -97,14 +98,14 @@ class MainFrame extends JFrame implements ActionListener
 				private JMenuItem classLoaderRun;
 			//}
 				
-		private JMenu about_menu = new JMenu("About");
-			//{
-				private JMenuItem githubMenuItem;
-			//}
 		private JMenu classpath_menu = new JMenu("Set Classpath");
 			//{
 				private JMenuItem addJar;
 				private JMenuItem removeJar;
+			//}
+		private JMenu about_menu = new JMenu("About");
+			//{
+				private JMenuItem githubMenuItem;
 			//}
 	//}
 				
@@ -112,7 +113,7 @@ class MainFrame extends JFrame implements ActionListener
 	private static JTextArea classloader_text_area = new JTextArea();
 	private JSplitPane splitPane= new JSplitPane();
 	private JPanel bottom_terminal_panel = new JPanel();
-		
+	
 	private JTabbedPane tab_bar = new JTabbedPane(JTabbedPane.TOP);
 	//{
 		private ArrayList<Tab> tab = new ArrayList<Tab>();
@@ -132,7 +133,6 @@ class MainFrame extends JFrame implements ActionListener
 	private String bin_dir;
 	private String lib_dir;
 	private String last_project_path;		//will save the recent closed project path
-	Process process;						//for compile and execute
 	private boolean externalJARs; 		 
 
 	/* ********************************************************** */
@@ -405,7 +405,7 @@ class MainFrame extends JFrame implements ActionListener
 		classLoaderRun.setEnabled(false);
 		classLoaderMenu.add(classLoaderRun);
 		
-		//************ Add menuButtons to classLoaderMenu ************//
+		//************ Add menuButtons to set classpath menu ************//
 		
 		addJar = new JMenuItem("Add External JAR");
 		addJar.addActionListener(this);
@@ -419,7 +419,7 @@ class MainFrame extends JFrame implements ActionListener
 		removeJar.setIcon( new ImageIcon("icons/removejar.PNG") );
 		classpath_menu.add(removeJar);
 		
-		//************ Add menuButtons to file menu ************//
+		//************ Add menuButtons to about menu ************//
 		
 		githubMenuItem = new JMenuItem("Github");
 		githubMenuItem.addActionListener(this);
@@ -556,7 +556,6 @@ class MainFrame extends JFrame implements ActionListener
 			} catch ( IOException e1 ) {
 				System.out.println("Execute Error");
 			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		}
@@ -802,7 +801,7 @@ class MainFrame extends JFrame implements ActionListener
         {
 			if( tab.get( i ).projectFile ) 
 			{
-				String content = tab.get(i).get_updated_content();
+				String content = tab.get(i).getUpdatedContent();
 			    try 
 			    {
 			    	BufferedWriter writer = new BufferedWriter(new FileWriter(tab.get(i).path));
@@ -839,7 +838,7 @@ class MainFrame extends JFrame implements ActionListener
 	{
 		for(int i=0; i<tab.size();i++)
         {
-			String content = tab.get(i).get_updated_content();
+			String content = tab.get(i).getUpdatedContent();
 		    try 
 		    {
 		    	BufferedWriter writer = new BufferedWriter(new FileWriter(tab.get(i).path));
@@ -1118,7 +1117,7 @@ class MainFrame extends JFrame implements ActionListener
 		Tab current_selected_tab = tab.get(index_selected_tab);
 		
 		/////////get current contents on the textArea///////////////
-		String content = current_selected_tab.get_updated_content();
+		String content = current_selected_tab.getUpdatedContent();
 
 	    try 
 	    {
@@ -1305,7 +1304,7 @@ class MainFrame extends JFrame implements ActionListener
     	
 		if( count > 0) 
 		{
-			tab.get( tab.size() - 1).fileName = fileName;
+			tab.get( tab.size() - 1).fileName = fileName; 
 			tab.get( tab.size() - 1).count = count;
 			duplicates.put(fileName, count);
 		}
