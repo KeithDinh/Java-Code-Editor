@@ -10,16 +10,17 @@ import java.util.List;
 
 public class Execute // IMPORTANT: stdin, stdout, stderr handled by console, no need to get streams as done in the Compile class. This is the only way to handle/capture user input without using external dependencies 
 {
-	private final File script;
 	private final List<String> commands;
 	private final String projectDirectory;
 	private final String binDirectory;
 	private final String libDirectory;
 	private final String fileName;
+	private final File script;
 	private String errorMessage;
-	private boolean externalJARs;
 	private boolean error;
-	
+
+	private boolean externalJARs; //not initialized in constructor
+
 	public Execute() 
 	{
 		commands = null;
@@ -32,7 +33,8 @@ public class Execute // IMPORTANT: stdin, stdout, stderr handled by console, no 
 		error = false;
 	}
 	
-	public Execute( String projectDirectory, String binDirectory, String libDirectory, boolean externalJARs, String fileName ) 
+	public Execute( String projectDirectory, String binDirectory,
+					String libDirectory, boolean externalJARs, String fileName )
 	{
 		this.fileName = fileName;
 		this.projectDirectory = projectDirectory; 
@@ -41,7 +43,7 @@ public class Execute // IMPORTANT: stdin, stdout, stderr handled by console, no 
 		this.externalJARs = externalJARs; 
 		
 		error = false;
-		
+		//System.out.println(System.getProperty("os.name")); //will print ex. "Window 10"
 		if( System.getProperty( "os.name" ).toLowerCase().startsWith( "windows" ) ) 
 		{
 			if( externalJARs ) 
@@ -64,6 +66,7 @@ public class Execute // IMPORTANT: stdin, stdout, stderr handled by console, no 
 	{
 		return errorMessage;
 	}
+
 	private void createScript() throws FileNotFoundException, UnsupportedEncodingException
 	{
 		PrintWriter writer = new PrintWriter(script, "UTF-8");

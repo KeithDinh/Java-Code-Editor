@@ -1,3 +1,6 @@
+
+import org.apache.commons.io.FileUtils;
+
 import java.awt.BorderLayout;
 import java.awt.Desktop;
 import java.awt.Dimension;
@@ -9,16 +12,13 @@ import java.awt.Toolkit;
 import java.awt.event.*;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Vector;
+import java.util.*;
 
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -142,11 +142,6 @@ class MainFrame extends JFrame implements ActionListener
 	/* ********************************************************** */
 	
 	/* ********************************** CLASS FUNCTIONS ********************************** */
-	
-	
-	/**Description: This is a private function that create a GUI for 
-	 * the mainframe. */
-
 	//*************************MINOR FUNCTIONS*************************//
 
 	//used for open_project_function() to read only ".java" files
@@ -565,31 +560,25 @@ class MainFrame extends JFrame implements ActionListener
 		}
 		else if( e.getSource() == classLoaderRun ) 
 		{
+
 			try {
 				classLoaderRun_function();
-			} catch (ClassNotFoundException exception) {
-				if( exception.getMessage() != null )
-					outputClassLoader( exception.getMessage() );
-				else
-					outputClassLoader("Error: Could not find Main class");
-			} catch( NoSuchMethodException exception ) {
-				outputClassLoader("Error: public static void main not found within project");
-			} catch( IllegalAccessException exception ) {
-				outputClassLoader("Error: Illegal Access Exception");
-			} catch( IllegalArgumentException exception ) {
-				outputClassLoader("Error: Illegal Argument Exception");
-			} catch( InvocationTargetException exception ) {
-				outputClassLoader("Error: Invocation Target Exception");
-			} catch( SecurityException  exception ) {
-				outputClassLoader("Error: Security Exception");
-			} catch( NoSuchFieldException exception ) {
-				outputClassLoader("Error: NoSuchFieldException");
-			} catch( IOException exception ) {
-				outputClassLoader("Error: NoSuchFieldException");
-			} catch( InterruptedException exception ) {
-				outputClassLoader("Error: InterruptedException: process interrupted");
+			} catch (ClassNotFoundException ex) {
+				ex.printStackTrace();
+			} catch (IllegalAccessException ex) {
+				ex.printStackTrace();
+			} catch (InvocationTargetException ex) {
+				ex.printStackTrace();
+			} catch (NoSuchMethodException ex) {
+				ex.printStackTrace();
+			} catch (NoSuchFieldException ex) {
+				ex.printStackTrace();
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			} catch (InterruptedException ex) {
+				ex.printStackTrace();
 			}
-			
+
 		}
 		else if( e.getSource() == addJar ) 
 		{
@@ -818,8 +807,7 @@ class MainFrame extends JFrame implements ActionListener
 	    //System.out.println("***END OPENING PROJECT***");
         return;
 	}
-  
-	
+
 	/**
 	 * This function will save the current project. 
 	 */
@@ -955,8 +943,6 @@ class MainFrame extends JFrame implements ActionListener
 
 	}
 	
-	
-	
 	/** This function will enable all menu items save_file, close_file, findReplaceMenuItem,
 	 * save_project,close_project, compile,execute when a project is active. And this function
 	 * will disable these menu items otherwise
@@ -974,10 +960,8 @@ class MainFrame extends JFrame implements ActionListener
 		classLoaderRun.setEnabled(isActive);
 		findReplaceMenuItem.setEnabled(isActive);
 	}
-	
-	
+
 	//****************FILE FUNCTIONS******************//
-	
 
 	/**
 	 * This function will create an default Main.java file when a project is created.
@@ -999,8 +983,7 @@ class MainFrame extends JFrame implements ActionListener
 		//System.out.println("***END NEW FILE***");
 		return true;
 	}
-	
-	
+
 	/**
 	 * This function will create a new file and display it on new Tab
 	 */
@@ -1064,9 +1047,7 @@ class MainFrame extends JFrame implements ActionListener
 		
 		//System.out.println("***END NEW FILE***");
 	}
-	
-	
-	
+
 	/**
 	 * @throws IOException 
 	 */
@@ -1266,9 +1247,7 @@ class MainFrame extends JFrame implements ActionListener
 				remove_file.setEnabled(false);
 	    }
 	}
-	
-	
-	
+
 	/**This function will write a string  to a file with a filePath is given.
 	 * @param //String content
 	 * @param //String filePath
@@ -1294,9 +1273,7 @@ class MainFrame extends JFrame implements ActionListener
 		}
 		return success;
 	}
-	
-	
-	
+
 	/**This function will open a given file on a new Tab in the tab panel of MainFrame
 	 * @param fileName
 	 * @param filePath
@@ -1347,9 +1324,6 @@ class MainFrame extends JFrame implements ActionListener
     	close_file.setEnabled(true);
 	}
 
-	
-	
-	
 	//****************EDIT FUNCTIONS*******************//
 	/**
 	 * 
@@ -1506,60 +1480,43 @@ class MainFrame extends JFrame implements ActionListener
 		outputToTerminal( executionResult.toString() );
 	}//end execute_function
 	
-	/**
-	 * ClassLoaderRun, compiles, executes, and outputs methods during RunTime
-	 * @throws ClassNotFoundException 
-	 * @throws SecurityException 
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalArgumentException 
-	 * @throws IllegalAccessException 
-	 * @throws NoSuchFieldException 
-	 * @throws InterruptedException 
-	 * @throws IOException 
-	 */
-	public void classLoaderRun_function() throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, NoSuchFieldException, IOException, InterruptedException 
+
+	public void classLoaderRun_function() throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, NoSuchFieldException, IOException, InterruptedException
 	{
-		save_project_function();
-		
-		CompilingClassLoader loader = new CompilingClassLoader(bin_dir, src_dir, lib_dir, "Main", true, externalJARs);
-		
-		// compile
-		Class clas = loader.loadClass();
-		
-		//String progArgs[] = new String[0]; 
-		//Object argsArray[] = { progArgs }; 
-		//Class mainArgType[] = { (new String[0]).getClass() };
-		
-		// Output the classes loaded into memory
-		outputClassLoader("Classes Loaded:"); 
-        while (loader != null) {
-            for (Iterator iter = list(loader); iter.hasNext(); ) {
-            	outputClassLoader("\t" + iter.next());
-            }
-            loader = (CompilingClassLoader) loader.getParent();
-        }
-		
-		// Output the names of methods that are being called during execution  
-		outputClassLoader("Methods:");
-		outputClassLoader("\tmain");
-        
-		execute_function();
-		//clas.getMethod("main", mainArgType).invoke(null, argsArray);
+//		System.out.println("Working Directory = " +
+//				System.getProperty("user.dir")+"\\src\\main\\java\\CCLRun.class");
+//		System.out.println("Project Directory = " +
+//				project_dir);
+
+		File source1 = new File(System.getProperty("user.dir")+"\\src\\main\\java\\CCLRun.class");
+		File dest1 = new File(project_dir + "\\bin\\CCLRun.class");
+		File source2 = new File(System.getProperty("user.dir")+"\\src\\main\\java\\CompilingCLassLoader.class");
+		File dest2 = new File(project_dir + "\\bin\\CompilingCLassLoader.class");
+		try {
+			FileUtils.copyFile(source1, dest1);
+			FileUtils.copyFile(source2, dest2);
+		} catch (IOException e) {
+			System.out.println("Failed to copy class files");
+		}
+
+		List<String> commands = Arrays.asList("@echo off", "java CCLRun Main", "@echo on", "@echo off", "pause", "exit");
+		File script = new File( bin_dir + "\\run.bat");
+		PrintWriter writer = new PrintWriter(script, "UTF-8");
+
+		for( String command : commands )
+		{
+			writer.println(command);
+		}
+
+		writer.close();
+		ProcessBuilder pb = new ProcessBuilder();
+
+		pb.command( "cmd.exe", "/c", "start", "run.bat" );
+		pb.directory( new File( project_dir + "\\bin") );  // set the directory
+		Process p = pb.start(); // execute process
+
 	}
-	
-    private static Iterator list(ClassLoader CL) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException 
-    {
-    	Class CL_class = CL.getClass();
-        while (CL_class != java.lang.ClassLoader.class) {
-        	CL_class = CL_class.getSuperclass();
-        }
-        java.lang.reflect.Field ClassLoader_classes_field = CL_class.getDeclaredField("classes");
-        ClassLoader_classes_field.setAccessible(true);
-        Vector classes = (Vector) ClassLoader_classes_field.get(CL);
-        return classes.iterator();
-    }
-	
+
 	/**
 	 * Function to open github webpage
 	 */
@@ -1612,7 +1569,6 @@ class MainFrame extends JFrame implements ActionListener
 	bottom_terminal_panel.setOpaque(true);
 	}
 	
-	
 	/**This function will write the current project directory and the  output to the
 	 * terminal.
 	 * @param output
@@ -1623,7 +1579,6 @@ class MainFrame extends JFrame implements ActionListener
 		console_text_area.setText(output);
 		console_text_area.setLineWrap(true);
 	}
-	
 	private void outputCompileAll( String output  ) 
 	{
 		console_text_area.append(output);
@@ -1632,12 +1587,12 @@ class MainFrame extends JFrame implements ActionListener
 	{
 		console_text_area.setText("");
 	}
-	public static void outputClassLoader(String output) 	
-	{	
-		classloader_text_area.append( output + "\n");	
-	}
-	public static void clearClassLoader() 	
-	{	
-		classloader_text_area.setText("");	
-	}
+//	public static void outputClassLoader(String output)
+//	{
+//		classloader_text_area.append( output + "\n");
+//	}
+//	public static void clearClassLoader()
+//	{
+//		classloader_text_area.setText("");
+//	}
 } 

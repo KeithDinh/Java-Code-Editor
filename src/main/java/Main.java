@@ -15,7 +15,7 @@ import javax.swing.*;
  * **************************************************************************
  */
 
-public class Edit 
+public class Main
 {
 
 	public static void main(String[] args) 
