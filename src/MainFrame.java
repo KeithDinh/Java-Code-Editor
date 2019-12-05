@@ -242,10 +242,8 @@ class MainFrame extends JFrame implements ActionListener
 	        	{
 	        		Tab currentTab = tab.get( tab_bar.getSelectedIndex() ); 
 		            save_file.setEnabled( currentTab.modified );
-		            if( currentTab.projectFile ) 
-		            {
-			            compile.setText( "Compile Current " + "(" + currentTab.fileName + ")" );
-		            }
+		            compile.setText( "Compile Current " + "(" + currentTab.tabName + ")" );
+		            compile.setEnabled( currentTab.projectFile );
 	        	}  
 	        	else 
 	        	{
