@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="f6f7daf3-5e38-45d1-b587-8f463c7f4ec5" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/CCLRun.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CompilingClassLoader.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FindReplaceDialog$1.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FindReplaceDialog$2.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FindReplaceDialog$3.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FindReplaceDialog$4.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FindReplaceDialog$5.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FindReplaceDialog$6.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FindReplaceDialog.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/MainFrame$1.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/MainFrame$2.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/MainFrame$3.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/MainFrame$4.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/MainFrame$5.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/MainFrame$6.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/MainFrame$7.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/MainFrame.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SyncPipe.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Tab.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bin/Java Editor.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.classpath" beforeDir="false" afterPath="$PROJECT_DIR$/.classpath" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Java_Text_Editor.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.settings/org.eclipse.jdt.core.prefs" beforeDir="false" afterPath="$PROJECT_DIR$/.settings/org.eclipse.jdt.core.prefs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/FindReplaceDialog$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/bin/FindReplaceDialog$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/FindReplaceDialog$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/bin/FindReplaceDialog$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/FindReplaceDialog$3.class" beforeDir="false" afterPath="$PROJECT_DIR$/bin/FindReplaceDialog$3.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/FindReplaceDialog$4.class" beforeDir="false" afterPath="$PROJECT_DIR$/bin/FindReplaceDialog$4.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/FindReplaceDialog$5.class" beforeDir="false" afterPath="$PROJECT_DIR$/bin/FindReplaceDialog$5.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/FindReplaceDialog$6.class" beforeDir="false" afterPath="$PROJECT_DIR$/bin/FindReplaceDialog$6.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/FindReplaceDialog.class" beforeDir="false" afterPath="$PROJECT_DIR$/bin/FindReplaceDialog.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Main.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/MainFrame$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/bin/MainFrame$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/MainFrame$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/bin/MainFrame$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/MainFrame$3.class" beforeDir="false" afterPath="$PROJECT_DIR$/bin/MainFrame$3.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/MainFrame$4.class" beforeDir="false" afterPath="$PROJECT_DIR$/bin/MainFrame$4.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/MainFrame$5.class" beforeDir="false" afterPath="$PROJECT_DIR$/bin/MainFrame$5.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/MainFrame$6.class" beforeDir="false" afterPath="$PROJECT_DIR$/bin/MainFrame$6.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/MainFrame$7.class" beforeDir="false" afterPath="$PROJECT_DIR$/bin/MainFrame$7.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/MainFrame.class" beforeDir="false" afterPath="$PROJECT_DIR$/bin/MainFrame.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/SyncPipe.class" beforeDir="false" afterPath="$PROJECT_DIR$/bin/SyncPipe.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/Tab$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Tab$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/Tab.class" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Tab.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/CCLRun.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/CCLRun.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/CompilingClassLoader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/CompilingClassLoader.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/MainFrame.java" afterDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1UUj7gBb8gPBzRjh7hmmSXzUP0d" />
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="f6f7daf3-5e38-45d1-b587-8f463c7f4ec5" name="Default Changelist" comment="" />
+      <created>1575417902042</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1575417902042</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

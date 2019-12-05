@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="Java_Text_Editor">
+  <library name="Java Editor">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/Java_Text_Editor.jar!/" />
+      <root url="jar://$PROJECT_DIR$/bin/Java Editor.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

@@ -1,78 +1,49 @@
+
+import org.apache.commons.io.FileUtils;
+
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.Image;
-import java.awt.Insets;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
+import java.nio.file.StandardCopyOption;
+import java.util.*;
 
-import javax.imageio.ImageIO;
-import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
+import javax.swing.JEditorPane;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.TextAction;
-
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
-import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
-import org.fife.ui.rsyntaxtextarea.Token;
-import org.fife.ui.rtextarea.RTextScrollPane;
-
-import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.text.Document;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.plaf.ColorUIResource;
-import javax.swing.plaf.ComponentUI;
-import javax.swing.plaf.TabbedPaneUI;
 
 
 /* STRUCTURE INTRODUCTION: 
@@ -88,6 +59,9 @@ import javax.swing.plaf.TabbedPaneUI;
 class MainFrame extends JFrame implements ActionListener
 {	
 	/* ********************************** CLASS MEMBERS ********************************** */
+	
+	private final String ABOUT_TEXT = "https://github.com/KeithDinh/Java-Code-Editor\nAuthors: Caleb Strain, Kiet Dinh, Tuyen Cao, Y Nguyen, Zachary Brewer\n";
+	
 	private JMenuBar menuBar = new JMenuBar();
 	//{
 		private JMenu file_menu = new JMenu("File");
@@ -117,40 +91,57 @@ class MainFrame extends JFrame implements ActionListener
 		private JMenu build_menu = new JMenu("Build");
 			//{
 				private JMenuItem compile;
+				private JMenuItem compileAll;
+				private JMenuItem compileMain;
 				private JMenuItem execute;
 			//}
+				
+		private JMenu classLoaderMenu = new JMenu("Class Loader");
+			//{
+				private JMenuItem classLoaderCompile;
+				private JMenuItem classLoaderRun;
+			//}
+				
+		private JMenu classpath_menu = new JMenu("Set Classpath");
+			//{
+				private JMenuItem addJar;
+				private JMenuItem removeJar;
+			//}
 		private JMenu about_menu = new JMenu("About");
+			//{
+				private JMenuItem githubMenuItem;
+			//}
 	//}
-		private JTextArea console_text_area = new JTextArea();
-		private JSplitPane splitPane= new JSplitPane();
-		private JPanel bottom_terminal_panel = new JPanel();
+				
+	private JTextArea console_text_area = new JTextArea();
+	private static JTextArea classloader_text_area = new JTextArea();
+	private JSplitPane splitPane= new JSplitPane();
+	private JPanel bottom_terminal_panel = new JPanel();
+	
 	private JTabbedPane tab_bar = new JTabbedPane(JTabbedPane.TOP);
 	//{
 		private ArrayList<Tab> tab = new ArrayList<Tab>();
 		private JTextArea terminal_tab;
-	//variables to write output to console
-	int lastCaretPositionFromOuput=0;
-	int endCaretPos=0;
-	private String completion="";
-	private File istrFile;
-	BufferedWriter bw;
+		//variables to write output to console (no longer being used)
+		int lastCaretPositionFromOuput=0;
+		int endCaretPos=0;
+		private String completion="";
+		private File istrFile;
+		BufferedWriter bw;
 	//}
 		
 		
-	private HashMap<String, Integer> duplicates = new HashMap();
+	private HashMap<String, Integer> duplicates = new HashMap<String, Integer>();
 	private String project_dir; 			//store current project path
 	private String src_dir;
+	private String bin_dir;
+	private String lib_dir;
 	private String last_project_path;		//will save the recent closed project path
-	Process process;						//for compile and execute
+	private boolean externalJARs; 		 
 
 	/* ********************************************************** */
 	
 	/* ********************************** CLASS FUNCTIONS ********************************** */
-	
-	
-	/**Description: This is a private function that create a GUI for 
-	 * the mainframe. */
-
 	//*************************MINOR FUNCTIONS*************************//
 
 	//used for open_project_function() to read only ".java" files
@@ -160,6 +151,24 @@ class MainFrame extends JFrame implements ActionListener
         public boolean accept(File dir, String name)
         {
             return name.endsWith(".java");
+        }
+    };
+    
+	public static FilenameFilter classFilter = new FilenameFilter()		
+    {
+        @Override
+        public boolean accept(File dir, String name)
+        {
+            return name.endsWith(".class");
+        }
+    };
+    
+	private FilenameFilter jarFilter = new FilenameFilter()		
+    {
+        @Override
+        public boolean accept(File dir, String name)
+        {
+            return name.endsWith(".jar");
         }
     };
     
@@ -188,9 +197,9 @@ class MainFrame extends JFrame implements ActionListener
 		Tab current_selected_tab = tab.get(index_selected_tab);
 		return current_selected_tab;
 	}
-    
+	
 	//*************************MAJOR FUNCTIONS*************************//
-
+	
 	public MainFrame()
 	{
 		super("Java Editor"); //Set Program's Name
@@ -198,12 +207,15 @@ class MainFrame extends JFrame implements ActionListener
 		
 		createMenuItem();
 		enableShortCutKeys(true);			//add shortcut keys 
+		externalJARs = false;
 		
 		//MenuBar(TaskBar) > menu(Project, File, Edit) > each menuButton(new,create,..)
 		menuBar.add(project_menu);			
 		menuBar.add(file_menu);
 		menuBar.add(edit_menu);
 		menuBar.add(build_menu);
+		menuBar.add(classLoaderMenu);
+		menuBar.add(classpath_menu);
 		menuBar.add(about_menu);
 		
 		setJMenuBar(menuBar); 			//Add the menu bar to the frame
@@ -226,8 +238,13 @@ class MainFrame extends JFrame implements ActionListener
 	        	if( tab_bar.getSelectedComponent() != null ) 
 	        	{
 	        		Tab currentTab = tab.get( tab_bar.getSelectedIndex() ); 
-		            save_file.setEnabled( currentTab.modified );	
+		            save_file.setEnabled( currentTab.modified );
+		            compile.setText( "Compile Current " + "(" + currentTab.fileName + ")" );
 	        	}  
+	        	else 
+	        	{
+	        		compile.setText( "Compile" );
+	        	}
 	        }
 	    });
 		
@@ -277,7 +294,7 @@ class MainFrame extends JFrame implements ActionListener
 
 	private void createMenuItem()
 	{
-		//************ Add menuButton to project menu ************//
+		//************ Add menuButtons to project menu ************//
 		
 		create_project = new JMenuItem("New Project");
 		create_project.addActionListener(this);
@@ -311,7 +328,7 @@ class MainFrame extends JFrame implements ActionListener
 		project_menu.add(close_project);
 
 		
-		//************ Add menuButton to file menu ************//
+		//************ Add menuButtons to file menu ************//
 		
 		open_file = new JMenuItem("Open File");
 		open_file.addActionListener(this);
@@ -344,7 +361,7 @@ class MainFrame extends JFrame implements ActionListener
 		
 		save_file.setEnabled(false); //initialize save_file menuItem in disable mode when no file to be saved
 		
-		//************ Add menuButton to edit menu ************//
+		//************ Add menuButtons to edit menu ************//
 		
 		//Buid edit_menu with cut_copy_paste_action()
 		cut_copy_paste_action();
@@ -354,19 +371,60 @@ class MainFrame extends JFrame implements ActionListener
 		edit_menu.add(findReplaceMenuItem);
 		findReplaceMenuItem.addActionListener(this);
 		
-		//************ Add menuButton to build menu ************//
+		//************ Add menuButtons to build menu ************//
 		
-		compile = new JMenuItem("Compile All");
+		compile = new JMenuItem("Compile Current");
 		compile.addActionListener(this);
-		compile.setIcon( new ImageIcon("icons/build.PNG") );
 		compile.setEnabled(false);
 		build_menu.add(compile);
+		
+		compileMain = new JMenuItem("Compile Main");
+		compileMain.addActionListener(this);
+		compileMain.setIcon( new ImageIcon("icons/build.PNG") );
+		compileMain.setEnabled(false);
+		build_menu.add(compileMain);
+		
+		compileAll = new JMenuItem("Compile All");
+		compileAll.addActionListener(this);
+		compileAll.setIcon( new ImageIcon("icons/compileAll.PNG") );
+		compileAll.setEnabled(false);
+		build_menu.add(compileAll);
 		
 		execute = new JMenuItem("Execute");
 		execute.addActionListener(this);
 		execute.setIcon( new ImageIcon("icons/run.PNG") );
-		execute.setEnabled(false);
+		execute.setEnabled(false); 
 		build_menu.add(execute);
+		
+		//************ Add menuButtons to classLoaderMenu ************//
+		
+		classLoaderRun = new JMenuItem("Run");
+		classLoaderRun.addActionListener(this);
+		classLoaderRun.setIcon( new ImageIcon("icons/run.PNG") );
+		classLoaderRun.setEnabled(false);
+		classLoaderMenu.add(classLoaderRun);
+		
+		//************ Add menuButtons to set classpath menu ************//
+		
+		addJar = new JMenuItem("Add External JAR");
+		addJar.addActionListener(this);
+		addJar.setEnabled(false);
+		addJar.setIcon( new ImageIcon("icons/addjar.PNG") );
+		classpath_menu.add(addJar);
+		
+		removeJar = new JMenuItem("Remove External JAR");
+		removeJar.addActionListener(this);
+		removeJar.setEnabled(false);
+		removeJar.setIcon( new ImageIcon("icons/removejar.PNG") );
+		classpath_menu.add(removeJar);
+		
+		//************ Add menuButtons to about menu ************//
+		
+		githubMenuItem = new JMenuItem("Github");
+		githubMenuItem.addActionListener(this);
+		githubMenuItem.setEnabled(true);
+		githubMenuItem.setIcon( new ImageIcon("icons/github.PNG") );
+		about_menu.add(githubMenuItem);
 		
 	}
 	
@@ -378,7 +436,9 @@ class MainFrame extends JFrame implements ActionListener
 			file_menu.setMnemonic( KeyEvent.VK_F );
 			edit_menu.setMnemonic( KeyEvent.VK_E );
 			build_menu.setMnemonic( KeyEvent.VK_B );
+			classLoaderMenu.setMnemonic( KeyEvent.VK_C );
 			about_menu.setMnemonic( KeyEvent.VK_A );
+			classpath_menu.setMnemonic( KeyEvent.VK_S );
 			
 			// short-cut keys for Project Menu Item
 			create_project.setAccelerator(KeyStroke.getKeyStroke('N',Event.CTRL_MASK|Event.SHIFT_MASK));
@@ -398,7 +458,8 @@ class MainFrame extends JFrame implements ActionListener
 			findReplaceMenuItem.setAccelerator(KeyStroke.getKeyStroke('F',Event.CTRL_MASK));
 			
 			//short cut keys for compile and execute menuItems in Build Menu
-			compile.setAccelerator(KeyStroke.getKeyStroke( KeyEvent.VK_B, KeyEvent.CTRL_DOWN_MASK + KeyEvent.SHIFT_DOWN_MASK ) );
+			compileMain.setAccelerator(KeyStroke.getKeyStroke( KeyEvent.VK_B, KeyEvent.CTRL_DOWN_MASK ) );
+			compileAll.setAccelerator(KeyStroke.getKeyStroke( KeyEvent.VK_B, KeyEvent.CTRL_DOWN_MASK + KeyEvent.SHIFT_DOWN_MASK ) );
 			execute.setAccelerator(KeyStroke.getKeyStroke( KeyEvent.VK_F5, 0 ) );
 		}
 		
@@ -416,7 +477,8 @@ class MainFrame extends JFrame implements ActionListener
 	            try {
 					open_project_function();
 				} catch (IOException e1) {
-					System.out.println("Error of open project");
+					e1.printStackTrace();
+					System.out.println("Cannot open project");
 				}
 		}
 		else if(e.getSource() == save_project) //Save all files
@@ -441,7 +503,8 @@ class MainFrame extends JFrame implements ActionListener
 			try {
 				open_file_function();
 			} catch (IOException e1) {
-				System.out.println("Error of open file");
+				e1.printStackTrace();
+				System.out.println("Error opening file");
 			}
 		}
 		else if(e.getSource() == save_file)
@@ -461,10 +524,26 @@ class MainFrame extends JFrame implements ActionListener
 			searchTool.searchThisArea(getCurrentTab().getRSTA());
 		}
 		//******************BUILD******************//
+		else if(e.getSource() == compileMain)
+		{
+			try {
+				compileMain_function( );
+			} catch (IOException e1) {
+				System.out.println("Compile Error");
+			}
+		}
 		else if(e.getSource() == compile)
 		{
 			try {
-				compile_function();
+				compile_function( null );
+			} catch (IOException e1) {
+				System.out.println("Compile Error");
+			}
+		}
+		else if(e.getSource() == compileAll)
+		{
+			try {
+				compile_all();
 			} catch (IOException e1) {
 				System.out.println("Compile Error");
 			}
@@ -473,21 +552,61 @@ class MainFrame extends JFrame implements ActionListener
 		{
 			try {
 				execute_function();
-			} catch (IOException | InterruptedException e1) {
+			} catch ( IOException e1 ) {
 				System.out.println("Execute Error");
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
 			}
+		}
+		else if( e.getSource() == classLoaderRun ) 
+		{
+
+			try {
+				classLoaderRun_function();
+			} catch (ClassNotFoundException ex) {
+				ex.printStackTrace();
+			} catch (IllegalAccessException ex) {
+				ex.printStackTrace();
+			} catch (InvocationTargetException ex) {
+				ex.printStackTrace();
+			} catch (NoSuchMethodException ex) {
+				ex.printStackTrace();
+			} catch (NoSuchFieldException ex) {
+				ex.printStackTrace();
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			} catch (InterruptedException ex) {
+				ex.printStackTrace();
+			}
+
+		}
+		else if( e.getSource() == addJar ) 
+		{
+			try {
+				addJar_function();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
+		else if( e.getSource() == removeJar ) 
+		{
+			removeJar_function();
+		}
+		else if( e.getSource() == githubMenuItem ) 
+		{
+			openWebpage("https://github.com/KeithDinh/Java-Code-Editor");
 		}
 	}
 	
-	private void add_close_tab_button( String title, String newTitle )
+	private void add_close_tab_button(final String title, final String newTitle )
 	{	
 		int index = tab_bar.indexOfTab( title );
 		
 		JPanel Tab_with_close = new JPanel(new BorderLayout());
-		ImageIcon disableCloseIcon= new ImageIcon("icons/close.PNG");
-		ImageIcon enableCloseIcon= new ImageIcon("icons/close-.PNG");
+		final ImageIcon disableCloseIcon= new ImageIcon("icons/close.PNG");
+		final ImageIcon enableCloseIcon= new ImageIcon("icons/close-.PNG");
 		JLabel tab_title = new JLabel( (newTitle == null) ? title : newTitle ); //name of tab
-		JButton close_button = new JButton(disableCloseIcon);	//x button
+		final JButton close_button = new JButton(disableCloseIcon);	//x button
 		//set a clear border for close button
 		close_button.setBorder(BorderFactory.createEmptyBorder(0,4,0,0)); 
 		close_button.setContentAreaFilled(false);
@@ -538,7 +657,7 @@ class MainFrame extends JFrame implements ActionListener
 
 	private void create_project_function()
 	{
-		System.out.println("***CREATE PROJECT***");
+		//System.out.println("***CREATE PROJECT***");
 		//check if there is an active project.
 		if(!close_current_active_project())
 			return;
@@ -570,19 +689,31 @@ class MainFrame extends JFrame implements ActionListener
 					return;
 				}
 				
-				//create folder
-				new File(dir_path+ "\\" + folderName).mkdir();
-				new File(dir_path+ "\\" + folderName + "\\lib").mkdir();
-				new File(dir_path+ "\\" + folderName + "\\src").mkdir();
+				//create folders
+				String projectPath = dir_path+ "\\" + folderName;
+				String libPath = dir_path+ "\\" + folderName + "\\lib";
+				String srcPath = dir_path+ "\\" + folderName + "\\src";
+				String binPath = dir_path+ "\\" + folderName + "\\bin";
+				
+				new File(projectPath).mkdir();
+				new File(libPath).mkdir();
+				new File(srcPath).mkdir();
+				new File(binPath).mkdir();
 				
 				if(new File(dir_path + "\\" + folderName).exists()) //created but not exist? -> invalid
 				{
-					dir_path += "\\" + folderName;
-					project_dir =dir_path;
-					src_dir=project_dir+"\\src";
+					project_dir = projectPath;
+					src_dir= srcPath;
+					lib_dir = libPath;
+					bin_dir = binPath;
 					//if Main.java file is created successfully, enable active mode for project.
 					if(create_Main_function())
 						active_project_status(true);
+					
+					if ( new ArrayList<File>(Arrays.asList(new File(lib_dir).listFiles(jarFilter))).size() > 0 ) // if there are external dependencies 
+	            		externalJARs = true;
+	            	else
+	            		removeJar.setEnabled(false);
 				}
 				else 
 				{
@@ -592,14 +723,14 @@ class MainFrame extends JFrame implements ActionListener
 			}
 		}
 		
-		System.out.println("***END CREATE PROJECT***");
+		//System.out.println("***END CREATE PROJECT***");
 
 		return;
 	}
 	
 	private void open_project_function() throws IOException 
 	{
-		System.out.println("***OPENING PROJECT***");
+		//System.out.println("***OPENING PROJECT***");
 		//check if there is already an active project
 		if(!close_current_active_project())
 			return;
@@ -650,14 +781,33 @@ class MainFrame extends JFrame implements ActionListener
             project_dir = path;
             if(project_dir.endsWith("\\src"))
             {
-            	project_dir=project_dir.substring(0, project_dir.length()-3);
+            	src_dir = project_dir;
+            	project_dir=project_dir.substring(0, project_dir.length()-4);
+            }
+            else
+            	src_dir = project_dir;
+            
+            // set bin_dir, and lib_dir, if they do not exist, create them
+			String libPath = project_dir + "\\lib";
+			String binPath = project_dir + "\\bin";
+            if( !new File(libPath).exists() ) new File(libPath).mkdir();
+            if( !new File(binPath).exists() ) new File(binPath).mkdir();
+            
+            // check that the folders have been created
+            if( new File(libPath).exists() && new File(binPath).exists() ) 
+            {
+            	lib_dir = libPath;
+            	bin_dir = binPath;
+            	if ( new ArrayList<File>(Arrays.asList(new File(lib_dir).listFiles(jarFilter))).size() > 0 ) // if there are external dependencies 
+            		externalJARs = true;
+            	else
+            		removeJar.setEnabled(false);
             }
         }
-	    System.out.println("***END OPENING PROJECT***");
+	    //System.out.println("***END OPENING PROJECT***");
         return;
 	}
-  
-	
+
 	/**
 	 * This function will save the current project. 
 	 */
@@ -667,7 +817,7 @@ class MainFrame extends JFrame implements ActionListener
         {
 			if( tab.get( i ).projectFile ) 
 			{
-				String content = tab.get(i).get_updated_content();
+				String content = tab.get(i).getUpdatedContent();
 			    try 
 			    {
 			    	BufferedWriter writer = new BufferedWriter(new FileWriter(tab.get(i).path));
@@ -683,7 +833,7 @@ class MainFrame extends JFrame implements ActionListener
 			} 
         }
 		setSaveProject();
-		System.out.println("***END SAVE PROJECT***");
+		//System.out.println("***END SAVE PROJECT***");
 
 	}
 
@@ -704,7 +854,7 @@ class MainFrame extends JFrame implements ActionListener
 	{
 		for(int i=0; i<tab.size();i++)
         {
-			String content = tab.get(i).get_updated_content();
+			String content = tab.get(i).getUpdatedContent();
 		    try 
 		    {
 		    	BufferedWriter writer = new BufferedWriter(new FileWriter(tab.get(i).path));
@@ -719,7 +869,7 @@ class MainFrame extends JFrame implements ActionListener
 			}   
         }
 		setSaveEnabled();
-		System.out.println("***END SAVE ALL***");
+		//System.out.println("***END SAVE ALL***");
 	}
 	
 	
@@ -775,7 +925,7 @@ class MainFrame extends JFrame implements ActionListener
 	        }
 			else if(result == 2)
 			{
-				System.out.println("***STOP CLOSE PROJECT***");
+				//System.out.println("***STOP CLOSE PROJECT***");
 				return  false;
 			}
 		}
@@ -784,15 +934,14 @@ class MainFrame extends JFrame implements ActionListener
 		setSaveEnabled();
 		active_project_status(false);
 		execute.setEnabled( false );
+		classLoaderRun.setEnabled( false );
 		tab.clear();
 		last_project_path = project_dir;
 		project_dir = null;
-		System.out.println("***END CLOSE PROJECT***");
+		//System.out.println("***END CLOSE PROJECT***");
 		return true;
 
 	}
-	
-	
 	
 	/** This function will enable all menu items save_file, close_file, findReplaceMenuItem,
 	 * save_project,close_project, compile,execute when a project is active. And this function
@@ -803,22 +952,25 @@ class MainFrame extends JFrame implements ActionListener
 		remove_file.setEnabled(isActive);
 		close_file.setEnabled(isActive);
 		close_project.setEnabled(isActive);
-		compile.setEnabled(isActive);
+		compileMain.setEnabled(isActive);
+		compile.setEnabled(isActive); 
+		compileAll.setEnabled(isActive);
+		addJar.setEnabled(isActive);
+		removeJar.setEnabled(isActive);
+		classLoaderRun.setEnabled(isActive);
 		findReplaceMenuItem.setEnabled(isActive);
 	}
-	
-	
+
 	//****************FILE FUNCTIONS******************//
-	
 
 	/**
 	 * This function will create an default Main.java file when a project is created.
 	 */
 	private boolean create_Main_function() 
 	{
-		System.out.println("***NEW FILE***");
+		//System.out.println("***NEW FILE***");
 		String fileName = "Main.java";
-		System.out.println(project_dir);
+		//System.out.println(project_dir);
 		String filePath = project_dir + "\\src\\" + fileName;
 		
 		//-5 = remove ".java" to get the name only
@@ -828,17 +980,16 @@ class MainFrame extends JFrame implements ActionListener
 		
 		//files.add(new File(filePath));
     	open_file_on_new_tab(fileName, filePath, true );
-		System.out.println("***END NEW FILE***");
+		//System.out.println("***END NEW FILE***");
 		return true;
 	}
-	
-	
+
 	/**
 	 * This function will create a new file and display it on new Tab
 	 */
 	private void create_file_function()
 	{
-		System.out.println("***NEW FILE***");
+		//System.out.println("***NEW FILE***");
 		
 		if(project_dir == null)
 		{
@@ -887,24 +1038,22 @@ class MainFrame extends JFrame implements ActionListener
 		//-5 = remove ".java" to get the name only
 		String contents = "public class " + fileName.substring(0, fileName.length() - 5) + "\n{\n\n}"; 
 		
-		System.out.println(filePath);
+		//System.out.println(filePath);
 		
 		//write the contents to the filePath
 		if(write_content_to_filepath(contents,filePath))
 			//open fileName on new Tab
 			open_file_on_new_tab(fileName,filePath, true );
 		
-		System.out.println("***END NEW FILE***");
+		//System.out.println("***END NEW FILE***");
 	}
-	
-	
-	
+
 	/**
 	 * @throws IOException 
 	 */
 	private void open_file_function() throws IOException 
 	{
-		System.out.println("***OPENING FILE***");
+		//System.out.println("***OPENING FILE***");
 		JFileChooser chooser = new JFileChooser(); 						//this class is to open file/directory
 		if(project_dir != null)
 			chooser.setCurrentDirectory(new File(project_dir)); 		//set current dir as window popup	
@@ -942,7 +1091,7 @@ class MainFrame extends JFrame implements ActionListener
             	
             open_file_on_new_tab(single_file.getName(),single_file.getPath(), projectFile );
         } 
-        System.out.println("***END OPENING FILE***");
+        //System.out.println("***END OPENING FILE***");
 	}
 	
 
@@ -973,11 +1122,11 @@ class MainFrame extends JFrame implements ActionListener
 	private void save_file_function()
 	{
 		int index_selected_tab = tab_bar.getSelectedIndex();
-		System.out.println(index_selected_tab);
+		//System.out.println(index_selected_tab);
 		Tab current_selected_tab = tab.get(index_selected_tab);
 		
 		/////////get current contents on the textArea///////////////
-		String content = current_selected_tab.get_updated_content();
+		String content = current_selected_tab.getUpdatedContent();
 
 	    try 
 	    {
@@ -1054,6 +1203,7 @@ class MainFrame extends JFrame implements ActionListener
 			setSaveProject();
 			active_project_status(false);
 			execute.setEnabled( false );
+			classLoaderRun.setEnabled( false );
 		}
 		else 
 		{
@@ -1068,16 +1218,17 @@ class MainFrame extends JFrame implements ActionListener
 			setSaveProject();
 			active_project_status(false);
 			execute.setEnabled( false );
+			classLoaderRun.setEnabled( false );
 		}
 		if( duplicates.containsKey(currentTab.fileName) )
 			setNewTabNumbers( currentTab );
-		System.out.println("***END CLOSE FILE***");
+		//System.out.println("***END CLOSE FILE***");
 	}
 	
 
 	private void remove_file_function()
 	{
-		System.out.println(getCurrentTab().tabName);
+		//System.out.println(getCurrentTab().tabName);
 		Object[] options = { "Yes", "No" };
 		int result = JOptionPane.showOptionDialog(
 				null, 
@@ -1096,12 +1247,10 @@ class MainFrame extends JFrame implements ActionListener
 				remove_file.setEnabled(false);
 	    }
 	}
-	
-	
-	
+
 	/**This function will write a string  to a file with a filePath is given.
-	 * @param String content
-	 * @param String filePath
+	 * @param //String content
+	 * @param //String filePath
 	 */
 	protected boolean write_content_to_filepath(String content, String filePath) {
 		FileWriter file = null;
@@ -1124,9 +1273,7 @@ class MainFrame extends JFrame implements ActionListener
 		}
 		return success;
 	}
-	
-	
-	
+
 	/**This function will open a given file on a new Tab in the tab panel of MainFrame
 	 * @param fileName
 	 * @param filePath
@@ -1162,7 +1309,7 @@ class MainFrame extends JFrame implements ActionListener
     	
 		if( count > 0) 
 		{
-			tab.get( tab.size() - 1).fileName = fileName;
+			tab.get( tab.size() - 1).fileName = fileName; 
 			tab.get( tab.size() - 1).count = count;
 			duplicates.put(fileName, count);
 		}
@@ -1177,9 +1324,6 @@ class MainFrame extends JFrame implements ActionListener
     	close_file.setEnabled(true);
 	}
 
-	
-	
-	
 	//****************EDIT FUNCTIONS*******************//
 	/**
 	 * 
@@ -1205,121 +1349,194 @@ class MainFrame extends JFrame implements ActionListener
 		edit_menu.add(pasteAction);
 	}
 	
+	//****************ADD/REMOVE JAR FUNCTIONS *******************//
+	
+	private void addJar_function() throws IOException
+	{
+		JFileChooser chooser = new JFileChooser();
+		chooser.setDialogTitle( "Choose a JAR file" );
+		chooser.setApproveButtonText("Select JAR");
+		chooser.setCurrentDirectory(new File("."));
+        chooser.setAcceptAllFileFilterUsed(false);
+        chooser.setFileFilter(new FileNameExtensionFilter("*.jar", "jar"));
+        
+		if( chooser.showOpenDialog( this ) == JFileChooser.APPROVE_OPTION ) 
+		{
+			File file = chooser.getSelectedFile().getAbsoluteFile();
+			Files.copy(file.toPath(), new File(lib_dir + "\\" + file.getName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
+			externalJARs = true;
+			removeJar.setEnabled(true);
+		} 
+		return;
+	}
+	
+	private void removeJar_function() 
+	{
+		Object[] options = new File(lib_dir).listFiles(jarFilter);
+		Object selectionObject = JOptionPane.showInputDialog(null, "Choose a JAR file to remove\n", "External JARs", JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+		
+		if( selectionObject == null )
+			return;
+		
+		if ( !new File( selectionObject.toString() ).delete() )
+			JOptionPane.showMessageDialog(null, "Could not delete file.", "Error", JOptionPane.ERROR_MESSAGE);
+		
+		if( new File(lib_dir).listFiles(jarFilter).length == 0 ) 
+		{
+			removeJar.setEnabled(false);
+			externalJARs = false;
+		}
+	}
+	
 	//****************BUILD FUNCTIONS*******************//
 	/**
 	 * @throws IOException
-
 	/*public void compile_function() throws IOException
 	 */
 
-	public void compile_function() throws IOException
+	private void moveFile( File classFile )
 	{
-		String file_path;
-		//1. get Main file that need to be compile
-		if (new File(project_dir + "\\src").exists())            //if src folder exists set path in src
-			file_path = project_dir + "src\\";                //else set path in folder
-		else
-			file_path = project_dir + "\\";
-
-		System.out.println(file_path);                        //check if the path correct
-
-		//2. Compile
-		Process p;
-		try {
-
-			Runtime rt = Runtime.getRuntime();
-			if (isWindows) //if the os is Windows
-			{
-				p = rt.exec("cmd.exe /c cd \"" + file_path + "\" & start cmd.exe /c \"javac Main.java\"");
-			}
-			else // other os
-			{
-
-				p = rt.exec("sh -c cd \"" + file_path + "\" & sh -c \"javac Main.java\""); //need to test Linux terminal command
-			}
-
-			System.out.println("Compiling " + file_path + "Main.java...");
-			new Thread(new SyncPipe(p.getErrorStream(), System.err)).start();
-			new Thread(new SyncPipe(p.getInputStream(), System.out)).start();
-			PrintWriter stdin = new PrintWriter(p.getOutputStream());
-			stdin.flush();
-			stdin.close();
-			p.waitFor();
-
-			if (p.exitValue() == 0) //if compile error -> exitValue() != 0
-			{
-				System.out.println("---------Compile Successful-------------");
-				execute.setEnabled(true);
-			}
-
-		} catch (Exception e) {
-			System.out.println("Error Compiling file. Please check your Main file and try again!");
-			e.printStackTrace();
+		if( classFile.getName().equals("Main.class") ) 
+		{
+			execute.setEnabled( true );
+			classLoaderRun.setEnabled( true );	
 		}
+		File replace = new File(bin_dir + "\\" + classFile.getName() );
+		if( replace.exists() )
+			replace.delete();
+		if(classFile.renameTo( new File(bin_dir + "\\" + classFile.getName() ) ) ) 
+			classFile.delete();
 	}
-
-	public static boolean isAlive(Process p) {
-		try {
-			p.exitValue();
-			return false;
-		}
-		catch (IllegalThreadStateException e) {
-			return true;
-		}
+	
+	private void moveClassFilestoBin() 
+	{
+		File file = new File(bin_dir); // make sure that the bin folder still exists, if not create it 
+		if (!file.exists() || !file.isDirectory() ) 
+			file.mkdir();
+		new ArrayList<File>(Arrays.asList(new File(src_dir).listFiles(classFilter))).forEach( classFile -> moveFile(classFile) );
 	}
-	boolean isWindows = System.getProperty("os.name")
-			.toLowerCase().startsWith("windows");
+	
+	private void compile_function( String s ) throws IOException // maybe change later so that we store the compiled classes in a folder called bin
+	{
+		if (s == null ) save_project_function(); // so we don't call this more than once for compile_all 
+		StringBuilder compileOutput = new StringBuilder();
+		String fileName = (s == null) ? getCurrentTab().fileName : s; 
+		compileOutput.append("Compiling " + src_dir + "\\" + fileName );
+		Compile.CompilationResult r = new Compile( src_dir, fileName, lib_dir, externalJARs ).compile();
+		if( r.success ) 
+		{
+			compileOutput.append("... success \n");
+		} 
+		else 
+		{	
+			compileOutput.append("... failed \n");
+			if( r.javacOutput != null && r.javacOutputComplete )
+				compileOutput.append( r.javacOutput.toString() );
+			else
+				compileOutput.append( r.errorMessage );
+		}
+	    if( s == null ) 
+	    {
+	    	outputToTerminal( compileOutput.toString() );
+	    	moveClassFilestoBin();
+	    } 
+	    else outputCompileAll( compileOutput.toString() );
+	}
+	
+	private void compileMain_function() throws IOException 
+	{
+		save_project_function();
+		clearTerminal();
+		compile_function( "Main.java" );
+		moveClassFilestoBin();
+	}
+	
+	private void compile_all() throws IOException 
+	{
+		save_project_function();
+		clearTerminal();
+		for( int i = 0; i < tab.size(); i++ ) // only compile project files, non project files will not compile (like visual studio) 
+		{
+			Tab tb = tab.get( i );
+			if( tb.projectFile ) // we cannot simply use javac src_dir\* because there may exist an invalid file 
+			{
+				compile_function( tb.fileName );
+			}
+		}
+	    moveClassFilestoBin();
+	}
 
 	/**
 	 * @throws IOException
+	 * @throws InterruptedException 
 	 */
-	public void execute_function() throws IOException, InterruptedException {
-		String file_path;
-		//1. get Main file that need to be executed
-		if (new File(project_dir + "\\src").exists())            //if src folder exists set path in src
-			file_path = project_dir + "src\\";                //else set path in folder
-		else
-			file_path = project_dir + "\\";
-
-		System.out.println(file_path);                        //check if the path correct
-
-		//2.Execute main class file - works with user input
-		Process p;
-
-		try
-		{
-			Runtime rt = Runtime.getRuntime();
-			if (isWindows) {
-			p =rt.exec("cmd.exe /c cd \""+file_path+"\" & start cmd.exe /k \"java Main");
-		}
-			else {
-			p = rt.exec("sh -c cd \"" + file_path + "\" & sh -c \"javac Main.java\""); //need to test Linux terminal command
-		}
-
-			new Thread (new SyncPipe(p.getErrorStream(),System.err)).start();
-			new Thread (new SyncPipe(p.getInputStream(),System.out)).start();
-			PrintWriter stdin = new PrintWriter(p.getOutputStream());
-			stdin.flush();
-			stdin.close();
-			p.waitFor();
-			//p =rt.exec("&& exit"); //TODO close cmd window after executing
-
-			if (p.exitValue() == 0) //if execution error -> exitValue() != 0
-			{
-
-				System.out.println("---------Execution Successful-------------");
-				execute.setEnabled(true);
-			}
-
-		}
-		catch (Exception e)
-		{
-			System.out.println("ERROR EXECUTING FILE! Please recompile try again! ");
-			e.printStackTrace();
-		}
-
+	private void execute_function() throws IOException, InterruptedException {
+		StringBuilder executionResult = new StringBuilder();
+		executionResult.append("Executing " + bin_dir + "\\Main");
+		Execute execute = new Execute( project_dir, bin_dir, lib_dir, externalJARs, "Main.class");
+		String result = execute.execute() ? "... done" : "... failed \n";
+		if( execute.getErrorMessage() != null ) result += execute.getErrorMessage();
+		executionResult.append( result );
+		outputToTerminal( executionResult.toString() );
 	}//end execute_function
+	
 
+	public void classLoaderRun_function() throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, NoSuchFieldException, IOException, InterruptedException
+	{
+//		System.out.println("Working Directory = " +
+//				System.getProperty("user.dir")+"\\src\\main\\java\\CCLRun.class");
+//		System.out.println("Project Directory = " +
+//				project_dir);
+//
+//		File source1 = new File(System.getProperty("user.dir")+"\\src\\main\\java\\CCLRun.class");
+//		File dest1 = new File(project_dir + "\\bin\\CCLRun.class");
+//		File source2 = new File(System.getProperty("user.dir")+"\\src\\main\\java\\CompilingCLassLoader.class");
+//		File dest2 = new File(project_dir + "\\bin\\CompilingCLassLoader.class");
+//		try {
+//			FileUtils.copyFile(source1, dest1);
+//			FileUtils.copyFile(source2, dest2);
+//		} catch (IOException e) {
+//			System.out.println("Failed to copy class files");
+//		}
+		String this_class_path=System.getProperty("java.class.path");// the class path of our program
+		//String this_class_path=System.getProperty("user.dir")+"\\target\\classes";
+		System.out.println(lib_dir);
+		String combined_class_paths=this_class_path+";"+lib_dir+"\\*;"+bin_dir;
+		//String combined_class_paths=bin_dir;
+		String execute_command="java -cp "+combined_class_paths+" CCLRun "+bin_dir+" Main";
+		System.out.println("Execute the subprogram" +execute_command);
+		List<String> commands = Arrays.asList("@echo off", execute_command, "@echo on", "@echo off", "pause", "exit");
+		File script = new File( bin_dir + "\\run.bat");
+		PrintWriter writer = new PrintWriter(script, "UTF-8");
+
+		for( String command : commands )
+		{
+			writer.println(command);
+		}
+
+		writer.close();
+		ProcessBuilder pb = new ProcessBuilder();
+		//pb.command( "run.bat" );
+	pb.command( "cmd.exe", "/c", "start", "run.bat" );
+//		pb.command(execute_command);
+		//pb.directory(new File(combined_class_paths));
+		System.out.println("Project directory : " +project_dir);
+		pb.directory( new File( project_dir+"\\bin") );  // set the directory
+		Process p = pb.start(); // execute process
+//		String classLoaderResultPath=bin_dir+"\\loadedMethod.txt";
+//		classloader_text_are_set_text(classLoaderResultPath);
+	}
+
+	/**
+	 * Function to open github webpage
+	 */
+	public static void openWebpage(String urlString) {
+	    try {
+	        Desktop.getDesktop().browse(new URL(urlString).toURI());
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
 
 	/**
 	 * This function creates a terminal Pane in the bottom of the main Pane
@@ -1333,88 +1550,72 @@ class MainFrame extends JFrame implements ActionListener
 	console_text_area.setSize(600,50);
 	console_text_area.setFont( new Font("Consolas", Font.PLAIN, 12 ) ); //set background color
 	console_text_area.setText("");
+	
+	classloader_text_area.setEditable(  false );	
+	classloader_text_area.setSize(600,50);	
+	classloader_text_area.setFont( new Font("Consolas", Font.PLAIN, 12 ) ); //set background color	
+	classloader_text_area.setText("");
 
-	console();
+	//console();
 	JTabbedPane terminal_tab_bar=new JTabbedPane();
 	JScrollPane console_scroll_pane=new JScrollPane();
+	JScrollPane classloader_scroll_pane=new JScrollPane();
+	
 	console_scroll_pane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 	console_scroll_pane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 	console_scroll_pane.setViewportView(console_text_area);
+	
 	ImageIcon console_icon= new ImageIcon("icons/console1.PNG");
+	classloader_scroll_pane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);	
+	classloader_scroll_pane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);	
+	classloader_scroll_pane.setViewportView(classloader_text_area);	
+	ImageIcon class_icon= new ImageIcon("icons/javaclass.PNG");
 	String tooptip="This is a terminal";//hovering text
 	
 	terminal_tab_bar.addTab("Console",console_icon,console_scroll_pane,tooptip);
+	terminal_tab_bar.addTab("Class Loader",class_icon,classloader_scroll_pane,tooptip);
+	
 	bottom_terminal_panel.add(terminal_tab_bar);
 	bottom_terminal_panel.setOpaque(true);
 	}
 	
-	
 	/**This function will write the current project directory and the  output to the
 	 * terminal.
 	 * @param output
-	 * @param project_dir
+	 * @param //project_dir
 	 */
-	private void outputToTerminal(String output,String project_dir) {
+	private void outputToTerminal(String output ) {
 		console_text_area.setText("");//clear console
 		console_text_area.setText(output);
 		console_text_area.setLineWrap(true);
 	}
+	private void outputCompileAll( String output  ) 
+	{
+		console_text_area.append(output);
+	}
+	private void clearTerminal() 
+	{
+		console_text_area.setText("");
+	}
 
-
-
-	//new function substitute for inputToTerminal function
-	private	void console() {
-		//System.console();
-		int startCaretPos;
-		//console_text_area.setBackground(new Color(0,0,35));
-		// console_text_area.setForeground(Color.WHITE);
-		//console_text_area.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-
-
-		console_text_area.addKeyListener(new KeyAdapter() {
-			public void keyPressed(KeyEvent e) {
-				int key =e.getKeyCode();
-				if(key==KeyEvent.VK_ENTER) {
-					endCaretPos=console_text_area.getCaretPosition();
-
-					try {
-						//System.out.println("last "+lastCaretPositionFromOuput+5);
-						completion=console_text_area.getText(lastCaretPositionFromOuput,
-								endCaretPos-lastCaretPositionFromOuput);
-							/*try {
-								bw.write(completion);
-							} catch (IOException e1) {
-								// TODO Auto-generated catch block
-								e1.printStackTrace();
-							}*/
-						System.out.print(completion+lastCaretPositionFromOuput+" "+endCaretPos);
-						//System.out.println("end "+endCaretPos+4);
-					} catch (BadLocationException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-				}
+//	public static void outputClassLoader(String output)
+//	{
+//		classloader_text_area.append( output + "\n");
+//	}
+//	public static void clearClassLoader()
+//	{
+//		classloader_text_area.setText("");
+//	}
+	public void classloader_text_are_set_text(String filePath) throws IOException {
+		try{
+			String Text="";
+			FileReader reader = new FileReader(filePath);
+			BufferedReader br= new BufferedReader(reader);
+			while((Text=br.readLine())!=null){
+				//System.out.println(Text);
+				classloader_text_area.append(Text+"\n");
 			}
-		}); //end console()
-
-
-		System.setOut(new PrintStream(new OutputStream() {
-			@Override
-			public void write(int b) throws IOException {
-
-				console_text_area.append(String.valueOf((char) b));
-				console_text_area.setFocusable(true);
-
-				//update the caret position when System.out tothe console
-				//add a
-				lastCaretPositionFromOuput=console_text_area.getCaretPosition();
-
-			}
-		}));
-
-
-	} // end setOut()
-
-
-	
+		}
+		catch (IOException e){};
+	}
 } 

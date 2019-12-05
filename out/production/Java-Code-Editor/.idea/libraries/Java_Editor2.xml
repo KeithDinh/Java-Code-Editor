@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Java Editor2">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/src/Java Editor.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
