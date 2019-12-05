@@ -60,8 +60,6 @@ class MainFrame extends JFrame implements ActionListener
 {	
 	/* ********************************** CLASS MEMBERS ********************************** */
 	
-	private final String ABOUT_TEXT = "https://github.com/KeithDinh/Java-Code-Editor\nAuthors: Caleb Strain, Kiet Dinh, Tuyen Cao, Y Nguyen, Zachary Brewer\n";
-	
 	private JMenuBar menuBar = new JMenuBar();
 	//{
 		private JMenu file_menu = new JMenu("File");
@@ -122,12 +120,6 @@ class MainFrame extends JFrame implements ActionListener
 	//{
 		private ArrayList<Tab> tab = new ArrayList<Tab>();
 		private JTextArea terminal_tab;
-		//variables to write output to console (no longer being used)
-		int lastCaretPositionFromOuput=0;
-		int endCaretPos=0;
-		private String completion="";
-		private File istrFile;
-		BufferedWriter bw;
 	//}
 		
 		
@@ -146,31 +138,31 @@ class MainFrame extends JFrame implements ActionListener
 
 	//used for open_project_function() to read only ".java" files
 	private FilenameFilter javaFilter = new FilenameFilter()		
-    {
+   	 {
         @Override
         public boolean accept(File dir, String name)
         {
             return name.endsWith(".java");
         }
-    };
+  	  };
     
 	public static FilenameFilter classFilter = new FilenameFilter()		
-    {
+   	 {
         @Override
         public boolean accept(File dir, String name)
         {
             return name.endsWith(".class");
         }
-    };
+    	};
     
 	private FilenameFilter jarFilter = new FilenameFilter()		
-    {
+  	  {
         @Override
         public boolean accept(File dir, String name)
         {
             return name.endsWith(".jar");
         }
-    };
+   	 };
     
     
 	/**This function take file path(string) as argument, return content of file (string) 
@@ -178,7 +170,7 @@ class MainFrame extends JFrame implements ActionListener
 	 * @return
 	 */
 	private String readFileFromPath(String filePath) 				
-    {
+    	{
 		String content = "";
 	    try
 	    {
@@ -189,7 +181,7 @@ class MainFrame extends JFrame implements ActionListener
 	        e.printStackTrace();
 	    }
 	    return content;
-    }
+    	}
 	
 	//return current/open selected tab
 	private Tab getCurrentTab() {
@@ -239,7 +231,8 @@ class MainFrame extends JFrame implements ActionListener
 	        	{
 	        		Tab currentTab = tab.get( tab_bar.getSelectedIndex() ); 
 		            save_file.setEnabled( currentTab.modified );
-		            compile.setText( "Compile Current " + "(" + currentTab.fileName + ")" );
+			    compile.setText( "Compile Current " + "(" + currentTab.tabName + ")" );
+		            compile.setEnabled( currentTab.projectFile );
 	        	}  
 	        	else 
 	        	{
@@ -563,20 +556,8 @@ class MainFrame extends JFrame implements ActionListener
 
 			try {
 				classLoaderRun_function();
-			} catch (ClassNotFoundException ex) {
-				ex.printStackTrace();
-			} catch (IllegalAccessException ex) {
-				ex.printStackTrace();
-			} catch (InvocationTargetException ex) {
-				ex.printStackTrace();
-			} catch (NoSuchMethodException ex) {
-				ex.printStackTrace();
-			} catch (NoSuchFieldException ex) {
-				ex.printStackTrace();
-			} catch (IOException ex) {
-				ex.printStackTrace();
-			} catch (InterruptedException ex) {
-				ex.printStackTrace();
+			} catch (Exception exception) {
+				outputClassLoader( "Error: Could not run classloader" );
 			}
 
 		}
@@ -1556,7 +1537,6 @@ class MainFrame extends JFrame implements ActionListener
 	classloader_text_area.setFont( new Font("Consolas", Font.PLAIN, 12 ) ); //set background color	
 	classloader_text_area.setText("");
 
-	//console();
 	JTabbedPane terminal_tab_bar=new JTabbedPane();
 	JScrollPane console_scroll_pane=new JScrollPane();
 	JScrollPane classloader_scroll_pane=new JScrollPane();
@@ -1598,14 +1578,10 @@ class MainFrame extends JFrame implements ActionListener
 		console_text_area.setText("");
 	}
 
-//	public static void outputClassLoader(String output)
-//	{
-//		classloader_text_area.append( output + "\n");
-//	}
-//	public static void clearClassLoader()
-//	{
-//		classloader_text_area.setText("");
-//	}
+	public static void outputClassLoader(String output)
+	{
+		classloader_text_area.setText( output );
+	}
 	public void classloader_text_are_set_text(String filePath) throws IOException {
 		try{
 			String Text="";
