@@ -3,12 +3,16 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.*;
 import java.io.*;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,10 +22,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
@@ -37,6 +44,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
@@ -44,7 +52,7 @@ import javax.swing.text.Document;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
-
+import org.apache.commons.io.FileUtils;
 
 /* STRUCTURE INTRODUCTION: 
  * 	Frame {Menu bar, Tab bar}
@@ -58,10 +66,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 @SuppressWarnings("unchecked")
 class MainFrame extends JFrame implements ActionListener
 {	
-	/* ********************************** CLASS MEMBERS ********************************** */
-	
-	private final String ABOUT_TEXT = "https://github.com/KeithDinh/Java-Code-Editor\nAuthors: Caleb Strain, Kiet Dinh, Tuyen Cao, Y Nguyen, Zachary Brewer\n";
-	
 	private JMenuBar menuBar = new JMenuBar();
 	//{
 		private JMenu file_menu = new JMenu("File");
@@ -122,12 +126,6 @@ class MainFrame extends JFrame implements ActionListener
 	//{
 		private ArrayList<Tab> tab = new ArrayList<Tab>();
 		private JTextArea terminal_tab;
-		//variables to write output to console (no longer being used)
-		int lastCaretPositionFromOuput=0;
-		int endCaretPos=0;
-		private String completion="";
-		private File istrFile;
-		BufferedWriter bw;
 	//}
 		
 		
@@ -244,7 +242,10 @@ class MainFrame extends JFrame implements ActionListener
 	        	{
 	        		Tab currentTab = tab.get( tab_bar.getSelectedIndex() ); 
 		            save_file.setEnabled( currentTab.modified );
-		            compile.setText( "Compile Current " + "(" + currentTab.fileName + ")" );
+		            if( currentTab.projectFile ) 
+		            {
+			            compile.setText( "Compile Current " + "(" + currentTab.fileName + ")" );
+		            }
 	        	}  
 	        	else 
 	        	{
@@ -1496,7 +1497,8 @@ class MainFrame extends JFrame implements ActionListener
 	 * @throws IOException
 	 * @throws InterruptedException 
 	 */
-	private void execute_function() throws IOException, InterruptedException {
+	private void execute_function() throws IOException, InterruptedException 
+	{
 		StringBuilder executionResult = new StringBuilder();
 		executionResult.append("Executing " + bin_dir + "\\Main");
 		Execute execute = new Execute( project_dir, bin_dir, lib_dir, externalJARs, "Main.class");
@@ -1520,45 +1522,27 @@ class MainFrame extends JFrame implements ActionListener
 	 */
 	public void classLoaderRun_function() throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, NoSuchFieldException, IOException, InterruptedException 
 	{
-		save_project_function();
-		
-		CompilingClassLoader loader = new CompilingClassLoader(bin_dir, src_dir, lib_dir, "Main", true, externalJARs);
-		
-		// compile
-		Class clas = loader.loadClass();
-		
-		//String progArgs[] = new String[0]; 
-		//Object argsArray[] = { progArgs }; 
-		//Class mainArgType[] = { (new String[0]).getClass() };
-		
-		// Output the classes loaded into memory
-		outputClassLoader("Classes Loaded:"); 
-        while (loader != null) {
-            for (Iterator iter = list(loader); iter.hasNext(); ) {
-            	outputClassLoader("\t" + iter.next());
-            }
-            loader = (CompilingClassLoader) loader.getParent();
-        }
-		
-		// Output the names of methods that are being called during execution  
-		outputClassLoader("Methods:");
-		outputClassLoader("\tmain");
-        
-		execute_function();
-		//clas.getMethod("main", mainArgType).invoke(null, argsArray);
+		 save_project_function();
+	     clearTerminal();
+	       
+	     CompilingClassLoader loader = new CompilingClassLoader(bin_dir, src_dir, lib_dir, "Main", true, externalJARs);
+	     loader.loadClass();
+	       
+	     outputClassLoader( "Classes Loaded Into Memory:" );
+	     for( Class clas : loader.getLoadedClasses() )
+	     {
+	    	 outputClassLoader( "Loading Class " + "'" + clas.getName() + "'");
+	     }
+	         
+	     outputClassLoader("Methods:");
+	     for( Method m : loader.getMethods() )
+	     {
+	    	 outputClassLoader( m.toString() );
+	     }
+	       
+	     // We cannot using main_method.invoke(...) because if the process requires user input, we have no way to handle it
+	     execute_function();
 	}
-	
-    private static Iterator list(ClassLoader CL) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException 
-    {
-    	Class CL_class = CL.getClass();
-        while (CL_class != java.lang.ClassLoader.class) {
-        	CL_class = CL_class.getSuperclass();
-        }
-        java.lang.reflect.Field ClassLoader_classes_field = CL_class.getDeclaredField("classes");
-        ClassLoader_classes_field.setAccessible(true);
-        Vector classes = (Vector) ClassLoader_classes_field.get(CL);
-        return classes.iterator();
-    }
 	
 	/**
 	 * Function to open github webpage
@@ -1588,8 +1572,7 @@ class MainFrame extends JFrame implements ActionListener
 	classloader_text_area.setSize(600,50);	
 	classloader_text_area.setFont( new Font("Consolas", Font.PLAIN, 12 ) ); //set background color	
 	classloader_text_area.setText("");
-
-	//console();
+	
 	JTabbedPane terminal_tab_bar=new JTabbedPane();
 	JScrollPane console_scroll_pane=new JScrollPane();
 	JScrollPane classloader_scroll_pane=new JScrollPane();

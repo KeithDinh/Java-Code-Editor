@@ -126,7 +126,7 @@ public class Execute // IMPORTANT: stdin, stdout, stderr handled by console, no 
 				// imitate Visual Studio console using bat file
 				pb.command( "cmd.exe", "/c", "start", "bin\\run.bat" );
 			else
-				pb.command( "sh", "-c", binDirectory + "/run.sh" );
+				pb.command( "sh", "-c", binDirectory + "\run.sh" ); // test on unix
 			
 			pb.directory( new File( projectDirectory ) );  // set the directory
 			Process p = pb.start(); // execute process
