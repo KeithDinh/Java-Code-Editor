@@ -7,6 +7,9 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="Java-Code-Editor-Maven-ver" />
+        <module name="Java Code Editor" />
+        <module name="Java-Code-Editor" />
+        <module name="Java-Code-Editor Maven-ver" />
       </profile>
     </annotationProcessing>
   </component>
