@@ -1,4 +1,4 @@
-# Simple Java Code Editor - Final Version is on Branch: Master Branch
+# Simple Java Code Editor - Final Version is on Master Branch
 ## PLEASE USE LATEST JDK BEFORE EXECUTING THE PROGRAM TO AVOID ISSUE
 
 ## KeyWord Count 
