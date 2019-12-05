@@ -1,4 +1,6 @@
 import java.io.*;
+import java.lang.reflect.Method;
+
 /*
 A CompilingClassLoader compiles your Java source on-the-fly. It
 checks for nonexistent .class files, or .class files that are older
@@ -6,6 +8,11 @@ than their corresponding source code.
 */
 public class CompilingClassLoader extends ClassLoader
 {
+    String class_load_result="";
+    String bin_path="";
+    public void set_class_path(String class_path){
+        bin_path=class_path;
+    }
     // Given a filename, read the entirety of that file from disk
 // and return it as a byte array.
     private byte[] getBytes( String filename ) throws IOException {
@@ -38,7 +45,9 @@ public class CompilingClassLoader extends ClassLoader
         // Wait for it to finish running
         try {
             p.waitFor();
-        } catch( InterruptedException ie ) { System.out.println( ie ); }
+        } catch( InterruptedException ie ) {
+         //  System.out.println( ie );
+        }
 // Check the return code, in case of a compilation error
         int ret = p.exitValue();
 // Tell whether the compilation worked
@@ -52,14 +61,16 @@ public class CompilingClassLoader extends ClassLoader
         Class clas = null;
 // First, see if we've already dealt with this one
         clas = findLoadedClass( name );
-//System.out.println( "findLoadedClass: "+clas );
+//System.out.println( "Loaded Class: "+clas );
 // Create a pathname from the class name
 // E.g. java.lang.Object => java/lang/Object
         String fileStub = name.replace( '.', '/' );
 // Build objects pointing to the source code (.java) and object
 // code (.class)
         String javaFilename = fileStub+".java";
-        String classFilename = fileStub+".class";
+        //System.out.println(fileStub+".class");
+        String classFilename =bin_path+"\\"+ fileStub+".class";
+        //System.out.println("absolute class path for subprogram "+classFilename);
         File javaFile = new File( javaFilename );
         File classFile = new File( classFilename );
 //System.out.println( "j "+javaFile.lastModified()+" c "+
@@ -94,15 +105,23 @@ public class CompilingClassLoader extends ClassLoader
 // This is not a failure! If we reach here, it might
 // mean that we are dealing with a class in a library,
             // such as java.lang.Object
+            //System.out.print(ie);
         }
-        if(clas != null)
-            System.out.println( "defineClass: "+clas );
+        if(clas != null&&!(clas.toString().contains("$"))) {
+            System.out.println("******************************** " + clas + " ********************************");
+            Method mt[]=clas.getDeclaredMethods();
+            for (Method meth:mt){
+                System.out.println(meth);
+            }
+        }
+
 // Maybe the class is in a library -- try loading
 // the normal way
         if (clas==null) {
             clas = findSystemClass( name );
+            //System.out.println( "System Class: "+clas );
         }
-//System.out.println( "findSystemClass: "+clas );
+
 // Resolve the class, if any, but only if the "resolve"
 // flag is set to true
         if (resolve && clas != null)
@@ -113,4 +132,5 @@ public class CompilingClassLoader extends ClassLoader
 // Otherwise, return the class
         return clas;
     }
+
 }

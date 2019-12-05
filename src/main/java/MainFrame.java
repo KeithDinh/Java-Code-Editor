@@ -1487,19 +1487,25 @@ class MainFrame extends JFrame implements ActionListener
 //				System.getProperty("user.dir")+"\\src\\main\\java\\CCLRun.class");
 //		System.out.println("Project Directory = " +
 //				project_dir);
-
-		File source1 = new File(System.getProperty("user.dir")+"\\src\\main\\java\\CCLRun.class");
-		File dest1 = new File(project_dir + "\\bin\\CCLRun.class");
-		File source2 = new File(System.getProperty("user.dir")+"\\src\\main\\java\\CompilingCLassLoader.class");
-		File dest2 = new File(project_dir + "\\bin\\CompilingCLassLoader.class");
-		try {
-			FileUtils.copyFile(source1, dest1);
-			FileUtils.copyFile(source2, dest2);
-		} catch (IOException e) {
-			System.out.println("Failed to copy class files");
-		}
-
-		List<String> commands = Arrays.asList("@echo off", "java CCLRun Main", "@echo on", "@echo off", "pause", "exit");
+//
+//		File source1 = new File(System.getProperty("user.dir")+"\\src\\main\\java\\CCLRun.class");
+//		File dest1 = new File(project_dir + "\\bin\\CCLRun.class");
+//		File source2 = new File(System.getProperty("user.dir")+"\\src\\main\\java\\CompilingCLassLoader.class");
+//		File dest2 = new File(project_dir + "\\bin\\CompilingCLassLoader.class");
+//		try {
+//			FileUtils.copyFile(source1, dest1);
+//			FileUtils.copyFile(source2, dest2);
+//		} catch (IOException e) {
+//			System.out.println("Failed to copy class files");
+//		}
+		String this_class_path=System.getProperty("java.class.path");// the class path of our program
+		//String this_class_path=System.getProperty("user.dir")+"\\target\\classes";
+		System.out.println(lib_dir);
+		String combined_class_paths=this_class_path+";"+lib_dir+"\\*;"+bin_dir;
+		//String combined_class_paths=bin_dir;
+		String execute_command="java -cp "+combined_class_paths+" CCLRun "+bin_dir+" Main";
+		System.out.println("Execute the subprogram" +execute_command);
+		List<String> commands = Arrays.asList("@echo off", execute_command, "@echo on", "@echo off", "pause", "exit");
 		File script = new File( bin_dir + "\\run.bat");
 		PrintWriter writer = new PrintWriter(script, "UTF-8");
 
@@ -1510,11 +1516,15 @@ class MainFrame extends JFrame implements ActionListener
 
 		writer.close();
 		ProcessBuilder pb = new ProcessBuilder();
-
-		pb.command( "cmd.exe", "/c", "start", "run.bat" );
-		pb.directory( new File( project_dir + "\\bin") );  // set the directory
+		//pb.command( "run.bat" );
+	pb.command( "cmd.exe", "/c", "start", "run.bat" );
+//		pb.command(execute_command);
+		//pb.directory(new File(combined_class_paths));
+		System.out.println("Project directory : " +project_dir);
+		pb.directory( new File( project_dir+"\\bin") );  // set the directory
 		Process p = pb.start(); // execute process
-
+//		String classLoaderResultPath=bin_dir+"\\loadedMethod.txt";
+//		classloader_text_are_set_text(classLoaderResultPath);
 	}
 
 	/**
@@ -1587,6 +1597,7 @@ class MainFrame extends JFrame implements ActionListener
 	{
 		console_text_area.setText("");
 	}
+
 //	public static void outputClassLoader(String output)
 //	{
 //		classloader_text_area.append( output + "\n");
@@ -1595,4 +1606,16 @@ class MainFrame extends JFrame implements ActionListener
 //	{
 //		classloader_text_area.setText("");
 //	}
+	public void classloader_text_are_set_text(String filePath) throws IOException {
+		try{
+			String Text="";
+			FileReader reader = new FileReader(filePath);
+			BufferedReader br= new BufferedReader(reader);
+			while((Text=br.readLine())!=null){
+				//System.out.println(Text);
+				classloader_text_area.append(Text+"\n");
+			}
+		}
+		catch (IOException e){};
+	}
 } 

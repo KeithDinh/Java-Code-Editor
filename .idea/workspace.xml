@@ -2,25 +2,18 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6556126d-25e0-4fa7-9e7d-f2c3d4374419" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/Java-Code-Editor.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/CompilingClassLoader.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Edit.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Execute.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Execute.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/CCLRun.class" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/CCLRun.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/CCLRun.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/CCLRun.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/CompilingClassLoader.class" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/CompilingClassLoader.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/CompilingClassLoader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/CompilingClassLoader.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Edit.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MainFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/CCLRun.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/CCLRun.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/CompilingClassLoader.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/CompilingClassLoader.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Edit.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Execute.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Execute.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/MainFrame$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/MainFrame$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/MainFrame$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/MainFrame$2.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/MainFrame$3.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/MainFrame$3.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/MainFrame$4.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/MainFrame$4.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/MainFrame$5.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/MainFrame$5.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/MainFrame$6.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/MainFrame$6.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/MainFrame$7.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/MainFrame$7.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/META-INF/Java-Code-Editor Maven-ver.kotlin_module" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Edit.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/MainFrame.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/MainFrame.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -54,10 +47,12 @@
     <property name="project.structure.side.proportion" value="0.0" />
     <property name="settings.editor.selected.configurable" value="preferences.editor" />
   </component>
-  <component name="RunManager">
-    <configuration name="Main" type="Application" factoryName="Application" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Main" />
-      <module name="Java-Code-Editor Maven-ver" />
+  <component name="RunManager" selected="Application.Edit">
+    <configuration name="Edit" type="Application" factoryName="Application" nameIsGenerated="true">
+      <option name="ALTERNATIVE_JRE_PATH" value="C:/Program Files/Java/jdk-13.0.1" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="MAIN_CLASS_NAME" value="Edit" />
+      <module name="Java-Code-Editor-Maven-ver" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -69,9 +64,13 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <list>
+      <item itemvalue="Application.Edit" />
+      <item itemvalue="Application.Main" />
+    </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.Main" />
+        <item itemvalue="Application.Edit" />
       </list>
     </recent_temporary>
   </component>
@@ -101,42 +100,58 @@
     <servers />
   </component>
   <component name="WindowStateProjectService">
-    <state x="360" y="0" width="575" height="680" key="#Edit" timestamp="1575394995314">
+    <state x="360" y="0" width="575" height="680" key="#Edit" timestamp="1575509911883">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="360" y="0" width="575" height="680" key="#Edit/0.0.1280.680@0.0.1280.680" timestamp="1575394995314" />
+    <state x="360" y="0" width="575" height="680" key="#Edit/0.0.1280.680@0.0.1280.680" timestamp="1575509911883" />
     <state x="360" y="0" width="575" height="680" key="#Main" timestamp="1575398764556">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
     <state x="360" y="0" width="575" height="680" key="#Main/0.0.1280.680@0.0.1280.680" timestamp="1575398764556" />
-    <state x="96" y="0" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1575428407969">
+    <state x="96" y="0" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1575507120759">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="96" y="0" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1280.680@0.0.1280.680" timestamp="1575428407969" />
-    <state x="378" y="124" key="#com.intellij.ide.util.TreeClassChooserDialog" timestamp="1575428404612">
+    <state x="96" y="0" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1280.680@0.0.1280.680" timestamp="1575507120759" />
+    <state x="378" y="124" key="#com.intellij.ide.util.TreeClassChooserDialog" timestamp="1575509900443">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="378" y="124" key="#com.intellij.ide.util.TreeClassChooserDialog/0.0.1280.680@0.0.1280.680" timestamp="1575428404612" />
-    <state x="740" y="98" key="FileChooserDialogImpl" timestamp="1575429942703">
+    <state x="378" y="124" key="#com.intellij.ide.util.TreeClassChooserDialog/0.0.1280.680@0.0.1280.680" timestamp="1575509900443" />
+    <state x="740" y="98" key="FileChooserDialogImpl" timestamp="1575497126556">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state x="740" y="98" key="FileChooserDialogImpl/0.0.1280.680@0.0.1280.680" timestamp="1575429942703" />
-    <state width="1237" height="142" key="GridCell.Tab.0.bottom" timestamp="1575437618190">
+    <state x="740" y="98" key="FileChooserDialogImpl/0.0.1280.680@0.0.1280.680" timestamp="1575497126556" />
+    <state width="1237" height="57" key="GridCell.Tab.0.bottom" timestamp="1575522342920">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state width="1237" height="142" key="GridCell.Tab.0.bottom/0.0.1280.680@0.0.1280.680" timestamp="1575437618190" />
-    <state width="1237" height="142" key="GridCell.Tab.0.center" timestamp="1575437618190">
+    <state width="1237" height="57" key="GridCell.Tab.0.bottom/0.0.1280.680@0.0.1280.680" timestamp="1575522342920" />
+    <state width="1237" height="57" key="GridCell.Tab.0.center" timestamp="1575522342920">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state width="1237" height="142" key="GridCell.Tab.0.center/0.0.1280.680@0.0.1280.680" timestamp="1575437618190" />
-    <state width="1237" height="142" key="GridCell.Tab.0.left" timestamp="1575437618190">
+    <state width="1237" height="57" key="GridCell.Tab.0.center/0.0.1280.680@0.0.1280.680" timestamp="1575522342920" />
+    <state width="1237" height="57" key="GridCell.Tab.0.left" timestamp="1575522342920">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state width="1237" height="142" key="GridCell.Tab.0.left/0.0.1280.680@0.0.1280.680" timestamp="1575437618190" />
-    <state width="1237" height="142" key="GridCell.Tab.0.right" timestamp="1575437618190">
+    <state width="1237" height="57" key="GridCell.Tab.0.left/0.0.1280.680@0.0.1280.680" timestamp="1575522342920" />
+    <state width="1237" height="57" key="GridCell.Tab.0.right" timestamp="1575522342920">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
-    <state width="1237" height="142" key="GridCell.Tab.0.right/0.0.1280.680@0.0.1280.680" timestamp="1575437618190" />
+    <state width="1237" height="57" key="GridCell.Tab.0.right/0.0.1280.680@0.0.1280.680" timestamp="1575522342920" />
+    <state width="1237" height="204" key="GridCell.Tab.1.bottom" timestamp="1575522103464">
+      <screen x="0" y="0" width="1280" height="680" />
+    </state>
+    <state width="1237" height="204" key="GridCell.Tab.1.bottom/0.0.1280.680@0.0.1280.680" timestamp="1575522103464" />
+    <state width="1237" height="204" key="GridCell.Tab.1.center" timestamp="1575522103464">
+      <screen x="0" y="0" width="1280" height="680" />
+    </state>
+    <state width="1237" height="204" key="GridCell.Tab.1.center/0.0.1280.680@0.0.1280.680" timestamp="1575522103464" />
+    <state width="1237" height="204" key="GridCell.Tab.1.left" timestamp="1575522103464">
+      <screen x="0" y="0" width="1280" height="680" />
+    </state>
+    <state width="1237" height="204" key="GridCell.Tab.1.left/0.0.1280.680@0.0.1280.680" timestamp="1575522103464" />
+    <state width="1237" height="204" key="GridCell.Tab.1.right" timestamp="1575522103464">
+      <screen x="0" y="0" width="1280" height="680" />
+    </state>
+    <state width="1237" height="204" key="GridCell.Tab.1.right/0.0.1280.680@0.0.1280.680" timestamp="1575522103464" />
     <state x="205" y="0" key="Maven.ArtifactSearchDialog" timestamp="1575432995746">
       <screen x="0" y="0" width="1280" height="680" />
     </state>
