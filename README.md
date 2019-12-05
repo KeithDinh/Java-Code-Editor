@@ -47,7 +47,3 @@ else{}
 
 * Compile All will compile all project files. Similar to visual studio, if a file is not part of a project it will not be able to compile. 
 * Compiling a file will auto-save that file. Compiling Main and compile all will auto-save the project.
-
-## Other
-
-* As of right now the ClassLoader is not finished.  
