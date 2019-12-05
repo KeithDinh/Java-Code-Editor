@@ -8,41 +8,54 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
-public class Execute // simple version, stdin, stdout, stderr handled by console
+public class Execute // IMPORTANT: stdin, stdout, stderr handled by console, no need to get streams as done in the Compile class. This is the only way to handle/capture user input without using external dependencies 
 {
 	private final File script;
 	private final List<String> commands;
-	private final String binDirectory;		
+	private final String projectDirectory;
+	private final String binDirectory;
+	private final String libDirectory;
 	private final String fileName;
 	private String errorMessage;
-	private boolean directoryExists;
+	private boolean externalJARs;
 	private boolean error;
 	
 	public Execute() 
 	{
 		commands = null;
+		projectDirectory = null;
 		binDirectory = null;
+		libDirectory = null;
 		fileName = null;
 		script = null;
 		errorMessage = null;
-		directoryExists = false;
 		error = false;
 	}
 	
-	public Execute( String binDirectory, String fileName ) 
+	public Execute( String projectDirectory, String binDirectory, String libDirectory, boolean externalJARs, String fileName ) 
 	{
 		this.fileName = fileName;
+		this.projectDirectory = projectDirectory; 
+		this.libDirectory = libDirectory;
 		this.binDirectory = binDirectory;
+		this.externalJARs = externalJARs; 
+		
 		error = false;
 		
 		if( System.getProperty( "os.name" ).toLowerCase().startsWith( "windows" ) ) 
 		{
-			commands = Arrays.asList("@echo off", "java Main", "@echo on", "@echo off", "pause", "exit");
+			if( externalJARs ) 
+				commands = Arrays.asList("@echo off", "java -cp lib\\*;bin Main", "@echo on", "@echo off", "pause", "exit");
+			else 
+				commands = Arrays.asList("@echo off", "java -cp bin Main", "@echo on", "@echo off", "pause", "exit");
 			script = new File( binDirectory + "\\run.bat");
 		}
-		else // for linux/unix change later
+		else // TODO: test on Unix
 		{
-			commands = Arrays.asList("java Main", "echo","read -p \"Press enter to continue...\"", "exit 0");
+			if( externalJARs )
+				commands = Arrays.asList("java -cp lib\\*;bin Main", "echo","read -p \"Press enter to continue...\"", "exit 0");
+			else
+				commands = Arrays.asList("java -cp bin Main", "echo","read -p \"Press enter to continue...\"", "exit 0");
 			script = new File(binDirectory + "\\run.sh");
 		}
 	}
@@ -65,21 +78,40 @@ public class Execute // simple version, stdin, stdout, stderr handled by console
 	
 	public boolean execute() throws FileNotFoundException, UnsupportedEncodingException 
 	{
+		// Make sure all directories and files still exist / haven't been deleted by the user 
+		if( projectDirectory == null ) 
+			errorMessage = "Error: no project directory";
+		if( projectDirectory != null && Files.notExists( Paths.get( projectDirectory ) )) 
+			errorMessage = "Error: directory " + projectDirectory + " does not exists";
+			
+		if( errorMessage != null )
+			return false; 
 		
 		if( binDirectory == null )
-			errorMessage = "no directory";
+			errorMessage = "Error: no bin directory";
 		if( binDirectory != null && Files.notExists( Paths.get( binDirectory ) ) )
-			errorMessage = "directory " + binDirectory + " does not exists";
-		else
-			directoryExists = true;
+			errorMessage = "Error: directory " + binDirectory + " does not exists";
+		
+		if( errorMessage != null )
+			return false;
+		
+		if( externalJARs ) {
+		if( libDirectory == null )
+			errorMessage = "Error: no bin directory";
+		if( libDirectory != null && Files.notExists( Paths.get( libDirectory ) ) )
+			errorMessage = "Error: directory " + libDirectory + " does not exists";
+		}
+		
+		if( errorMessage != null )
+			return false;
 		
 		if( fileName == null )
-			errorMessage = "no source file";
+			errorMessage = "Error: no source file";
 		if( fileName != null && !fileName.endsWith( ".class" ) )
-			errorMessage = "source file " + fileName + " does not end with .java";
+			errorMessage = "Error: class file " + fileName + " does not end with .class";
 		
-		if( directoryExists && Files.notExists( Paths.get( binDirectory + File.separator + fileName ) ) )
-			errorMessage = "source file " + binDirectory + File.separator + fileName + " does not exist";
+		if( Files.notExists( Paths.get( binDirectory + File.separator + fileName ) ) )
+			errorMessage = "Error: class file " + binDirectory + File.separator + fileName + " does not exist";
 
 		if( errorMessage != null )
 			return false;
@@ -89,14 +121,14 @@ public class Execute // simple version, stdin, stdout, stderr handled by console
 		try
 		{
 			ProcessBuilder pb = new ProcessBuilder();
-
+			
 			if( System.getProperty( "os.name" ).toLowerCase().startsWith( "windows" ) )
-				pb.command( "cmd.exe", "/c", "start", "cd" + binDirectory, "run" );
+				// imitate Visual Studio console using bat file
+				pb.command( "cmd.exe", "/c", "start", "bin\\run.bat" );
 			else
-				pb.command( "sh", "-c", "cd" + binDirectory, "./run.sh" );
-
-			pb.directory( new File( binDirectory ) ); 
-			pb.redirectErrorStream( true ); // combine standard output and standard error
+				pb.command( "sh", "-c", binDirectory + "\run.sh" ); // test on unix
+			
+			pb.directory( new File( projectDirectory ) );  // set the directory
 			Process p = pb.start(); // execute process
 			if( p.waitFor() != 0 )
 				error = true;

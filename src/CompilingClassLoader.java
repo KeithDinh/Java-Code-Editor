@@ -1,151 +1,132 @@
-// $Id$
- 
 import java.io.*;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
  
 /*
- 
-A CompilingClassLoader compiles your Java source on-the-fly.  It
-checks for nonexistent .class files, or .class files that are older
-than their corresponding source code.
- 
+Compiles your Java source code before loading it. Checks for non-existent .class files, or .class files that are older than there corresponding source code.
+Java class files are not all loaded in memory at once, rather they are loaded on demand, as needed by the program.
 */
  
-public class CompilingClassLoader extends ClassLoader
-{
-  // Given a filename, read the entirety of that file from disk
-  // and return it as a byte array.
-  private byte[] getBytes( String filename ) throws IOException {
-    // Find out the length of the file
-    File file = new File( filename );
-    long len = file.length();
- 
-    // Create an array that's just the right size for the file's
-    // contents
-    byte raw[] = new byte[(int)len];
- 
-    // Open the file
-    FileInputStream fin = new FileInputStream( file );
- 
-    // Read all of it into the array; if we don't get all,
-    // then it's an error.
-    int r = fin.read( raw );
-    if (r != len)
-      throw new IOException( "Can't read all, "+r+" != "+len );
- 
-    // Don't forget to close the file!
-    fin.close();
- 
-    // And finally return the file contents as an array
-    return raw;
-  }
- 
-  // Spawn a process to compile the java source code file
-  // specified in the 'javaFile' parameter.  Return a true if
-  // the compilation worked, false otherwise.
-  private boolean compile( String javaFile ) throws IOException {
-    // Let the user know what's going on
-    System.out.println( "CCL: Compiling "+javaFile+"..." );
- 
-    // Start up the compiler
-    Process p = Runtime.getRuntime().exec( "javac "+javaFile );
- 
-    // Wait for it to finish running
-    try {
-      p.waitFor();
-    } catch( InterruptedException ie ) { System.out.println( ie ); }
- 
-    // Check the return code, in case of a compilation error
-    int ret = p.exitValue();
- 
-    // Tell whether the compilation worked
-    return ret==0;
-  }
- 
-  // The heart of the ClassLoader -- automatically compile
-  // source as necessary when looking for class files
-  public Class loadClass( String name, boolean resolve )
-      throws ClassNotFoundException {
- 
-    // Our goal is to get a Class object
-    Class clas = null;
- 
-    // First, see if we've already dealt with this one
-    clas = findLoadedClass( name );
- 
-    //System.out.println( "findLoadedClass: "+clas );
- 
-    // Create a pathname from the class name
-    // E.g. java.lang.Object => java/lang/Object
-    String fileStub = name.replace( '.', '/' );
- 
-    // Build objects pointing to the source code (.java) and object
-    // code (.class)
-    String javaFilename = fileStub+".java";
-    String classFilename = fileStub+".class";
- 
-    File javaFile = new File( javaFilename );
-    File classFile = new File( classFilename );
- 
-    //System.out.println( "j "+javaFile.lastModified()+" c "+
-    //  classFile.lastModified() );
- 
-    // First, see if we want to try compiling.  We do if (a) there
-    // is source code, and either (b0) there is no object code,
-    // or (b1) there is object code, but it's older than the source
-    if (javaFile.exists() &&
-         (!classFile.exists() ||
-          javaFile.lastModified() > classFile.lastModified())) {
- 
-      try {
-        // Try to compile it.  If this doesn't work, then
-        // we must declare failure.  (It's not good enough to use
-        // and already-existing, but out-of-date, classfile)
-        if (!compile( javaFilename ) || !classFile.exists()) {
-          throw new ClassNotFoundException( "Compile failed: "+javaFilename );
+public class CompilingClassLoader extends ClassLoader {
+   
+    private String binpath;
+    private String srcpath;
+    private String libpath;
+    private String name;
+    private boolean resolve;
+    private boolean externalJARs;
+    private List<Method> methods;
+    private List<Class> loadedClasses;
+   
+    @SuppressWarnings("resource")
+    private byte[] getBytes( String filename ) throws IOException {
+        File file = new File( filename );
+        long len = file.length();
+        byte raw[] = new byte[(int)len];
+        FileInputStream fin = new FileInputStream( file );
+        int r = fin.read( raw );
+        if (r != len)
+            throw new IOException( "Can't read all, " + r + " != " + len );
+        fin.close();
+        return raw;
+    }
+   
+    private void moveFile( File classFile )
+    {
+        File replace = new File(binpath + "\\" + classFile.getName() );
+        if( replace.exists() )
+            replace.delete();
+        if(classFile.renameTo( new File(binpath + "\\" + classFile.getName() ) ) )
+            classFile.delete();
+    }
+   
+    private void moveClassFilestoBin()
+    {
+        File file = new File(binpath); // make sure that the bin folder still exists, if not create it
+        if (!file.exists() || !file.isDirectory() )
+            file.mkdir();
+        new ArrayList<File>(Arrays.asList(new File(srcpath).listFiles(MainFrame.classFilter))).forEach( classFile -> moveFile(classFile) );
+    }
+       
+    private boolean compile(String javaFileName ) throws IOException // maybe change later so that we store the compiled classes in a folder called bin
+    {
+        if( new Compile( srcpath, name + ".java", libpath, externalJARs ).compile().success )
+        {
+            moveClassFilestoBin();
+            return true;
         }
-      } catch( IOException ie ) {
- 
-        // Another place where we might come to if we fail
-        // to compile
-        throw new ClassNotFoundException( ie.toString() );
-      }
+        return false;
     }
- 
-    // Let's try to load up the raw bytes, assuming they were
-    // properly compiled, or didn't need to be compiled
-    try {
- 
-      // read the bytes
-      byte raw[] = getBytes( classFilename );
- 
-      // try to turn them into a class
-      clas = defineClass( name, raw, 0, raw.length );
-    } catch( IOException ie ) {
-      // This is not a failure!  If we reach here, it might
-      // mean that we are dealing with a class in a library,
-      // such as java.lang.Object
+   
+    public CompilingClassLoader( String binpath, String srcpath, String libpath, String name, boolean resolve, boolean externalJARs )
+    {
+        this.binpath = binpath;
+        this.srcpath = srcpath;
+        this.libpath = libpath;
+        this.name = name;
+        this.resolve = resolve;
+        this.externalJARs = externalJARs;
+        methods = new ArrayList<Method>();
+        loadedClasses = new ArrayList<Class>();
     }
- 
-    //System.out.println( "defineClass: "+clas );
- 
-    // Maybe the class is in a library -- try loading
-    // the normal way
-    if (clas==null) {
-      clas = findSystemClass( name );
+   
+    public List<Method> getMethods( )
+    {
+        return methods;
     }
+   
+    public List<Class> getLoadedClasses( )
+    {
+        return loadedClasses;
+    }
+   
+    public Class loadClass() throws ClassNotFoundException
+    {
+        MainFrame.clearClassLoader();
+       
+        // Clas will not be loaded in memory and thus is will always be null
+        Class clas = null;
+       
+        String fileStub = name.replace( '.', '/' );
+        final String javaFilename = srcpath +   File.separator + fileStub + ".java";
+        final String classFilename = binpath + File.separator + fileStub + ".class";
+        File javaFile = new File( javaFilename );
+        File classFile = new File( classFilename );
  
-    //System.out.println( "findSystemClass: "+clas );
- 
-    // Resolve the class, if any, but only if the "resolve"
-    // flag is set to true
-    if (resolve && clas != null)
-      resolveClass( clas );
- 
-    // If we still don't have a class, it's an error
-    if (clas == null)
-      throw new ClassNotFoundException( name );
- 
-    // Otherwise, return the class
-    return clas;
-  }
+        if (javaFile.exists() && (!classFile.exists() || javaFile.lastModified() > classFile.lastModified())) {
+            try {
+                if (!compile( javaFilename ) || !classFile.exists())
+                    throw new ClassNotFoundException( "Compile failed: "+ javaFilename );
+            } catch( IOException ie ) {
+                throw new ClassNotFoundException( ie.toString() );
+            }
+        }
+           
+        try {
+            byte raw[] = getBytes( classFilename );
+            clas = defineClass( name, raw, 0, raw.length );
+        } catch( IOException ie ) {
+        }
+       
+        // check to see if the class is already loaded?
+        if (clas==null) {
+            clas = findSystemClass( name );
+        }
+       
+        if (resolve && clas != null)
+            resolveClass( clas );
+       
+        if (clas == null)
+            throw new ClassNotFoundException( name );
+         
+        if( clas.getDeclaredMethods() != null )
+            methods.addAll(Arrays.asList(clas.getDeclaredMethods()));
+       
+        loadedClasses.add( clas );
+       
+        return clas;
+    }
 }

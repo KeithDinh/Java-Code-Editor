@@ -8,6 +8,7 @@ public class Compile implements Runnable
 	{
 		public boolean success;
 		public boolean directoryExists;
+		public boolean libDirectoryExists;
 		public boolean fileExists;
 		public boolean fileEndsWithDotJava;
 		public StringBuilder javacOutput;
@@ -23,6 +24,7 @@ public class Compile implements Runnable
 		{
 			success = false;
 			directoryExists = false;
+			libDirectoryExists = false;
 			fileExists = false;
 			fileEndsWithDotJava = false;
 			javacOutput = null;
@@ -54,9 +56,11 @@ public class Compile implements Runnable
 	}
 
 	private String directory;
+	private String libDirectory;
 	private String file;
 	private InputStream processInputStream;
 	private CompilationResult result;
+	private boolean externalJARs;
 		
 	public Compile()
 	{
@@ -64,11 +68,14 @@ public class Compile implements Runnable
 		file = null;
 		processInputStream = null;
 		result = null;
+		externalJARs = false;
 	}
-	public Compile( String directory, String file )
+	public Compile( String directory, String file, String libDirectory, boolean externalJARs )
 	{
 		this.directory = directory;
 		this.file = file;
+		this.externalJARs = externalJARs;
+		this.libDirectory = libDirectory;
 		processInputStream = null;
 		result = null;
 	}
@@ -147,8 +154,23 @@ public class Compile implements Runnable
 			result.errorMessage = "no directory";
 		if( directory != null && Files.notExists( Paths.get( directory ) ) )
 			result.errorMessage = "directory " + directory + " does not exists";
-		result.directoryExists = true;
-
+		else
+			result.directoryExists = true;
+		
+		if( externalJARs ) 
+		{
+			if( libDirectory == null )
+				result.errorMessage = "no lib directory";
+			if( libDirectory != null && Files.notExists( Paths.get( libDirectory ) ) )
+				result.errorMessage = "directory " + libDirectory + " does not exists";
+			else 
+				result.libDirectoryExists = true; 
+		}
+		else result.libDirectoryExists = true; 
+		
+		if( result.errorMessage != null )
+			return result;
+		
 		if( file == null )
 			result.errorMessage = "no source file";
 		if( file != null && !file.endsWith( ".java" ) )
@@ -168,11 +190,23 @@ public class Compile implements Runnable
 			ProcessBuilder pb = new ProcessBuilder();
 
 			// use cmd.exe /c javac <file> with Windows.  use sh -c javac <file> with UNIX
-
-			if( System.getProperty( "os.name" ).toLowerCase().startsWith( "windows" ) )
-				pb.command( "cmd.exe", "/c", "javac", file );
-			else
-				pb.command( "sh", "-c", "javac", file );
+			// FOR NO EXTERNAL DEPENDENCIES: javac Main.java
+			// FOR EXTERNAL DEPENDENCIES javac -Xlint:deprecation -Xlint:unchecked -cp "lib_dir" + "\\*";. Main.java 
+			
+			if( externalJARs ) 
+			{
+				if( System.getProperty( "os.name" ).toLowerCase().startsWith( "windows" ) )
+					pb.command( "cmd.exe", "/c", "javac -Xlint:deprecation -Xlint:unchecked -cp " + "\"" + libDirectory + "\\*\";.", file );
+				else
+					pb.command( "sh", "-c", "javac -Xlint:deprecation -Xlint:unchecked -cp " + "\"" + libDirectory + "\\*\";.", file );
+			}
+			else 
+			{
+				if( System.getProperty( "os.name" ).toLowerCase().startsWith( "windows" ) )
+					pb.command( "cmd.exe", "/c", "javac", file );
+				else
+					pb.command( "sh", "-c", "javac", file );	
+			}
 
 			pb.directory( new File( directory ) ); 
 			pb.redirectErrorStream( true ); // combine standard output and standard error
@@ -181,6 +215,7 @@ public class Compile implements Runnable
 			c = new Compile( p.getInputStream() ); // create a new object for the thread that reads and saves standard output and standard error from javac
 			result = c.getCompilationResult(); // use the CompilationResult from the new thread but already know we have a valid directory and file
 			result.directoryExists = true;
+			result.libDirectoryExists = true;
 			result.fileEndsWithDotJava = true;
 			result.fileExists = true;
 			new Thread( c ).start(); // get standard output and standard error from javac
@@ -215,6 +250,7 @@ public class Compile implements Runnable
 
 		result.success =
 				( result.directoryExists )
+			&&  ( result.libDirectoryExists )
 			&&	( result.fileExists )
 			&&	( result.fileEndsWithDotJava )
 			&&	( result.javacOutput != null )
